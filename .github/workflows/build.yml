@@ -2,26 +2,28 @@ name: Autobuild
 on: push
 
 jobs:
-  container:
+  mister-release:
     runs-on: ubuntu-latest
-    container: misterkun/toolchain
     steps:
       - name: Checkout Main
         uses: actions/checkout@v2
         with:
           path: main
+      - name: Check actions
+        run: |
+          ls /actions
       - name: Checkout Mister
         uses: actions/checkout@v2
         with:
           repository: MiSTer-devel/Main_MiSTer
           path: main_mister
-
       - name: Patch Mister
         run: |
           ./main/scripts/patchall.sh ./main_mister
       - name: Build Mister
-        run: make
-        working-directory: ./main
+        uses: docker://misterkun/toolchain
+        with:
+          args: make -C ./main_mister 
       - name: Set Release Date
         run: |
           echo "RELEASE_DATE=`date +%Y%m%d`" >> $GITHUB_ENV
