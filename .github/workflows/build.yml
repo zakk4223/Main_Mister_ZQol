@@ -9,9 +9,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: main
-      - name: Check actions
-        run: |
-          ls /actions
       - name: Checkout Mister
         uses: actions/checkout@v2
         with:
@@ -35,7 +32,7 @@ jobs:
         with:
           author_name: Zakk
           author_email: zakk@rsdio.com
-          message: "Automated Release ${{ env.RELEASE_DATE }}"
+          message: "[skip ci] Automated Release ${{ env.RELEASE_DATE }}"
           add: "./releases/MiSTer_${{ env.RELEASE_DATE }}"
           cwd: './main'
 
