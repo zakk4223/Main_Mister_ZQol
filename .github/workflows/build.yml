@@ -5,6 +5,9 @@ jobs:
   mister-release:
     runs-on: ubuntu-latest
     steps:
+      - name: register ARM
+        run: |
+          docker run --rm --privileged hypriot/qemu-register
       - name: Checkout Main
         uses: actions/checkout@v2
         with:
