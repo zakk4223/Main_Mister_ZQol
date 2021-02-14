@@ -1,0 +1,41 @@
+name: Autobuild
+on: push
+
+jobs:
+  container:
+    runs-on: ubuntu-latest
+    container: misterkun/toolchain
+    steps:
+      - name: Checkout Main
+        uses: actions/checkout@v2
+        with:
+          path: main
+      - name: Checkout Mister
+        uses: actions/checkout@v2
+        with:
+          repository: MiSTer-devel/Main_MiSTer
+          path: main_mister
+
+      - name: Patch Mister
+        run: |
+          ./main/scripts/patchall.sh ./main_mister
+      - name: Build Mister
+        run: make
+        working-directory: ./main
+      - name: Set Release Date
+        run: |
+          echo "RELEASE_DATE=`date +%Y%m%d`" >> $GITHUB_ENV
+      - name: Copy Release
+        run: |
+          cp ./main_mister/MiSTer ./main/releases/MiSTer_`date +%Y%m%d`
+      - name: Check in release
+        uses: EndBug/add-and-commit@v7
+        with:
+          author_name: Zakk
+          author_email: zakk@rsdio.com
+          message: "Automated Release ${{ env.RELEASE_DATE }}"
+          add: "./releases/MiSTer_${{ env.RELEASE_DATE }}"
+          cwd: './main'
+
+
+
