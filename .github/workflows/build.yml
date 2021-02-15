@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DO_RUN_BUILD: YES
+      LAST_MISTER_SHA: ''
     steps:
       - name: Checkout Main
         uses: actions/checkout@v2
@@ -27,7 +28,7 @@ jobs:
           if [[ -f "./main_last_build_sum" ]]; then
             LAST_BUILD_SHA=`cat ./main/last_build_sum`
           fi
-          echo "${LAST_BUILD_SHA}" > ./main/last_build_sum
+          echo "LAST_MISTER_SHA=${LAST_MISTER_SHA}" >> $GITHUB_ENV
           if [[ "$LAST_MISTER_SHA" == "$LAST_BUILD_SHA" ]]; then
             echo "DO_RUN_BUILD=NO" >> $GITHUB_ENV  
           fi
@@ -52,6 +53,10 @@ jobs:
         if: env.DO_RUN_BUILD == 'YES'
         run: |
           cp ./main_mister/MiSTer ./main/releases/MiSTer_`date +%Y%m%d`
+      - name: Set last mister checksum
+        if: env.DO_RUN_BUILD == 'YES' && env.LAST_MISTER_SHA != ''
+        run: |
+          echo "${LAST_MISTER_SHA}" >> ./main/last_build_sum
       - name: Check in release
         if: env.DO_RUN_BUILD == 'YES'
         uses: EndBug/add-and-commit@v7
