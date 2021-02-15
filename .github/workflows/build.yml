@@ -25,7 +25,7 @@ jobs:
           LAST_MISTER_RELEASE=`find ./main_mister/releases -type f | cut -d'_' -f3 | sort | tail -1`
           LAST_MISTER_SHA=`sha1sum ./main_mister/releases/MiSTer_${LAST_MISTER_RELEASE} | cut -f1 -d ' '`
           LAST_BUILD_SHA=""
-          if [[ -f "./main_last_build_sum" ]]; then
+          if [[ -f "./main/last_build_sum" ]]; then
             LAST_BUILD_SHA=`cat ./main/last_build_sum`
           fi
           echo "LAST_MISTER_SHA=${LAST_MISTER_SHA}" >> $GITHUB_ENV
