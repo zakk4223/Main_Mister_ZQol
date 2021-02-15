@@ -1,13 +1,14 @@
 name: Autobuild
-on: push
-
+on: 
+  push:
+  schedule:
+    - cron: '*/30 * * * *'
 jobs:
   mister-release:
     runs-on: ubuntu-latest
+    env:
+      DO_RUN_BUILD: YES
     steps:
-      - name: register ARM
-        run: |
-          docker run --rm --privileged hypriot/qemu-register
       - name: Checkout Main
         uses: actions/checkout@v2
         with:
@@ -17,27 +18,46 @@ jobs:
         with:
           repository: MiSTer-devel/Main_MiSTer
           path: main_mister
+      - name: Check if build needed
+        if: github.event_name == 'schedule'
+        run: |
+          LAST_MISTER_RELEASE=`find ./main_mister/releases -type f | cut -d'_' -f3 | sort | tail -1`
+          LAST_MISTER_SHA=`sha1sum ./main_mister/releases/MiSTer_${LAST_MISTER_RELEASE}`
+          LAST_BUILD_SHA=""
+          if [[ -f "./main_last_build_sum" ]]; then
+            LAST_BUILD_SHA=`cat ./main/last_build_sum`
+          fi
+          echo "${LAST_BUILD_SHA}" > ./main/last_build_sum
+          if [[ "$LAST_MISTER_SHA" == "$LAST_BUILD_SHA" ]]; then
+            echo "DO_RUN_BUILD=NO" >> $GITHUB_ENV  
+          fi
+      - name: register ARM
+        if: env.DO_RUN_BUILD == 'YES'
+        run: |
+          docker run --rm --privileged hypriot/qemu-register
       - name: Patch Mister
+        if: env.DO_RUN_BUILD == 'YES'
         run: |
           ./main/scripts/patchall.sh ./main_mister
       - name: Build Mister
+        if: env.DO_RUN_BUILD == 'YES'
         uses: docker://misterkun/toolchain
         with:
           args: make -C ./main_mister 
       - name: Set Release Date
+        if: env.DO_RUN_BUILD == 'YES'
         run: |
           echo "RELEASE_DATE=`date +%Y%m%d`" >> $GITHUB_ENV
       - name: Copy Release
+        if: env.DO_RUN_BUILD == 'YES'
         run: |
           cp ./main_mister/MiSTer ./main/releases/MiSTer_`date +%Y%m%d`
       - name: Check in release
+        if: env.DO_RUN_BUILD == 'YES'
         uses: EndBug/add-and-commit@v7
         with:
           author_name: Zakk
           author_email: zakk@rsdio.com
-          message: "[skip ci] Automated Release ${{ env.RELEASE_DATE }}"
-          add: "./releases/MiSTer_${{ env.RELEASE_DATE }}"
+          message: "Automated Release ${{ env.RELEASE_DATE }}"
+          add: '["./releases/MiSTer_${{ env.RELEASE_DATE }}", "last_build_sum"]'
           cwd: './main'
-
-
-
