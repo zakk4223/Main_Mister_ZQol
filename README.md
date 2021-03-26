@@ -22,7 +22,7 @@ Note this uses a slightly modified version of the mister_updater.sh script that 
 
 If you are using the update_all.sh script, create the file /media/fat/Scripts/update_all.ini and add this line (you still need to modify the update.ini file above):
 
-```MISTER_DEVEL_UPDATER_URL="https://raw.githubusercontent.com/zakk4223/Updater_script_MiSTer/master/mister_updater.sh"```
+```MISTER_DEVEL_UPDATER_URL="https://raw.githubusercontent.com/zakk4223/Updater_script_MiSTer/main_update/mister_updater.sh"```
 
 I make no promises I won't break things horribly, but my intent is to only have small 'nice to have' patches here, no large reworks of existing Mister functionality.
 
