@@ -1,0 +1,986 @@
+From 3cf26ae9e691aaedd9ae2c39627bbe8db47f2586 Mon Sep 17 00:00:00 2001
+From: Zakk <zakk@rsdio.com>
+Date: Fri, 16 Apr 2021 02:38:41 -0400
+Subject: [PATCH 2/2] Add mame style autofire. Autofire settings are saved when
+ 'Save settings' is activated. Settings are per-core (or per setname for
+ mras).
+
+---
+ input.cpp  | 193 ++++++++++++++++++++++++++++-
+ input.h    |  22 ++++
+ main.cpp   |   1 +
+ menu.cpp   | 354 ++++++++++++++++++++++++++++++++++++++++++++++-------
+ scaler.cpp |  14 +++
+ scaler.h   |   2 +
+ 6 files changed, 536 insertions(+), 50 deletions(-)
+
+diff --git a/input.cpp b/input.cpp
+index 528a5d2..23133e0 100644
+--- a/input.cpp
++++ b/input.cpp
+@@ -27,6 +27,7 @@
+ #include "video.h"
+ #include "joymapping.h"
+ #include "support.h"
++#include "scaler.h"
+ 
+ #define NUMDEV 30
+ #define NUMPLAYERS 6
+@@ -904,15 +905,29 @@ typedef struct
+ 	char     name[128];
+ } devInput;
+ 
++
+ static devInput input[NUMDEV] = {};
+ static devInput player_pad[NUMPLAYERS] = {};
+ static devInput player_pdsp[NUMPLAYERS] = {};
++static autoFireButton auto_fire_defs[NUMPLAYERS][16] = {};
+ 
+ #define BTN_NUM (sizeof(devInput::map) / sizeof(devInput::map[0]))
+ 
+ int mfd = -1;
+ int mwd = -1;
+ 
++
++
++autoFireButton *get_auto_fire_defs(int pnum)
++{
++	if (pnum < 0 || pnum >= NUMPLAYERS)
++	{
++		return NULL;
++	}
++	return auto_fire_defs[pnum];
++}
++
++
+ static int set_watch()
+ {
+ 	mwd = -1;
+@@ -1084,6 +1099,9 @@ static int mapping_clear;
+ static int mapping_set;
+ static int last_input_dev = 1<<31;
+ static int last_pdsp_dev = 1<<31;
++static bool ev_capturing = false;
++static int ev_capture_pnum = -1;
++static uint32_t captured_ev_code = 0;
+ 
+ static int player_num_remapping = 0;
+ static int remapping_spinner_input = 0;
+@@ -1238,6 +1256,26 @@ void finish_map_setting(int dismiss)
+ 	}
+ }
+ 
++void start_code_capture(int pnum)
++{
++	
++	ev_capture_pnum = pnum;
++	ev_capturing = true;
++	captured_ev_code = 0;
++}
++
++void end_code_capture()
++{
++	ev_capturing = false;
++	captured_ev_code = 0;
++}
++
++uint32_t get_captured_code()
++{
++	return captured_ev_code;
++}	
++
++
+ void input_lightgun_save(int idx, uint16_t *cal)
+ {
+ 	static char name[128];
+@@ -1345,6 +1383,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+ static int kbd_toggle = 0;
+ static uint32_t joy[NUMPLAYERS] = {};
+ static uint32_t autofire[NUMPLAYERS] = {};
++static uint32_t autofire_new[NUMPLAYERS] = {};
+ static uint32_t autofirecodes[NUMPLAYERS][BTN_NUM] = {};
+ static int af_delay[NUMPLAYERS] = {};
+ 
+@@ -1357,6 +1396,7 @@ static int mouse_emu_x = 0;
+ static int mouse_emu_y = 0;
+ 
+ static uint32_t mouse_timer = 0;
++static mister_scaler *scaler_inst = NULL;
+ 
+ #define BTN_TGL 100
+ #define BTN_OSD 101
+@@ -1836,6 +1876,10 @@ void swap_player(int cur_dev, int new_num)
+ 	{
+ 		return;
+ 	}
++	autoFireButton tmp[16] = {};
++	memcpy(tmp, auto_fire_defs[new_num], sizeof(tmp));
++	memcpy(auto_fire_defs[new_num], auto_fire_defs[cur_num], sizeof(tmp));
++	memcpy(auto_fire_defs[cur_num], tmp, sizeof(tmp));
+         input[cur_dev].num = new_num;
+         store_player(new_num, cur_dev);
+         //Swap if there was already one assigned there
+@@ -1869,6 +1913,15 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+ 	if (ev->type != EV_KEY && ev->type != EV_ABS && ev->type != EV_REL) return;
+ 	if (ev->type == EV_KEY && (!ev->code || ev->code == KEY_UNKNOWN)) return;
+ 
++
++	
++	if (input[dev].num && ev_capturing && ev->value && ev_capture_pnum == input[dev].num && ev->type == EV_KEY)
++	{
++
++		captured_ev_code = ev->code;
++		return;
++	}
++
+ 	static uint16_t last_axis = 0;
+ 
+ 	int sub_dev = dev;
+@@ -2517,6 +2570,26 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+ 						}
+ 					}
+ 
++
++                                        for (uint i = 0; i < 16; i++)
++                                        {
++                                                autoFireButton *afb = &auto_fire_defs[input[dev].num][i];
++
++                                                if (ev->code == afb->code)
++                                                {
++                                                        afb->pressed = ev->value;
++                                                        afb->cur_state_frames = 0;
++                                                        afb->last_frame = -1;
++                                                        if (afb->pressed)
++                                                        {
++                                                                afb->is_on = true;
++                                                        } else {
++                                                                afb->is_on = false;
++                                                        }
++                                                }
++
++                                        }
++
+ 					if (ev->code == input[dev].mmap[SYS_MS_BTN_EMU] && (ev->value <= 1) && ((!(mouse_emu & 1)) ^ (!ev->value)))
+ 					{
+ 						mouse_emu = ev->value ? mouse_emu | 1 : mouse_emu & ~1;
+@@ -3210,6 +3283,12 @@ int input_test(int getchar)
+ 
+ 		pool[NUMDEV + 2].fd = open(LED_MONITOR, O_RDONLY);
+ 		pool[NUMDEV + 2].events = POLLPRI;
++		if (scaler_inst)
++		{
++			mister_scaler_free(scaler_inst);
++		}
++
++		scaler_inst = mister_scaler_init();
+ 
+ 		state++;
+ 	}
+@@ -3963,6 +4042,56 @@ int input_test(int getchar)
+ 	return 0;
+ }
+ 
++
++void process_autofire(int pnum, int curr_frame, uint32_t joy_state)
++{
++
++        autofire_new[pnum] = joy_state; 
++        for (uint i = 0; i < 16; i++)
++        {
++                autoFireButton *afb = &auto_fire_defs[pnum+1][i];
++                if (afb->pressed)
++                {
++                        if (afb->last_frame != curr_frame)
++                        {
++                                afb->last_frame = curr_frame;
++                                afb->cur_state_frames++;
++
++                                if (afb->is_on)
++                                {
++                                        if (afb->cur_state_frames > afb->on_frames)
++                                        {
++                                                afb->cur_state_frames = 1;
++						//If off_frames is set to zero, never switch state
++						//(continually pressed)
++						if (afb->off_frames)
++							
++						{
++                                                	afb->is_on = !afb->is_on;
++						}
++
++                                        }
++                                } else {
++                                        if (afb->cur_state_frames > afb->off_frames)
++                                        {
++                                                afb->cur_state_frames = 1;
++                                                afb->is_on = !afb->is_on;
++                                        }
++                                }
++
++                        }
++
++                        if (!(joy[pnum] & 1<<afb->bnum))
++                        {
++                                if (afb->is_on) autofire_new[pnum] |= 1<<afb->bnum;
++                                else autofire_new[pnum] &= ~(1<<afb->bnum);
++                        }
++                }
++        }
++
++}
++
++
+ int input_poll(int getchar)
+ {
+ 	static int af[NUMPLAYERS] = {};
+@@ -4003,14 +4132,17 @@ int input_poll(int getchar)
+ 
+ 	if (grabbed)
+ 	{
++
++		int curr_frame = mister_scaler_frame_counter(scaler_inst);
+ 		for (int i = 0; i < NUMPLAYERS; i++)
+ 		{
++
++                        int send = 0;
++			
+ 			if (af_delay[i] < AF_MIN) af_delay[i] = AF_MIN;
+ 
+ 			if (!time[i]) time[i] = GetTimer(af_delay[i]);
+-			int send = 0;
+ 
+-			int newdir = ((joy[i] & 0xF) != (joy_prev[i] & 0xF));
+ 			if (joy[i] != joy_prev[i])
+ 			{
+ 				if ((joy[i] ^ joy_prev[i]) & autofire[i])
+@@ -4018,9 +4150,6 @@ int input_poll(int getchar)
+ 					time[i] = GetTimer(af_delay[i]);
+ 					af[i] = 0;
+ 				}
+-
+-				send = 1;
+-				joy_prev[i] = joy[i];
+ 			}
+ 
+ 			if (CheckTimer(time[i]))
+@@ -4029,10 +4158,26 @@ int input_poll(int getchar)
+ 				af[i] = !af[i];
+ 				if (joy[i] & autofire[i]) send = 1;
+ 			}
++			
++
++
++			process_autofire(i, curr_frame, joy[i]);
++                        int newdir = ((autofire_new[i] & 0xF) != (joy_prev[i] & 0xF));
+ 
++			if (autofire_new[i] != joy_prev[i])
++			{
++				send = 1;
++				if ((autofire_new[i] ^ joy_prev[i]) & autofire[i])
++				{
++					time[i] = GetTimer(af_delay[i]);
++					af[i] = 0;
++				}
++				joy_prev[i] = autofire_new[i];
++			}
+ 			if (send)
+ 			{
+-				user_io_digital_joystick(i, af[i] ? joy[i] & ~autofire[i] : joy[i], newdir);
++				//user_io_digital_joystick(i, autofire_new[i], newdir);
++				user_io_digital_joystick(i, af[i] ? autofire_new[i] & ~autofire[i] : autofire_new[i], newdir);
+ 			}
+ 		}
+ 	}
+@@ -4176,3 +4321,39 @@ void parse_buttons()
+ 		joy_bcount++;
+ 	}
+ }
++
++void input_autofire_save()
++{
++                char path[256] = CONFIG_DIR"/autofire/";
++                FileCreatePath(path);
++                strcat(path, user_io_create_config_name());
++
++                uint8_t *buf = new uint8_t[sizeof(auto_fire_defs)];
++		printf("SAVE FILE %s SIZE %d\n", path, sizeof(auto_fire_defs));
++                if (buf)
++                {
++			memcpy(buf, auto_fire_defs, sizeof(auto_fire_defs));
++                        FileSave(path, buf, sizeof(auto_fire_defs));
++                        delete(buf);
++                }
++}
++
++
++void input_autofire_load()
++{
++                char path[256] = "autofire/";
++                uint8_t *buf = new uint8_t[sizeof(auto_fire_defs)];
++                if (buf)
++                {
++                        memset(buf, 0, sizeof(auto_fire_defs));
++
++                        strcat(path, user_io_create_config_name());
++                        if (FileLoadConfig(path, buf, sizeof(auto_fire_defs)))
++                        {
++				memcpy(auto_fire_defs, buf, sizeof(auto_fire_defs));
++                        }
++
++                        delete(buf);
++                }
++}
++
+diff --git a/input.h b/input.h
+index eb33221..871cb7e 100644
+--- a/input.h
++++ b/input.h
+@@ -71,6 +71,20 @@
+ 
+ #define KEY_EMU (KEY_MAX+1)
+ 
++
++typedef struct {
++
++        int bnum;
++        uint32_t code;
++        int on_frames;
++        int off_frames;
++        int cur_state_frames;
++        bool is_on;
++        bool pressed;
++        int last_frame;
++} autoFireButton;
++
++
+ void set_kbdled(int mask, int state);
+ int  get_kbdled(int mask);
+ int  toggle_kbdled(int mask);
+@@ -100,6 +114,14 @@ int get_pdsp_mask();
+ int get_dev_num(int dev);
+ int get_remap_spinner_value();
+ int get_numplayers();
++void start_code_capture(int pnum);
++void end_code_capture();
++uint32_t get_captured_code();
++void input_autofire_save();
++void input_autofire_load();
++
++autoFireButton *get_auto_fire_defs(int pnum);
++
+ 
+ uint32_t get_key_mod();
+ uint32_t get_ps2_code(uint16_t key);
+diff --git a/main.cpp b/main.cpp
+index f9109d2..e39d977 100644
+--- a/main.cpp
++++ b/main.cpp
+@@ -67,6 +67,7 @@ int main(int argc, char *argv[])
+ 
+ 	FindStorage();
+ 	user_io_init((argc > 1) ? argv[1] : "",(argc > 2) ? argv[2] : NULL);
++	input_autofire_load();
+ 
+ #ifdef USE_SCHEDULER
+ 	scheduler_init();
+diff --git a/menu.cpp b/menu.cpp
+index f757cbb..f48e0bf 100644
+--- a/menu.cpp
++++ b/menu.cpp
+@@ -183,6 +183,13 @@ enum MENU
+ 	// MT32-pi
+ 	MENU_MT32PI_MAIN1,
+ 	MENU_MT32PI_MAIN2,
++
++	//Autofire
++	MENU_AUTOFIRE_LIST1,
++	MENU_AUTOFIRE_LIST2,
++	MENU_AUTOFIRE_EDIT1,
++	MENU_AUTOFIRE_EDIT2,
++	MENU_AUTOFIRE_CAPTURE1,
+ };
+ 
+ static uint32_t menustate = MENU_NONE1;
+@@ -268,6 +275,10 @@ static uint32_t fs_Options;
+ static uint32_t fs_MenuSelect;
+ static uint32_t fs_MenuCancel;
+ 
++
++static int af_edit_idx = -1;
++static int af_player_num = 0;
++
+ static char* GetExt(char *ext)
+ {
+ 	static char extlist[32];
+@@ -979,6 +990,52 @@ static int gun_idx = 0;
+ static uint16_t gun_pos[4] = {};
+ static int page = 0;
+ 
++
++static void menu_button_name(int button, char *buf, size_t bsize)
++{
++	switch(button)
++	{
++	        case 0:
++	                strncpy(buf, "Right", bsize);
++	                break;
++	        case 1:
++	                strncpy(buf, "Left", bsize);
++	                break;
++	        case 2:
++	                strncpy(buf, "Down", bsize);
++	                break;
++	        case 3:
++	                strncpy(buf, "Up", bsize);
++	                break;
++	        default:
++	                if ((button-4 < joy_bcount) && joy_bnames[button-4][0])
++	                {
++	                        strncpy(buf, joy_bnames[button-4], bsize);
++	                } else {
++	                        snprintf(buf, bsize, "%d", button-4);
++	                }
++	}
++}
++
++static void menu_parse_buttons()
++{
++	if (is_minimig())
++	{
++		joy_bcount = 7;
++		strcpy(joy_bnames[0], "A(Red/Fire)");
++		strcpy(joy_bnames[1], "B(Blue)");
++		strcpy(joy_bnames[2], "C(Yellow)");
++		strcpy(joy_bnames[3], "D(Green)");
++		strcpy(joy_bnames[4], "RT");
++		strcpy(joy_bnames[5], "LT");
++		strcpy(joy_bnames[6], "Pause");
++	}
++	else
++	{
++		parse_buttons();
++        }
++
++}
+ void HandleUI(void)
+ {
+ 	switch (user_io_core_type())
+@@ -2285,7 +2342,7 @@ void HandleUI(void)
+ 			while(1)
+ 			{
+ 				n = 0;
+-				menumask = 0xf80F;
++				menumask = 0xf81F;
+ 
+ 				if (!menusub) firstmenu = 0;
+ 				adjvisible = 0;
+@@ -2298,10 +2355,11 @@ void HandleUI(void)
+ 				MenuWrite(n++, s, menusub == 1, 0);
+ 				MenuWrite(n++, " Button/Key remap for game \x16", menusub == 2, 0);
+ 				MenuWrite(n++, " Change player assignment  \x16", menusub == 3, 0);
++				MenuWrite(n++, " Autofire                  \x16", menusub == 4, 0);
+ 
+ 				if (user_io_get_uart_mode())
+ 				{
+-					menumask |= 0x10;
++					menumask |= 0x20;
+ 					MenuWrite(n++);
+ 					int mode = GetUARTMode();
+ 					const char *p = config_uart_msg[mode];
+@@ -2309,15 +2367,15 @@ void HandleUI(void)
+ 					sprintf(s, " UART mode (%s)            ",p);
+ 					s[27] = '\x16';
+ 					s[28] = 0;
+-					MenuWrite(n++, s, menusub == 4);
++					MenuWrite(n++, s, menusub == 5);
+ 				}
+ 
+ 				if (video_get_scaler_flt() >= 0 && !cfg.direct_video)
+ 				{
+ 					MenuWrite(n++);
+-					menumask |= 0x60;
++					menumask |= 0xC0;
+ 					sprintf(s, " Scale filter - %s", config_scaler_msg[video_get_scaler_flt() ? 1 : 0]);
+-					MenuWrite(n++, s, menusub == 5);
++					MenuWrite(n++, s, menusub == 6);
+ 
+ 					memset(s, 0, sizeof(s));
+ 					s[0] = ' ';
+@@ -2327,15 +2385,15 @@ void HandleUI(void)
+ 					while(strlen(s) < 26) strcat(s, " ");
+ 					strcat(s, " \x16 ");
+ 
+-					MenuWrite(n++, s, menusub == 6, !video_get_scaler_flt() || !S_ISDIR(getFileType(COEFF_DIR)));
++					MenuWrite(n++, s, menusub == 7, !video_get_scaler_flt() || !S_ISDIR(getFileType(COEFF_DIR)));
+ 				}
+ 
+ 				if (video_get_gamma_en() >=0)
+ 				{
+ 					MenuWrite(n++);
+-					menumask |= 0x180;
++					menumask |= 0x300;
+ 					sprintf(s, " Gamma correction - %s", config_gamma_msg[video_get_gamma_en() ? 1 : 0]);
+-					MenuWrite(n++, s, menusub == 7);
++					MenuWrite(n++, s, menusub == 8);
+ 
+ 					memset(s, 0, sizeof(s));
+ 					s[0] = ' ';
+@@ -2345,15 +2403,15 @@ void HandleUI(void)
+ 					while(strlen(s) < 26) strcat(s, " ");
+ 					strcat(s, " \x16 ");
+ 
+-					MenuWrite(n++, s, menusub == 8, !video_get_gamma_en() || !S_ISDIR(getFileType(GAMMA_DIR)));
++					MenuWrite(n++, s, menusub == 9, !video_get_gamma_en() || !S_ISDIR(getFileType(GAMMA_DIR)));
+ 				}
+ 
+ 				if (audio_filter_en() >= 0)
+ 				{
+ 					MenuWrite(n++);
+-					menumask |= 0x600;
++					menumask |= 0xC00;
+ 					sprintf(s, " Audio filter - %s", config_afilter_msg[audio_filter_en() ? 1 : 0]);
+-					MenuWrite(n++, s, menusub == 9);
++					MenuWrite(n++, s, menusub == 10);
+ 
+ 					memset(s, 0, sizeof(s));
+ 					s[0] = ' ';
+@@ -2363,27 +2421,27 @@ void HandleUI(void)
+ 					while (strlen(s) < 26) strcat(s, " ");
+ 					strcat(s, " \x16 ");
+ 
+-					MenuWrite(n++, s, menusub == 10, !audio_filter_en() || !S_ISDIR(getFileType(AFILTER_DIR)));
++					MenuWrite(n++, s, menusub == 11, !audio_filter_en() || !S_ISDIR(getFileType(AFILTER_DIR)));
+ 				}
+ 
+ 				if (is_minimig() || is_st())
+ 				{
+-					menumask &= ~0x1800;
++					menumask &= ~0x3000;
+ 				}
+ 				else
+ 				{
+ 					MenuWrite(n++);
+-					MenuWrite(n++, " Reset settings", menusub == 11, is_archie());
+-					MenuWrite(n++, " Save settings", menusub == 12, 0);
++					MenuWrite(n++, " Reset settings", menusub == 12, is_archie());
++					MenuWrite(n++, " Save settings", menusub == 13, 0);
+ 				}
+ 
+ 				MenuWrite(n++);
+ 				cr = n;
+-				MenuWrite(n++, " Reboot (hold \x16 cold reboot)", menusub == 13);
+-				MenuWrite(n++, " About", menusub == 14);
++				MenuWrite(n++, " Reboot (hold \x16 cold reboot)", menusub == 14);
++				MenuWrite(n++, " About", menusub == 15);
+ 
+ 				while(n < OsdGetSize() - 1) MenuWrite(n++);
+-				MenuWrite(n++, STD_EXIT, menusub == 15, 0, OSD_ARROW_LEFT);
++				MenuWrite(n++, STD_EXIT, menusub == 16, 0, OSD_ARROW_LEFT);
+ 				sysinfo_timer = 0;
+ 
+ 				if (!adjvisible) break;
+@@ -2394,8 +2452,11 @@ void HandleUI(void)
+ 		break;
+ 
+ 	case MENU_COMMON2:
++		//Need the player number when we go into Autofire menu
++		start_player_remapping();
+ 		if (menu)
+         {
++		end_player_remapping();
+ 			switch (user_io_core_type())
+ 			{
+ 			    case CORE_TYPE_SHARPMZ:
+@@ -2406,6 +2467,7 @@ void HandleUI(void)
+                     menustate = MENU_NONE1;
+                     break;
+             };
++
+         }
+ 
+ 		if (recent && menusub == 0)
+@@ -2428,21 +2490,7 @@ void HandleUI(void)
+ 				break;
+ 
+ 			case 1:
+-				if (is_minimig())
+-				{
+-					joy_bcount = 7;
+-					strcpy(joy_bnames[0], "A(Red/Fire)");
+-					strcpy(joy_bnames[1], "B(Blue)");
+-					strcpy(joy_bnames[2], "C(Yellow)");
+-					strcpy(joy_bnames[3], "D(Green)");
+-					strcpy(joy_bnames[4], "RT");
+-					strcpy(joy_bnames[5], "LT");
+-					strcpy(joy_bnames[6], "Pause");
+-				}
+-				else
+-				{
+-					parse_buttons();
+-				}
++				menu_parse_buttons();
+ 				start_map_setting(joy_bcount ? joy_bcount+4 : 8);
+ 				menustate = MENU_JOYDIGMAP;
+ 				menusub = 0;
+@@ -2460,20 +2508,26 @@ void HandleUI(void)
+ 				menustate = MENU_JOYNUMREMAP;
+ 				menusub = 0;
+ 				break;
+-
+ 			case 4:
++
++				af_player_num = get_dev_num(get_last_input_dev());
++				menustate = MENU_AUTOFIRE_LIST1;
++				menusub = 0;
++				break;
++
++			case 5:
+ 				{
+ 					menustate = MENU_UART1;
+ 					menusub = 0;
+ 				}
+ 				break;
+ 
+-			case 5:
++			case 6:
+ 				video_set_scaler_flt(video_get_scaler_flt() ? 0 : 1);
+ 				menustate = MENU_COMMON1;
+ 				break;
+ 
+-			case 6:
++			case 7:
+ 				if (video_get_scaler_flt())
+ 				{
+ 					snprintf(Selected_tmp, sizeof(Selected_tmp), COEFF_DIR"/%s", video_get_scaler_coeff());
+@@ -2481,12 +2535,12 @@ void HandleUI(void)
+ 					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_COEFF_FILE_SELECTED, MENU_COMMON1);
+ 				}
+ 				break;
+-			case 7:
++			case 8:
+ 				video_set_gamma_en(video_get_gamma_en() ? 0 : 1);
+ 				menustate = MENU_COMMON1;
+ 				break;
+ 
+-			case 8:
++			case 9:
+ 				if (video_get_gamma_en())
+ 				{
+ 					snprintf(Selected_tmp, sizeof(Selected_tmp), GAMMA_DIR"/%s", video_get_gamma_curve());
+@@ -2494,12 +2548,12 @@ void HandleUI(void)
+ 					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_GAMMA_FILE_SELECTED, MENU_COMMON1);
+ 				}
+ 				break;
+-			case 9:
++			case 10:
+ 				audio_set_filter_en(audio_filter_en() ? 0 : 1);
+ 				menustate = MENU_COMMON1;
+ 				break;
+ 
+-			case 10:
++			case 11:
+ 				if (audio_filter_en())
+ 				{
+ 					snprintf(Selected_tmp, sizeof(Selected_tmp), AFILTER_DIR"/%s", audio_get_filter());
+@@ -2507,7 +2561,7 @@ void HandleUI(void)
+ 					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_AFILTER_FILE_SELECTED, MENU_COMMON1);
+ 				}
+ 				break;
+-			case 11:
++			case 12:
+ 				if (!is_archie())
+ 				{
+ 					menustate = MENU_RESET1;
+@@ -2520,7 +2574,7 @@ void HandleUI(void)
+ 				}
+ 				break;
+ 
+-			case 12:
++			case 13:
+ 				// Save settings
+ 				menustate = MENU_GENERIC_MAIN1;
+ 				menusub = 0;
+@@ -2542,10 +2596,11 @@ void HandleUI(void)
+ 					FileSaveConfig(filename, status, 8);
+ 					if (is_x86()) x86_config_save();
+ 					if (is_arcade()) arcade_nvm_save();
++					input_autofire_save();
+ 				}
+ 				break;
+ 
+-			case 13:
++			case 14:
+ 				{
+ 					reboot_req = 1;
+ 
+@@ -2558,7 +2613,7 @@ void HandleUI(void)
+ 				}
+ 				break;
+ 
+-			case 14:
++			case 15:
+ 				menustate = MENU_ABOUT1;
+ 				menusub = 0;
+ 				break;
+@@ -2571,6 +2626,7 @@ void HandleUI(void)
+ 		else if (left)
+ 		{
+ 			// go back to core requesting this menu
++			end_player_remapping();
+ 			switch (user_io_core_type())
+ 			{
+ 			case CORE_TYPE_8BIT:
+@@ -2605,6 +2661,216 @@ void HandleUI(void)
+ 		if(!hold_cnt && reboot_req) fpga_load_rbf("menu.rbf");
+ 		break;
+ 
++	case MENU_AUTOFIRE_LIST1:
++		{
++			OsdSetTitle("Autofire");
++			menu_parse_buttons();
++			menustate = MENU_AUTOFIRE_LIST2;
++			parentstate = MENU_AUTOFIRE_LIST1;
++			af_player_num = get_dev_num(get_last_input_dev());
++			autoFireButton *afbs = get_auto_fire_defs(af_player_num);
++			menumask = 0x1;
++			int menucnt = 0;
++			MenuWrite(0, " New                       \x16", menusub == menucnt++, 0);
++			int n = 1;
++			char bname[32] = {};
++			for(int i = 0; i < 16; i++)
++			{
++				autoFireButton *afb = afbs+i;
++				if (afb->code)
++				{
++					menu_button_name(afb->bnum, bname, sizeof(bname));
++					sprintf(s, " Button %s [%d Hz]", bname, 60 / (afb->on_frames + afb->off_frames));
++					s[27] = '\x16';
++					s[28] = 0;
++					menumask |= 1<<menucnt;
++					MenuWrite(n++, s, menusub ==  menucnt++, 0);
++				}
++			}
++                        for (; n < OsdGetSize() - 1; n++) MenuWrite(n, "", 0, 0);
++			break;
++		}
++
++	case MENU_AUTOFIRE_LIST2:
++		{
++
++			if (select)
++			{
++				autoFireButton *afbs = get_auto_fire_defs(af_player_num);
++				af_edit_idx = -1;
++				menustate = MENU_AUTOFIRE_EDIT1;
++				parentstate = MENU_AUTOFIRE_LIST1;
++				if (menusub == 0)
++				{
++					//New, find suitable slot
++
++					for (int i = 0; i < 16; i++)
++					{
++						autoFireButton *afb = afbs+i;
++						if (!afb->code)
++						{
++							af_edit_idx = i;
++							break;
++						}
++					}
++
++				} else {
++					af_edit_idx = menusub -1;
++				}
++
++
++			}
++
++			if (left || back || menu)
++			{
++				menustate = MENU_COMMON1; 
++			        parentstate = 0;	
++			}
++			break;
++		}
++
++
++	case MENU_AUTOFIRE_EDIT1:
++		{
++
++			menustate = MENU_AUTOFIRE_EDIT2;
++			parentstate = MENU_AUTOFIRE_EDIT1;
++			autoFireButton *afbs = get_auto_fire_defs(af_player_num);
++			autoFireButton *edit_afb = afbs+af_edit_idx;
++			if (!edit_afb->on_frames)
++			{
++				edit_afb->on_frames = 1;
++			}
++
++			menu_parse_buttons();
++			char bname[32] = {};
++			menu_button_name(edit_afb->bnum, bname, sizeof(bname));
++
++			menumask = 0x3F;
++			snprintf(s, sizeof(s), " Button %-18s\x10 \x11", bname); 
++			MenuWrite(0, s, menusub == 0, 0);
++			snprintf(s, sizeof(s), " Hotkey %-20d\x16",edit_afb->code);
++			MenuWrite(1, s, menusub == 1, 0);
++			snprintf(s, sizeof(s), " On Frames  %-14d\x10 \x11", edit_afb->on_frames);
++			MenuWrite(2, s, menusub == 2, 0);
++			sprintf(s, " Off Frames %-14d\x10 \x11", edit_afb->off_frames);
++			MenuWrite(3, s, menusub == 3, 0);
++			MenuWrite(4, " Done", menusub == 4, 0);
++			MenuWrite(5, " Delete", menusub == 5, 0);
++                        for (int n = 6; n < OsdGetSize() - 1; n++) MenuWrite(n, "", 0, 0);
++
++
++			break;
++		}
++		
++	case MENU_AUTOFIRE_EDIT2:
++		{
++			if (select || left || right)
++			{
++				menustate = MENU_AUTOFIRE_EDIT1;
++       		                 autoFireButton *afbs = get_auto_fire_defs(af_player_num);
++               		         autoFireButton *edit_afb = afbs+af_edit_idx;
++				switch(menusub)
++				{
++					case 0:
++						if (select || right)
++						{
++							edit_afb->bnum++;
++							if (edit_afb->bnum-4 >= joy_bcount)
++							{
++								edit_afb->bnum = 0;
++							}
++						} else if (left) {
++							edit_afb->bnum--;
++						}
++
++						if (edit_afb->bnum-4 >= joy_bcount)
++						{
++							edit_afb->bnum = 0;
++						}
++
++						if (edit_afb->bnum < 0)
++						{
++							edit_afb->bnum = joy_bcount+3; //-1 + 4 for directions
++						}
++						break;
++					case 1:
++						if (select) {
++							menustate = MENU_AUTOFIRE_CAPTURE1;
++							start_code_capture(af_player_num);
++						}
++						break;
++					case 2:
++						if (select || right)
++						{
++							edit_afb->on_frames++;
++						} else if (left) {
++							edit_afb->on_frames--;
++						}
++
++						if (edit_afb->on_frames < 0)
++						{
++							edit_afb->on_frames = 0;
++						}
++						break;
++					case 3:
++						if (select || right)
++						{
++							edit_afb->off_frames++;
++						} else if (left) {
++							edit_afb->off_frames--;
++						}
++						if (edit_afb->off_frames < 0)
++						{
++							edit_afb->off_frames = 0;
++						}
++						break;
++					case 4:
++						if (select)
++						{
++							menustate = MENU_AUTOFIRE_LIST1;
++						}
++						break;
++					case 5:
++						if (select)
++						{
++							menustate = MENU_AUTOFIRE_LIST1;
++							edit_afb->code = 0;
++							edit_afb->on_frames = 1;
++							edit_afb->off_frames = 0;
++							edit_afb->bnum = 0;
++						}
++						break;
++				}
++			}
++
++			if (back || menu)
++			{
++				menustate = MENU_AUTOFIRE_LIST1;
++				menusub = 0;
++			}
++			break;
++		}
++	case MENU_AUTOFIRE_CAPTURE1:
++		{
++                OsdSetTitle("Set Hotkey", 0);
++                for (int i = 0; i < 5; i++) OsdWrite(i, "", 0, 0);
++                OsdWrite(5, info_top, 0, 0);
++                infowrite(6, "Press input hotkey");
++                OsdWrite(7, info_bottom, 0, 0);
++
++		uint32_t captured_code = get_captured_code();
++		if (captured_code)
++		{
++			autoFireButton *afbs = get_auto_fire_defs(af_player_num);
++			autoFireButton *edit_afb = afbs+af_edit_idx;
++			edit_afb->code = captured_code;
++			end_code_capture();
++			menustate = MENU_AUTOFIRE_EDIT1;
++
++		}
++		break;
++		}
+ 	case MENU_ARCADE_DIP1:
+ 		helptext_idx = 0;
+ 		menumask = 0;
+diff --git a/scaler.cpp b/scaler.cpp
+index 3ece5e6..814f40c 100644
+--- a/scaler.cpp
++++ b/scaler.cpp
+@@ -128,3 +128,17 @@ int mister_scaler_read(mister_scaler *ms,unsigned char *gbuf)
+ 
+     return 0;
+ }
++
++
++int mister_scaler_frame_counter(mister_scaler *ms)
++{
++  if (!ms)
++  {
++          return 0;
++  }
++
++
++  unsigned char *buffer = (unsigned char *)(ms->map+ms->map_off);
++
++  return (buffer[5]>>5) & 0x07;
++}
+diff --git a/scaler.h b/scaler.h
+index 00b67aa..a00e9c3 100644
+--- a/scaler.h
++++ b/scaler.h
+@@ -25,5 +25,7 @@ mister_scaler *mister_scaler_init();
+ int mister_scaler_read(mister_scaler *,unsigned char *buffer);
+ int mister_scaler_read_yuv(mister_scaler *ms,int,unsigned char *y,int, unsigned char *U,int, unsigned char *V);
+ void mister_scaler_free(mister_scaler *);
++int mister_scaler_frame_counter(mister_scaler *);
++
+ 
+ #endif
+-- 
+2.31.1
+
