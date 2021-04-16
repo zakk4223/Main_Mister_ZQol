@@ -72,7 +72,7 @@ index 528a5d2..23133e0 100644
  
 +void start_code_capture(int pnum)
 +{
-+	
++
 +	ev_capture_pnum = pnum;
 +	ev_capturing = true;
 +	captured_ev_code = 0;
@@ -87,7 +87,7 @@ index 528a5d2..23133e0 100644
 +uint32_t get_captured_code()
 +{
 +	return captured_ev_code;
-+}	
++}
 +
 +
  void input_lightgun_save(int idx, uint16_t *cal)
@@ -125,7 +125,7 @@ index 528a5d2..23133e0 100644
  	if (ev->type == EV_KEY && (!ev->code || ev->code == KEY_UNKNOWN)) return;
  
 +
-+	
++
 +	if (input[dev].num && ev_capturing && ev->value && ev_capture_pnum == input[dev].num && ev->type == EV_KEY)
 +	{
 +
@@ -165,7 +165,7 @@ index 528a5d2..23133e0 100644
  						mouse_emu = ev->value ? mouse_emu | 1 : mouse_emu & ~1;
 @@ -3210,6 +3283,12 @@ int input_test(int getchar)
  
- 		pool[NUMDEV + 2].fd = open(LED_MONITOR, O_RDONLY);
+ 		pool[NUMDEV + 2].fd = open(LED_MONITOR, O_RDONLY | O_CLOEXEC);
  		pool[NUMDEV + 2].events = POLLPRI;
 +		if (scaler_inst)
 +		{
@@ -184,7 +184,7 @@ index 528a5d2..23133e0 100644
 +void process_autofire(int pnum, int curr_frame, uint32_t joy_state)
 +{
 +
-+        autofire_new[pnum] = joy_state; 
++        autofire_new[pnum] = joy_state;
 +        for (uint i = 0; i < 16; i++)
 +        {
 +                autoFireButton *afb = &auto_fire_defs[pnum+1][i];
@@ -203,9 +203,9 @@ index 528a5d2..23133e0 100644
 +						//If off_frames is set to zero, never switch state
 +						//(continually pressed)
 +						if (afb->off_frames)
-+							
++
 +						{
-+                                                	afb->is_on = !afb->is_on;
++							afb->is_on = !afb->is_on;
 +						}
 +
 +                                        }
@@ -243,7 +243,7 @@ index 528a5d2..23133e0 100644
  		{
 +
 +                        int send = 0;
-+			
++
  			if (af_delay[i] < AF_MIN) af_delay[i] = AF_MIN;
  
  			if (!time[i]) time[i] = GetTimer(af_delay[i]);
@@ -267,7 +267,7 @@ index 528a5d2..23133e0 100644
  				af[i] = !af[i];
  				if (joy[i] & autofire[i]) send = 1;
  			}
-+			
++
 +
 +
 +			process_autofire(i, curr_frame, joy[i]);
@@ -291,7 +291,7 @@ index 528a5d2..23133e0 100644
  			}
  		}
  	}
-@@ -4176,3 +4321,39 @@ void parse_buttons()
+@@ -4176,3 +4321,38 @@ void parse_buttons()
  		joy_bcount++;
  	}
  }
@@ -330,7 +330,6 @@ index 528a5d2..23133e0 100644
 +                        delete(buf);
 +                }
 +}
-+
 diff --git a/input.h b/input.h
 index eb33221..871cb7e 100644
 --- a/input.h
@@ -796,8 +795,8 @@ index f757cbb..f48e0bf 100644
 +
 +			if (left || back || menu)
 +			{
-+				menustate = MENU_COMMON1; 
-+			        parentstate = 0;	
++				menustate = MENU_COMMON1;
++				parentstate = 0;
 +			}
 +			break;
 +		}
@@ -820,7 +819,7 @@ index f757cbb..f48e0bf 100644
 +			menu_button_name(edit_afb->bnum, bname, sizeof(bname));
 +
 +			menumask = 0x3F;
-+			snprintf(s, sizeof(s), " Button %-18s\x10 \x11", bname); 
++			snprintf(s, sizeof(s), " Button %-18s\x10 \x11", bname);
 +			MenuWrite(0, s, menusub == 0, 0);
 +			snprintf(s, sizeof(s), " Hotkey %-20d\x16",edit_afb->code);
 +			MenuWrite(1, s, menusub == 1, 0);
@@ -835,14 +834,14 @@ index f757cbb..f48e0bf 100644
 +
 +			break;
 +		}
-+		
++
 +	case MENU_AUTOFIRE_EDIT2:
 +		{
 +			if (select || left || right)
 +			{
 +				menustate = MENU_AUTOFIRE_EDIT1;
-+       		                 autoFireButton *afbs = get_auto_fire_defs(af_player_num);
-+               		         autoFireButton *edit_afb = afbs+af_edit_idx;
++					autoFireButton *afbs = get_auto_fire_defs(af_player_num);
++					autoFireButton *edit_afb = afbs+af_edit_idx;
 +				switch(menusub)
 +				{
 +					case 0:

@@ -38,9 +38,9 @@ index b224ba1..a43b25f 100644
 --- a/support/arcade/mra_loader.cpp
 +++ b/support/arcade/mra_loader.cpp
 @@ -13,6 +13,7 @@
- #include "../../menu.h"
  #include "../../fpga_io.h"
  #include "../../lib/md5/md5.h"
+ #include "../../shmem.h"
 +#include "../../cfg.h"
  
  #include "buffer.h"
