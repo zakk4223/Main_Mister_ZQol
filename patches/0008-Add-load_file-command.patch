@@ -1,0 +1,267 @@
+From e587650ad108f2af5033e1b77a4f2d251c792184 Mon Sep 17 00:00:00 2001
+From: Zakk <zakk@rsdio.com>
+Date: Sun, 25 Apr 2021 04:48:19 -0400
+Subject: [PATCH 3/3] Add load_file command
+
+---
+ input.cpp | 218 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 218 insertions(+)
+
+diff --git a/input.cpp b/input.cpp
+index 77e167a..542397a 100644
+--- a/input.cpp
++++ b/input.cpp
+@@ -16,6 +16,7 @@
+ #include <sys/time.h>
+ #include <sys/types.h>
+ #include <stdarg.h>
++#include <ctype.h>
+ 
+ #include "input.h"
+ #include "user_io.h"
+@@ -28,6 +29,7 @@
+ #include "joymapping.h"
+ #include "support.h"
+ #include "scaler.h"
++#include "cheats.h"
+ 
+ #define NUMDEV 30
+ #define NUMPLAYERS 6
+@@ -3245,6 +3247,216 @@ void touchscreen_proc(int dev, input_event *ev)
+ 		}
+ 	}
+ 
++}
++
++
++static int input_match_ext(char *cext, char *filename)
++{
++
++	int found = 0;
++	char *fext = strrchr(filename, '.');
++	char *ext = cext;
++	if (fext) fext++;
++	while (!found && *ext && fext)
++	{
++		char e[4];
++		memcpy(e, ext, 3);
++		if (e[2] == ' ')
++		{
++			e[2] = 0;
++			if (e[1] == ' ') e[1] = 0;
++		}
++
++		e[3] = 0;
++		found = 1;
++		for (int i = 0; i < 4; i++)
++		{
++			if (e[i] == '*') break;
++			if (e[i] == '?' && fext[i]) continue;
++			
++			if (tolower(e[i]) != tolower(fext[i])) found = 0;
++			
++			if (!e[i] || !found) break;
++		}
++		if (found) break;
++
++		if (strlen(ext) < 3) break;
++		ext += 3;
++	}
++	return found;
++}
++
++void input_load_file(char *cmd)
++{
++	char *use_conf = NULL;
++	char *fallback_conf = NULL;
++	char use_ext[256];
++	int use_idx = 0;
++	int fallback_idx = 0; 
++	int cur_idx = 0;
++        char *p = NULL;
++        int i = 2;
++	char *file_name = NULL;
++
++	if (strlen(cmd) <= 11)
++	{
++		return;
++	}	
++
++	file_name = cmd+10;
++	if (!strlen(file_name))
++	{
++		return; //??
++	}
++
++        while ((p = user_io_get_confstr(i++)))
++        {
++
++		//The menu builder uses menumask/menusub to calculate the ioctl_index
++		//this can vary based on hidden menu entries, pages etc
++		//However, almost all core confstrs contain explicit indexes for their file and image load strings
++		//the only ones that seem not to are in position 0 anyways. 
++		//also none seem to hide the loading commands in sub-pages
++		//So this isn't "correct" but it is good enough for government work
++
++
++		//Chop off the hidden/disabled flags from the string. Always consider them candidates for loading
++		while((p[0] == 'H' || p[0] == 'D' || p[0] == 'h' || p[0] == 'd') && strlen(p) > 2)
++		{
++			p += 2;
++
++		}
++
++		if (p[0] == 'P')
++		{
++			if (p[2] != ',')
++			{
++				p += 2;
++			}
++		}
++		if (p[0] == 'F' || p[0] == 'S')
++		{
++			char cext[256];
++			int idx = 1;
++
++			if (p[1] == 'S' && p[0] == 'F')
++			{
++				idx++;
++			}	
++
++			if (p[1] == 'C' && p[0] == 'F')
++			{
++				idx++;
++			}
++
++			substrcpy(cext, p, 1);
++			if (is_gba() && FileExists(user_io_make_filepath(HomeDir(), "goomba.rom"))) strcat(cext, "GB GBC");
++			if (p[0] == 'S') strcat(cext, "CHD");
++			while (strlen(cext) & 3) strcat(cext, " ");
++
++			if (cext[0] == '*' && !fallback_conf)
++			{ 
++				fallback_idx = cur_idx;
++				fallback_conf = p;
++				strcpy(use_ext, cext);
++			} else if (input_match_ext(cext, file_name))
++			{
++				use_conf = p;
++				use_idx = cur_idx;	
++				strcpy(use_ext, cext);
++				break;
++			}
++		}
++
++		if (p[0] != '-')
++		{
++			cur_idx++;
++		}
++
++	}
++
++	if (!use_conf)
++	{
++		use_conf = fallback_conf;
++		use_idx = fallback_idx;
++	}
++
++	if (use_conf)
++	{
++		uint32_t load_addr = 0;
++		char tmp[256];
++		int idx = 1;
++
++		if (use_conf[1] == 'S' && use_conf[0] == 'F')
++		{
++			idx++;
++		}
++
++		if (use_conf[1] == 'C' && use_conf[0] == 'F')
++		{
++			idx++;
++		}
++
++		if (p[idx] >= '0' && p[idx] <= '9')
++		{
++			use_idx = p[idx] - '0';
++		}
++
++		if (substrcpy(tmp, use_conf, 3))
++		{
++			load_addr = strtoul(tmp, NULL, 16);
++			if (load_addr < 0x20000000 || load_addr >= 0x40000000)
++			{
++				load_addr = 0;
++			}
++		}
++
++		if (use_conf[0] == 'F')
++		{
++			char idx = user_io_ext_idx(file_name, use_ext) << 6 | use_idx;
++			if (is_neogeo())
++			{
++				neogeo_romset_tx(file_name);
++			} else {
++				if (is_pce())
++				{
++					pcecd_set_image(0, "");
++					pcecd_reset();
++				}
++
++				if (user_io_file_tx(file_name, idx, 0, 0, 0, load_addr))
++				{
++					if (user_io_use_cheats()) cheats_init(file_name, user_io_get_file_crc());
++					input_autofire_load();
++				}
++			}
++
++		} else if (use_conf[0] == 'S') {
++
++			if (FileExists(file_name))
++			{
++				if (is_x86())
++				{
++					x86_set_image(use_idx, file_name);
++				} else if (is_megacd()) {
++					mcd_set_image(use_idx, file_name); 
++					input_autofire_load();
++				} else if (is_pce()) {
++					pcecd_set_image(use_idx, file_name);
++					cheats_init(file_name, 0);
++					input_autofire_load();
++				} else {
++					user_io_set_index(user_io_ext_idx(file_name, use_ext) << 6 | use_idx);
++					user_io_file_mount(file_name, use_idx);
++				}
++			}
++		}
++
++	}
++
++
++
++
+ }
+ 
+ int input_test(int getchar)
+@@ -4002,7 +4214,12 @@ int input_test(int getchar)
+ 						len = strlen(cmd);
+ 						if (len > 4 && !strcasecmp(cmd + len - 4, ".mra")) arcade_load(cmd + 10);
+ 						else fpga_load_rbf(cmd + 10);
++					} else if (!strncmp(cmd, "load_file ", 10)) {
++						input_load_file(cmd);
+ 					}
++				
++
++				
+ 				}
+ 			}
+ 
+@@ -4386,3 +4603,4 @@ void input_autofire_load()
+                         delete(buf);
+                 }
+ }
++
+-- 
+2.31.1
+

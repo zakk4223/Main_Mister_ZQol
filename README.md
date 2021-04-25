@@ -17,8 +17,9 @@ If you want to automatically update your MiSTer with this version instead of the
 ```
 SCRIPT_URL="https://github.com/zakk4223/Updater_script_MiSTer/blob/main_update/mister_updater.sh"
 MAIN_MISTER_URL="https://github.com/zakk4223/Main_MiSTer_ZQol"
-CORE_CATEGORIES_LAST_SUCCESSFUL_RUN_FILTER="Main_Mister_ZQol"
+CORE_CATEGORIES_LAST_SUCCESSFUL_RUN_FILTER=" Main_Mister_ZQol"
 ```
+(The space is important)
 Note this uses a slightly modified version of the mister_updater.sh script that allows for updating the Main_Mister binary from another URL besides the official one.
 
 If you are using the update_all.sh script, create the file /media/fat/Scripts/update_all.ini and add this line (you still need to modify the update.ini file above):
