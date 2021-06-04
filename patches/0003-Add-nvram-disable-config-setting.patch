@@ -1,23 +1,24 @@
-From b3d74106cb55b33207b46b327f406f5141fad16e Mon Sep 17 00:00:00 2001
+From 1110238333c98ac775c79931268a3c093b765056 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sat, 13 Feb 2021 17:38:46 -0500
-Subject: [PATCH] Add nvram disable config setting
+Date: Fri, 4 Jun 2021 14:01:20 -0400
+Subject: [PATCH 3/5] Add nvram disable config setting
 
 ---
- cfg.cpp                       | 1 +
+ cfg.cpp                       | 2 ++
  cfg.h                         | 1 +
  support/arcade/mra_loader.cpp | 5 +++--
- 3 files changed, 5 insertions(+), 2 deletions(-)
+ 3 files changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 671ac6b..edb4c68 100644
+index 58dcb4c..0931d07 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -81,6 +81,7 @@ static const ini_var_t ini_vars[] =
+@@ -81,6 +81,8 @@ static const ini_var_t ini_vars[] =
  	{ "SPINNER_THROTTLE", (void*)(&(cfg.spinner_throttle)), INT32, -10000, 10000 },
  	{ "AFILTER_DEFAULT", (void*)(&(cfg.afilter_default)), STRING, 0, sizeof(cfg.afilter_default) - 1 },
  	{ "VFILTER_DEFAULT", (void*)(&(cfg.vfilter_default)), STRING, 0, sizeof(cfg.vfilter_default) - 1 },
 +	{ "DISABLE_NVRAM", (void*)(&(cfg.disable_nvram)), UINT8, 0, 1},
++
  };
  
  static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
@@ -34,7 +35,7 @@ index d443d96..09ea166 100644
  	char video_conf[1024];
  	char video_conf_pal[1024];
 diff --git a/support/arcade/mra_loader.cpp b/support/arcade/mra_loader.cpp
-index b224ba1..a43b25f 100644
+index c26fbf3..3623d89 100644
 --- a/support/arcade/mra_loader.cpp
 +++ b/support/arcade/mra_loader.cpp
 @@ -13,6 +13,7 @@
@@ -45,7 +46,7 @@ index b224ba1..a43b25f 100644
  
  #include "buffer.h"
  #include "mra_loader.h"
-@@ -56,7 +57,7 @@ static char nvram_name[200] = {};
+@@ -78,7 +79,7 @@ void arcade_nvm_clear()
  
  void arcade_nvm_save()
  {
@@ -54,7 +55,7 @@ index b224ba1..a43b25f 100644
  	{
  		char path[256] = CONFIG_DIR"/nvram/";
  		FileCreatePath(path);
-@@ -80,7 +81,7 @@ void arcade_nvm_save()
+@@ -102,7 +103,7 @@ void arcade_nvm_save()
  
  static void arcade_nvm_load()
  {
@@ -64,5 +65,5 @@ index b224ba1..a43b25f 100644
  		char path[256] = "nvram/";
  		uint8_t *buf = new uint8_t[nvram_size];
 -- 
-2.30.1
+2.31.1
 

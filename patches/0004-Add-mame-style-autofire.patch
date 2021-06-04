@@ -1,21 +1,25 @@
-From 3cf26ae9e691aaedd9ae2c39627bbe8db47f2586 Mon Sep 17 00:00:00 2001
+From 2e8763e7d1e6921742a9a1bfeac28fb8e594db2a Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 16 Apr 2021 02:38:41 -0400
-Subject: [PATCH 2/2] Add mame style autofire. Autofire settings are saved when
- 'Save settings' is activated. Settings are per-core (or per setname for
- mras).
+Date: Fri, 4 Jun 2021 14:04:24 -0400
+Subject: [PATCH 4/5] Add mame style autofire. Autofire settings are saved when
+ exiting the autofire menu. Settings are per-game if possible (arcades and
+ most console cores)
 
 ---
- input.cpp  | 193 ++++++++++++++++++++++++++++-
- input.h    |  22 ++++
- main.cpp   |   1 +
- menu.cpp   | 354 ++++++++++++++++++++++++++++++++++++++++++++++-------
- scaler.cpp |  14 +++
- scaler.h   |   2 +
- 6 files changed, 536 insertions(+), 50 deletions(-)
+ input.cpp                  | 222 ++++++++++++++++++++++-
+ input.h                    |  22 +++
+ main.cpp                   |   1 +
+ menu.cpp                   | 357 ++++++++++++++++++++++++++++++++-----
+ scaler.cpp                 |  14 ++
+ scaler.h                   |   2 +
+ support/megacd/megacdd.cpp |   8 +-
+ support/pcecd/pcecdd.cpp   |   8 +
+ user_io.cpp                |  13 ++
+ user_io.h                  |   2 +
+ 10 files changed, 597 insertions(+), 52 deletions(-)
 
 diff --git a/input.cpp b/input.cpp
-index 528a5d2..23133e0 100644
+index a23305b..7819e6d 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -27,6 +27,7 @@
@@ -56,7 +60,7 @@ index 528a5d2..23133e0 100644
  static int set_watch()
  {
  	mwd = -1;
-@@ -1084,6 +1099,9 @@ static int mapping_clear;
+@@ -1082,6 +1097,9 @@ static int mapping_clear;
  static int mapping_set;
  static int last_input_dev = 1<<31;
  static int last_pdsp_dev = 1<<31;
@@ -66,7 +70,7 @@ index 528a5d2..23133e0 100644
  
  static int player_num_remapping = 0;
  static int remapping_spinner_input = 0;
-@@ -1238,6 +1256,26 @@ void finish_map_setting(int dismiss)
+@@ -1236,6 +1254,26 @@ void finish_map_setting(int dismiss)
  	}
  }
  
@@ -93,7 +97,7 @@ index 528a5d2..23133e0 100644
  void input_lightgun_save(int idx, uint16_t *cal)
  {
  	static char name[128];
-@@ -1345,6 +1383,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -1343,6 +1381,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  static int kbd_toggle = 0;
  static uint32_t joy[NUMPLAYERS] = {};
  static uint32_t autofire[NUMPLAYERS] = {};
@@ -101,7 +105,7 @@ index 528a5d2..23133e0 100644
  static uint32_t autofirecodes[NUMPLAYERS][BTN_NUM] = {};
  static int af_delay[NUMPLAYERS] = {};
  
-@@ -1357,6 +1396,7 @@ static int mouse_emu_x = 0;
+@@ -1355,6 +1394,7 @@ static int mouse_emu_x = 0;
  static int mouse_emu_y = 0;
  
  static uint32_t mouse_timer = 0;
@@ -109,7 +113,7 @@ index 528a5d2..23133e0 100644
  
  #define BTN_TGL 100
  #define BTN_OSD 101
-@@ -1836,6 +1876,10 @@ void swap_player(int cur_dev, int new_num)
+@@ -1834,6 +1874,10 @@ void swap_player(int cur_dev, int new_num)
  	{
  		return;
  	}
@@ -120,7 +124,7 @@ index 528a5d2..23133e0 100644
          input[cur_dev].num = new_num;
          store_player(new_num, cur_dev);
          //Swap if there was already one assigned there
-@@ -1869,6 +1913,15 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -1867,6 +1911,15 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  	if (ev->type != EV_KEY && ev->type != EV_ABS && ev->type != EV_REL) return;
  	if (ev->type == EV_KEY && (!ev->code || ev->code == KEY_UNKNOWN)) return;
  
@@ -136,7 +140,7 @@ index 528a5d2..23133e0 100644
  	static uint16_t last_axis = 0;
  
  	int sub_dev = dev;
-@@ -2517,6 +2570,26 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2516,6 +2569,26 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  						}
  					}
  
@@ -163,7 +167,7 @@ index 528a5d2..23133e0 100644
  					if (ev->code == input[dev].mmap[SYS_MS_BTN_EMU] && (ev->value <= 1) && ((!(mouse_emu & 1)) ^ (!ev->value)))
  					{
  						mouse_emu = ev->value ? mouse_emu | 1 : mouse_emu & ~1;
-@@ -3210,6 +3283,12 @@ int input_test(int getchar)
+@@ -3209,6 +3282,12 @@ int input_test(int getchar)
  
  		pool[NUMDEV + 2].fd = open(LED_MONITOR, O_RDONLY | O_CLOEXEC);
  		pool[NUMDEV + 2].events = POLLPRI;
@@ -176,7 +180,7 @@ index 528a5d2..23133e0 100644
  
  		state++;
  	}
-@@ -3963,6 +4042,56 @@ int input_test(int getchar)
+@@ -3962,6 +4041,56 @@ int input_test(int getchar)
  	return 0;
  }
  
@@ -233,7 +237,7 @@ index 528a5d2..23133e0 100644
  int input_poll(int getchar)
  {
  	static int af[NUMPLAYERS] = {};
-@@ -4003,14 +4132,17 @@ int input_poll(int getchar)
+@@ -4002,14 +4131,17 @@ int input_poll(int getchar)
  
  	if (grabbed)
  	{
@@ -253,7 +257,7 @@ index 528a5d2..23133e0 100644
  			if (joy[i] != joy_prev[i])
  			{
  				if ((joy[i] ^ joy_prev[i]) & autofire[i])
-@@ -4018,9 +4150,6 @@ int input_poll(int getchar)
+@@ -4017,9 +4149,6 @@ int input_poll(int getchar)
  					time[i] = GetTimer(af_delay[i]);
  					af[i] = 0;
  				}
@@ -263,16 +267,15 @@ index 528a5d2..23133e0 100644
  			}
  
  			if (CheckTimer(time[i]))
-@@ -4029,10 +4158,26 @@ int input_poll(int getchar)
- 				af[i] = !af[i];
+@@ -4029,9 +4158,25 @@ int input_poll(int getchar)
  				if (joy[i] & autofire[i]) send = 1;
  			}
-+
+ 
 +
 +
 +			process_autofire(i, curr_frame, joy[i]);
 +                        int newdir = ((autofire_new[i] & 0xF) != (joy_prev[i] & 0xF));
- 
++
 +			if (autofire_new[i] != joy_prev[i])
 +			{
 +				send = 1;
@@ -291,22 +294,42 @@ index 528a5d2..23133e0 100644
  			}
  		}
  	}
-@@ -4176,3 +4321,38 @@ void parse_buttons()
+@@ -4175,3 +4320,68 @@ void parse_buttons()
  		joy_bcount++;
  	}
  }
 +
++static void input_autofire_save_filename(char *fname, size_t pathlen, bool core_only)
++{
++
++        uint32_t cd_crc = user_io_get_cd_toc_crc();
++        uint32_t file_crc = user_io_get_file_crc();
++
++        uint32_t use_crc = cd_crc ? cd_crc : file_crc;
++
++        char *conf_name = user_io_create_config_name();
++
++        if (use_crc && !core_only)
++        {
++                snprintf(fname, pathlen, "%s_%d", conf_name, use_crc);
++        } else {
++                snprintf(fname, pathlen, "%s", conf_name);
++        }
++}
 +void input_autofire_save()
 +{
 +                char path[256] = CONFIG_DIR"/autofire/";
++                char fname[256] = {};
++
 +                FileCreatePath(path);
-+                strcat(path, user_io_create_config_name());
++                input_autofire_save_filename(fname, sizeof(fname), false);
++                strncat(path, fname, sizeof(path));
 +
 +                uint8_t *buf = new uint8_t[sizeof(auto_fire_defs)];
-+		printf("SAVE FILE %s SIZE %d\n", path, sizeof(auto_fire_defs));
++                printf("SAVE FILE %s SIZE %d\n", path, sizeof(auto_fire_defs));
 +                if (buf)
 +                {
-+			memcpy(buf, auto_fire_defs, sizeof(auto_fire_defs));
++                        memcpy(buf, auto_fire_defs, sizeof(auto_fire_defs));
 +                        FileSave(path, buf, sizeof(auto_fire_defs));
 +                        delete(buf);
 +                }
@@ -317,15 +340,25 @@ index 528a5d2..23133e0 100644
 +{
 +                char path[256] = "autofire/";
 +                uint8_t *buf = new uint8_t[sizeof(auto_fire_defs)];
++                //Load game specific autofire config first. If that fails, try just the core name
 +                if (buf)
 +                {
 +                        memset(buf, 0, sizeof(auto_fire_defs));
++                        char fname[256] = {};
++                        input_autofire_save_filename(fname, sizeof(fname), false);
 +
-+                        strcat(path, user_io_create_config_name());
-+                        if (FileLoadConfig(path, buf, sizeof(auto_fire_defs)))
++                        strncat(path, fname, sizeof(path));
++                        if (!FileLoadConfig(path, buf, sizeof(auto_fire_defs)))
 +                        {
-+				memcpy(auto_fire_defs, buf, sizeof(auto_fire_defs));
++                                strncpy(path, "autofire/", sizeof(path));
++                                input_autofire_save_filename(fname, sizeof(fname), true);
++                                strncat(path, fname, sizeof(path));
++                                FileLoadConfig(path, buf, sizeof(auto_fire_defs));
 +                        }
++
++                        //If one of the FileLoadConfig was successful, this copies it to the AF config.
++                        //If none were successful, this zeros out the auto fire config
++                        memcpy(auto_fire_defs, buf, sizeof(auto_fire_defs));
 +
 +                        delete(buf);
 +                }
@@ -383,10 +416,10 @@ index f9109d2..e39d977 100644
  #ifdef USE_SCHEDULER
  	scheduler_init();
 diff --git a/menu.cpp b/menu.cpp
-index f757cbb..f48e0bf 100644
+index 5f1f059..ab6fddb 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -183,6 +183,13 @@ enum MENU
+@@ -182,6 +182,13 @@ enum MENU
  	// MT32-pi
  	MENU_MT32PI_MAIN1,
  	MENU_MT32PI_MAIN2,
@@ -400,7 +433,7 @@ index f757cbb..f48e0bf 100644
  };
  
  static uint32_t menustate = MENU_NONE1;
-@@ -268,6 +275,10 @@ static uint32_t fs_Options;
+@@ -270,6 +277,10 @@ static uint32_t fs_Options;
  static uint32_t fs_MenuSelect;
  static uint32_t fs_MenuCancel;
  
@@ -411,7 +444,7 @@ index f757cbb..f48e0bf 100644
  static char* GetExt(char *ext)
  {
  	static char extlist[32];
-@@ -979,6 +990,52 @@ static int gun_idx = 0;
+@@ -988,6 +999,52 @@ static int gun_idx = 0;
  static uint16_t gun_pos[4] = {};
  static int page = 0;
  
@@ -464,7 +497,29 @@ index f757cbb..f48e0bf 100644
  void HandleUI(void)
  {
  	switch (user_io_core_type())
-@@ -2285,7 +2342,7 @@ void HandleUI(void)
+@@ -2251,6 +2308,7 @@ void HandleUI(void)
+ 					if (!store_name) user_io_store_filename(selPath);
+ 					user_io_file_tx(selPath, idx, opensave, 0, 0, load_addr);
+ 					if (user_io_use_cheats()) cheats_init(selPath, user_io_get_file_crc());
++					input_autofire_load();
+ 				}
+ 
+ 				if (addon[0] == 'f' && addon[1] == '1') process_addon(addon, idx);
+@@ -2278,11 +2336,13 @@ void HandleUI(void)
+ 			else if (is_megacd())
+ 			{
+ 				mcd_set_image(ioctl_index, selPath);
++				input_autofire_load();
+ 			}
+ 			else if (is_pce())
+ 			{
+ 				pcecd_set_image(ioctl_index, selPath);
+ 				cheats_init(selPath, 0);
++				input_autofire_load();
+ 			}
+ 			else
+ 			{
+@@ -2310,7 +2370,7 @@ void HandleUI(void)
  			while(1)
  			{
  				n = 0;
@@ -473,7 +528,7 @@ index f757cbb..f48e0bf 100644
  
  				if (!menusub) firstmenu = 0;
  				adjvisible = 0;
-@@ -2298,10 +2355,11 @@ void HandleUI(void)
+@@ -2323,10 +2383,11 @@ void HandleUI(void)
  				MenuWrite(n++, s, menusub == 1, 0);
  				MenuWrite(n++, " Button/Key remap for game \x16", menusub == 2, 0);
  				MenuWrite(n++, " Change player assignment  \x16", menusub == 3, 0);
@@ -486,7 +541,7 @@ index f757cbb..f48e0bf 100644
  					MenuWrite(n++);
  					int mode = GetUARTMode();
  					const char *p = config_uart_msg[mode];
-@@ -2309,15 +2367,15 @@ void HandleUI(void)
+@@ -2334,15 +2395,15 @@ void HandleUI(void)
  					sprintf(s, " UART mode (%s)            ",p);
  					s[27] = '\x16';
  					s[28] = 0;
@@ -505,7 +560,7 @@ index f757cbb..f48e0bf 100644
  
  					memset(s, 0, sizeof(s));
  					s[0] = ' ';
-@@ -2327,15 +2385,15 @@ void HandleUI(void)
+@@ -2352,15 +2413,15 @@ void HandleUI(void)
  					while(strlen(s) < 26) strcat(s, " ");
  					strcat(s, " \x16 ");
  
@@ -524,7 +579,7 @@ index f757cbb..f48e0bf 100644
  
  					memset(s, 0, sizeof(s));
  					s[0] = ' ';
-@@ -2345,15 +2403,15 @@ void HandleUI(void)
+@@ -2370,15 +2431,15 @@ void HandleUI(void)
  					while(strlen(s) < 26) strcat(s, " ");
  					strcat(s, " \x16 ");
  
@@ -543,7 +598,7 @@ index f757cbb..f48e0bf 100644
  
  					memset(s, 0, sizeof(s));
  					s[0] = ' ';
-@@ -2363,27 +2421,27 @@ void HandleUI(void)
+@@ -2388,27 +2449,27 @@ void HandleUI(void)
  					while (strlen(s) < 26) strcat(s, " ");
  					strcat(s, " \x16 ");
  
@@ -578,7 +633,7 @@ index f757cbb..f48e0bf 100644
  				sysinfo_timer = 0;
  
  				if (!adjvisible) break;
-@@ -2394,8 +2452,11 @@ void HandleUI(void)
+@@ -2419,8 +2480,11 @@ void HandleUI(void)
  		break;
  
  	case MENU_COMMON2:
@@ -590,7 +645,7 @@ index f757cbb..f48e0bf 100644
  			switch (user_io_core_type())
  			{
  			    case CORE_TYPE_SHARPMZ:
-@@ -2406,6 +2467,7 @@ void HandleUI(void)
+@@ -2431,6 +2495,7 @@ void HandleUI(void)
                      menustate = MENU_NONE1;
                      break;
              };
@@ -598,7 +653,7 @@ index f757cbb..f48e0bf 100644
          }
  
  		if (recent && menusub == 0)
-@@ -2428,21 +2490,7 @@ void HandleUI(void)
+@@ -2453,21 +2518,7 @@ void HandleUI(void)
  				break;
  
  			case 1:
@@ -621,7 +676,7 @@ index f757cbb..f48e0bf 100644
  				start_map_setting(joy_bcount ? joy_bcount+4 : 8);
  				menustate = MENU_JOYDIGMAP;
  				menusub = 0;
-@@ -2460,20 +2508,26 @@ void HandleUI(void)
+@@ -2485,20 +2536,26 @@ void HandleUI(void)
  				menustate = MENU_JOYNUMREMAP;
  				menusub = 0;
  				break;
@@ -651,7 +706,7 @@ index f757cbb..f48e0bf 100644
  				if (video_get_scaler_flt())
  				{
  					snprintf(Selected_tmp, sizeof(Selected_tmp), COEFF_DIR"/%s", video_get_scaler_coeff());
-@@ -2481,12 +2535,12 @@ void HandleUI(void)
+@@ -2506,12 +2563,12 @@ void HandleUI(void)
  					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_COEFF_FILE_SELECTED, MENU_COMMON1);
  				}
  				break;
@@ -666,7 +721,7 @@ index f757cbb..f48e0bf 100644
  				if (video_get_gamma_en())
  				{
  					snprintf(Selected_tmp, sizeof(Selected_tmp), GAMMA_DIR"/%s", video_get_gamma_curve());
-@@ -2494,12 +2548,12 @@ void HandleUI(void)
+@@ -2519,12 +2576,12 @@ void HandleUI(void)
  					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_GAMMA_FILE_SELECTED, MENU_COMMON1);
  				}
  				break;
@@ -681,7 +736,7 @@ index f757cbb..f48e0bf 100644
  				if (audio_filter_en())
  				{
  					snprintf(Selected_tmp, sizeof(Selected_tmp), AFILTER_DIR"/%s", audio_get_filter());
-@@ -2507,7 +2561,7 @@ void HandleUI(void)
+@@ -2532,7 +2589,7 @@ void HandleUI(void)
  					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_AFILTER_FILE_SELECTED, MENU_COMMON1);
  				}
  				break;
@@ -690,7 +745,7 @@ index f757cbb..f48e0bf 100644
  				if (!is_archie())
  				{
  					menustate = MENU_RESET1;
-@@ -2520,7 +2574,7 @@ void HandleUI(void)
+@@ -2545,7 +2602,7 @@ void HandleUI(void)
  				}
  				break;
  
@@ -699,11 +754,7 @@ index f757cbb..f48e0bf 100644
  				// Save settings
  				menustate = MENU_GENERIC_MAIN1;
  				menusub = 0;
-@@ -2542,10 +2596,11 @@ void HandleUI(void)
- 					FileSaveConfig(filename, status, 8);
- 					if (is_x86()) x86_config_save();
- 					if (is_arcade()) arcade_nvm_save();
-+					input_autofire_save();
+@@ -2570,7 +2627,7 @@ void HandleUI(void)
  				}
  				break;
  
@@ -712,7 +763,7 @@ index f757cbb..f48e0bf 100644
  				{
  					reboot_req = 1;
  
-@@ -2558,7 +2613,7 @@ void HandleUI(void)
+@@ -2583,7 +2640,7 @@ void HandleUI(void)
  				}
  				break;
  
@@ -721,7 +772,7 @@ index f757cbb..f48e0bf 100644
  				menustate = MENU_ABOUT1;
  				menusub = 0;
  				break;
-@@ -2571,6 +2626,7 @@ void HandleUI(void)
+@@ -2596,6 +2653,7 @@ void HandleUI(void)
  		else if (left)
  		{
  			// go back to core requesting this menu
@@ -729,7 +780,7 @@ index f757cbb..f48e0bf 100644
  			switch (user_io_core_type())
  			{
  			case CORE_TYPE_8BIT:
-@@ -2605,6 +2661,216 @@ void HandleUI(void)
+@@ -2630,6 +2688,217 @@ void HandleUI(void)
  		if(!hold_cnt && reboot_req) fpga_load_rbf("menu.rbf");
  		break;
  
@@ -797,6 +848,7 @@ index f757cbb..f48e0bf 100644
 +			{
 +				menustate = MENU_COMMON1;
 +				parentstate = 0;
++				input_autofire_save();
 +			}
 +			break;
 +		}
@@ -947,10 +999,10 @@ index f757cbb..f48e0bf 100644
  		helptext_idx = 0;
  		menumask = 0;
 diff --git a/scaler.cpp b/scaler.cpp
-index 3ece5e6..814f40c 100644
+index ca80e19..3b07da7 100644
 --- a/scaler.cpp
 +++ b/scaler.cpp
-@@ -128,3 +128,17 @@ int mister_scaler_read(mister_scaler *ms,unsigned char *gbuf)
+@@ -125,3 +125,17 @@ int mister_scaler_read(mister_scaler *ms,unsigned char *gbuf)
  
      return 0;
  }
@@ -969,10 +1021,10 @@ index 3ece5e6..814f40c 100644
 +  return (buffer[5]>>5) & 0x07;
 +}
 diff --git a/scaler.h b/scaler.h
-index 00b67aa..a00e9c3 100644
+index c69a0bf..635a51b 100644
 --- a/scaler.h
 +++ b/scaler.h
-@@ -25,5 +25,7 @@ mister_scaler *mister_scaler_init();
+@@ -24,5 +24,7 @@ mister_scaler *mister_scaler_init();
  int mister_scaler_read(mister_scaler *,unsigned char *buffer);
  int mister_scaler_read_yuv(mister_scaler *ms,int,unsigned char *y,int, unsigned char *U,int, unsigned char *V);
  void mister_scaler_free(mister_scaler *);
@@ -980,6 +1032,118 @@ index 00b67aa..a00e9c3 100644
 +
  
  #endif
+diff --git a/support/megacd/megacdd.cpp b/support/megacd/megacdd.cpp
+index 3a20965..8dc08e1 100644
+--- a/support/megacd/megacdd.cpp
++++ b/support/megacd/megacdd.cpp
+@@ -6,6 +6,8 @@
+ #include <time.h>
+ 
+ #include "megacd.h"
++#include "miniz.h"
++#include "../../user_io.h"
+ #include "../chd/mister_chd.h"
+ 
+ #define CD_DATA_IO_INDEX 2
+@@ -300,10 +302,11 @@ int cdd_t::Load(const char *filename)
+ 		//this->toc.sub = fopen(getFullPath(fname), "r");
+ 
+ 		printf("\x1b[32mMCD: CD mounted , last track = %u\n\x1b[0m", this->toc.last);
+-
++	        uint32_t toc_crc = 0;
++		toc_crc = crc32(toc_crc, (const unsigned char *)&this->toc, sizeof(toc_t));
++		user_io_set_cd_toc_crc(toc_crc);
+ 		return 1;
+ 	}
+-
+ 	return 0;
+ }
+ 
+@@ -337,6 +340,7 @@ void cdd_t::Unload()
+ 
+ 	memset(&this->toc, 0x00, sizeof(this->toc));
+ 	this->sectorSize = 0;
++	user_io_set_cd_toc_crc(0);
+ }
+ 
+ void cdd_t::Reset() {
+diff --git a/support/pcecd/pcecdd.cpp b/support/pcecd/pcecdd.cpp
+index c52d3de..b12a458 100644
+--- a/support/pcecd/pcecdd.cpp
++++ b/support/pcecd/pcecdd.cpp
+@@ -8,8 +8,10 @@
+ #include "../../user_io.h"
+ 
+ #include "../chd/mister_chd.h"
++#include "miniz.h"
+ #include "pcecd.h"
+ 
++
+ #define PCECD_DATA_IO_INDEX 2
+ 
+ float get_cd_seek_ms(int start_sector, int target_sector);
+@@ -276,6 +278,11 @@ int pcecdd_t::Load(const char *filename)
+ 
+ 		//memcpy(&fname[strlen(fname) - 4], ".sub", 4);
+ 		//this->toc.sub = fopen(getFullPath(fname), "r");
++		//
++
++		uint32_t toc_crc = 0;
++		toc_crc = crc32(toc_crc, (const unsigned char *)&(this->toc), sizeof(toc_t));
++		user_io_set_cd_toc_crc(toc_crc);
+ 
+ 		printf("\x1b[32mPCECD: CD mounted , last track = %u\n\x1b[0m", this->toc.last);
+ 		return 1;
+@@ -310,6 +317,7 @@ void pcecdd_t::Unload()
+ 		this->loaded = 0;
+ 	}
+ 
++	user_io_set_cd_toc_crc(0);
+ 	memset(&this->toc, 0x00, sizeof(this->toc));
+ }
+ 
+diff --git a/user_io.cpp b/user_io.cpp
+index ec7e53e..f6d1e16 100644
+--- a/user_io.cpp
++++ b/user_io.cpp
+@@ -1853,11 +1853,24 @@ static void send_pcolchr(const char* name, unsigned char index, int type)
+ }
+ 
+ static uint32_t file_crc;
++static int32_t cd_toc_crc;
++
+ uint32_t user_io_get_file_crc()
+ {
+ 	return file_crc;
+ }
+ 
++
++void user_io_set_cd_toc_crc(uint32_t crc)
++{
++        cd_toc_crc = crc;
++}
++
++uint32_t user_io_get_cd_toc_crc()
++{
++        return cd_toc_crc;
++}
++
+ int user_io_use_cheats()
+ {
+ 	return use_cheats;
+diff --git a/user_io.h b/user_io.h
+index 52824cf..a3addb7 100644
+--- a/user_io.h
++++ b/user_io.h
+@@ -194,6 +194,8 @@ uint32_t user_io_8bit_set_status(uint32_t, uint32_t, int ex = 0);
+ int user_io_get_kbd_reset();
+ 
+ uint32_t user_io_get_file_crc();
++void user_io_set_cd_toc_crc(uint32_t cd_crc);
++uint32_t user_io_get_cd_toc_crc();
+ int  user_io_file_mount(const char *name, unsigned char index = 0, char pre = 0);
+ char *user_io_make_filepath(const char *path, const char *filename);
+ char *user_io_get_core_name(int orig = 0);
 -- 
 2.31.1
 

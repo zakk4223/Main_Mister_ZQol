@@ -1,51 +1,53 @@
-From 730b0eeb004817dd7514f6541dd68c643c479862 Mon Sep 17 00:00:00 2001
+From 50185ef7bfd897f61fad99ab183479ba1392c11c Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sat, 13 Feb 2021 17:35:28 -0500
-Subject: [PATCH] Add nvram clear option
+Date: Fri, 4 Jun 2021 13:58:45 -0400
+Subject: [PATCH 2/5] Add nvram clear option
 
 ---
- menu.cpp                      | 15 +++++++++++++++
+ menu.cpp                      | 17 +++++++++++++++++
  support/arcade/mra_loader.cpp | 21 +++++++++++++++++++++
  support/arcade/mra_loader.h   |  2 ++
- 3 files changed, 38 insertions(+)
+ 3 files changed, 40 insertions(+)
 
 diff --git a/menu.cpp b/menu.cpp
-index 6376d3c..ddca5f3 100644
+index b313a30..5f1f059 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -1013,6 +1013,7 @@ void HandleUI(void)
+@@ -1024,6 +1024,7 @@ void HandleUI(void)
  	static unsigned long flash_timer = 0;
  	static int flash_state = 0;
- 	static uint32_t dip_submenu;
+ 	static uint32_t dip_submenu, dip2_submenu, dipv;
 +	static uint32_t clear_nvm_submenu;
  	static int need_reset = 0;
  	static int flat = 0;
  	static int menusub_parent = 0;
-@@ -1556,6 +1557,7 @@ void HandleUI(void)
- 			else OsdSetTitle(title);
+@@ -1575,6 +1576,8 @@ void HandleUI(void)
  
  			dip_submenu = -1;
+ 			dip2_submenu = -1;
 +			clear_nvm_submenu = -1;
++
  
  			int last_space = 0;
  
-@@ -1797,6 +1799,15 @@ void HandleUI(void)
+@@ -1837,6 +1840,16 @@ void HandleUI(void)
  				}
  			} while (p);
  
++
 +			if (arcade_has_nvm())
 +			{
 +				clear_nvm_submenu = selentry;
 +				MenuWrite(entry, " Clear NVRAM", menusub == selentry, 0);
-+			        entry++;
-+			        selentry++;
++				entry++;
++				selentry++;
 +				menumask = (menumask << 1) | 1;
 +			}
 +
  			if (!entry) break;
  
  			for (; entry < OsdGetSize() - 1; entry++) MenuWrite(entry, "", 0, 0);
-@@ -1892,6 +1903,10 @@ void HandleUI(void)
+@@ -1930,6 +1943,10 @@ void HandleUI(void)
  				menustate = MENU_ARCADE_DIP1;
  				menusub = 0;
  			}
@@ -57,42 +59,42 @@ index 6376d3c..ddca5f3 100644
  			{
  				static char ext[256];
 diff --git a/support/arcade/mra_loader.cpp b/support/arcade/mra_loader.cpp
-index b224ba1..c92fbc2 100644
+index 326e437..c26fbf3 100644
 --- a/support/arcade/mra_loader.cpp
 +++ b/support/arcade/mra_loader.cpp
-@@ -54,6 +54,27 @@ static int  nvram_idx  = 0;
+@@ -55,6 +55,27 @@ static int  nvram_idx  = 0;
  static int  nvram_size = 0;
  static char nvram_name[200] = {};
  
++
 +bool arcade_has_nvm()
 +{
-+	if (nvram_idx && nvram_size)
-+	{
-+		return true;
-+	}
++       if (nvram_idx && nvram_size)
++       {
++               return true;
++       }
 +
-+	return false;
++       return false;
 +}
 +
 +void arcade_nvm_clear()
 +{
-+	if (nvram_idx && nvram_size)
-+	{
-+		char path[256] = CONFIG_DIR"/nvram/";
-+		strcat(path, nvram_name);
-+		FileDelete(path);
-+	}
++       if (nvram_idx && nvram_size)
++       {
++               char path[256] = CONFIG_DIR"/nvram/";
++               strcat(path, nvram_name);
++               FileDelete(path);
++       }
 +}
-+
 +
  void arcade_nvm_save()
  {
  	if(nvram_idx && nvram_size)
 diff --git a/support/arcade/mra_loader.h b/support/arcade/mra_loader.h
-index a5c8864..67387d9 100644
+index 609f59d..7d0e0aa 100644
 --- a/support/arcade/mra_loader.h
 +++ b/support/arcade/mra_loader.h
-@@ -35,5 +35,7 @@ void arcade_sw_load();
+@@ -34,5 +34,7 @@ void arcade_sw_load(int n);
  void arcade_override_name(const char *xml);
  
  void arcade_nvm_save();
@@ -101,5 +103,5 @@ index a5c8864..67387d9 100644
  
  #endif
 -- 
-2.30.1
+2.31.1
 
