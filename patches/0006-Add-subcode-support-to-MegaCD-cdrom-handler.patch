@@ -1,0 +1,196 @@
+From c1c4505f05f722f1a722a80e49ab73e90fa78ffe Mon Sep 17 00:00:00 2001
+From: Zakk <zakk@rsdio.com>
+Date: Sat, 3 Jul 2021 04:40:56 -0400
+Subject: [PATCH 2/2] Add subcode support to MegaCD cdrom handler
+
+---
+ cd.h                       |  9 ++++++-
+ support/chd/mister_chd.cpp |  7 ++++++
+ support/megacd/megacdd.cpp | 49 ++++++++++++++++++++++++--------------
+ 3 files changed, 46 insertions(+), 19 deletions(-)
+
+diff --git a/cd.h b/cd.h
+index 4795edc..3c99a20 100644
+--- a/cd.h
++++ b/cd.h
+@@ -4,6 +4,12 @@
+ #include <libchdr/chd.h>
+ #include "file_io.h"
+ 
++
++typedef enum
++{
++        SUBCODE_NONE = 0, SUBCODE_RW, SUBCODE_RW_RAW 
++} cd_subcode_types_t;
++
+ typedef struct
+ {
+ 	fileTYPE f;
+@@ -12,6 +18,7 @@ typedef struct
+ 	int end;
+ 	int type;
+ 	int sector_size;
++	cd_subcode_types_t sbc_type;
+ } cd_track_t;
+ 
+ typedef struct
+@@ -21,7 +28,7 @@ typedef struct
+ 	int sectorSize;
+ 	chd_file *chd_f;
+ 	cd_track_t tracks[100];
+-//	fileTYPE sub;
++	fileTYPE sub;
+ } toc_t;
+ 
+ typedef struct
+diff --git a/support/chd/mister_chd.cpp b/support/chd/mister_chd.cpp
+index e21eddb..cc38489 100644
+--- a/support/chd/mister_chd.cpp
++++ b/support/chd/mister_chd.cpp
+@@ -124,6 +124,13 @@ chd_error mister_load_chd(const char *filename, toc_t *cd_toc)
+ 			cd_toc->tracks[cd_toc->last].type = 0;
+ 		}
+ 
++		cd_toc->tracks[cd_toc->last].sbc_type = SUBCODE_NONE;
++		if (!strcmp(subtype, "RW")) {
++			cd_toc->tracks[cd_toc->last].sbc_type = SUBCODE_RW;
++		} else if (!strcmp(subtype, "RW_RAW")) {
++			cd_toc->tracks[cd_toc->last].sbc_type = SUBCODE_RW_RAW;
++		}
++
+ 		//CHD pads tracks to a multiple of 4 sectors, keep track of the overall sector count and calculate the difference between the cdrom lba and the effective chd lba
+ 		cd_toc->tracks[cd_toc->last].offset = (sector_cnt + pregap - cd_toc->tracks[cd_toc->last].start);
+ 		cd_toc->tracks[cd_toc->last].end = cd_toc->tracks[cd_toc->last].start + frames - pregap;
+diff --git a/support/megacd/megacdd.cpp b/support/megacd/megacdd.cpp
+index 8dc08e1..edbf8f4 100644
+--- a/support/megacd/megacdd.cpp
++++ b/support/megacd/megacdd.cpp
+@@ -234,6 +234,9 @@ int cdd_t::LoadCUE(const char* filename) {
+ 		this->toc.tracks[this->toc.last - 1].end = this->toc.end;
+ 	}
+ 
++        memcpy(&fname[strlen(fname) - 4], ".sub", 4);
++        FileOpen(&this->toc.sub, getFullPath(fname));
++
+ 	FileClose(&this->toc.tracks[this->toc.last].f);
+ 	return 0;
+ }
+@@ -298,9 +301,6 @@ int cdd_t::Load(const char *filename)
+ 		this->toc.tracks[this->toc.last].start = this->toc.end;
+ 		this->loaded = 1;
+ 
+-		//memcpy(&fname[strlen(fname) - 4], ".sub", 4);
+-		//this->toc.sub = fopen(getFullPath(fname), "r");
+-
+ 		printf("\x1b[32mMCD: CD mounted , last track = %u\n\x1b[0m", this->toc.last);
+ 	        uint32_t toc_crc = 0;
+ 		toc_crc = crc32(toc_crc, (const unsigned char *)&this->toc, sizeof(toc_t));
+@@ -333,7 +333,7 @@ void cdd_t::Unload()
+ 			}
+ 		}
+ 
+-		//if (this->toc.sub) fclose(this->toc.sub);
++		if (this->toc.sub.opened()) FileClose(&this->toc.sub);
+ 
+ 		this->loaded = 0;
+ 	}
+@@ -399,7 +399,6 @@ void cdd_t::Update() {
+ 			return;
+ 		}
+ 
+-		//if (this->toc.sub) mcd_sub_send();
+ 
+ 		if (this->toc.tracks[this->index].type)
+ 		{
+@@ -473,7 +472,7 @@ void cdd_t::Update() {
+ 
+ 		this->isData = this->toc.tracks[this->index].type;
+ 
+-		//if (this->toc.sub) fseek(this->toc.sub, this->lba * 96, SEEK_SET);
++		if (this->toc.sub.opened()) FileSeek(&this->toc.sub, this->lba * 96, SEEK_SET);
+ 
+ 		if (this->toc.tracks[this->index].type)
+ 		{
+@@ -713,7 +712,7 @@ void cdd_t::CommandExec() {
+ 		this->chd_audio_read_lba = this->lba;
+ 		this->audioOffset = 0;
+ 
+-		//if (this->toc.sub) fseek(this->toc.sub, lba_ * 96, SEEK_SET);
++		if (this->toc.sub.opened()) FileSeek(&this->toc.sub, lba_ * 96, SEEK_SET);
+ 
+ 		this->isData = 1;
+ 
+@@ -762,7 +761,7 @@ void cdd_t::CommandExec() {
+ 			FileSeek(&this->toc.tracks[index].f, (lba_ * 2352) - this->toc.tracks[index].offset, SEEK_SET);
+ 		}
+ 
+-		//if (this->toc.sub) fseek(this->toc.sub, lba_ * 96, SEEK_SET);
++		if (this->toc.sub.opened()) FileSeek(&this->toc.sub, lba_ * 96, SEEK_SET);
+ 
+ 		this->isData = 1;
+ 
+@@ -955,30 +954,43 @@ int cdd_t::ReadCDDA(uint8_t *buf)
+ 	return this->audioLength;
+ }
+ 
+-void cdd_t::ReadSubcode(uint16_t* buf)
++void DeinterleaveSubcode(uint8_t *subc_data, uint16_t *buf)
+ {
+-	(void)buf;
+-	/*
+-	uint8_t subc[96];
+ 	int i, j, n;
+ 
+-	fread(subc, 96, 1, this->toc.sub);
+-
+-	for (i = 0, n = 0; i < 96; i += 2, n++)
++	for(i = 0, n = 0; i < 96; i += 2, n++)
+ 	{
+ 		int code = 0;
+ 		for (j = 0; j < 8; j++)
+ 		{
+-			int bits = (subc[(j * 12) + (i / 8)] >> (6 - (i & 6))) & 3;
++			int bits = (subc_data[(j * 12) + (i / 8)] >> ( 6 - (i & 6))) & 3;
+ 			code |= ((bits & 1) << (7 - j));
+ 			code |= ((bits >> 1) << (15 - j));
+ 		}
+-
+ 		buf[n] = code;
+ 	}
+-	*/
+ }
+ 
++void cdd_t::ReadSubcode(uint16_t* buf)
++{
++
++	uint8_t subc[96];
++	if (this->toc.chd_f) 
++	{
++		//Just use the read sector call with an offset, since we previously read that sector, it is already in the hunk cache
++		if (this->toc.tracks[this->index].sbc_type == SUBCODE_RW_RAW) {
++			mister_chd_read_sector(this->toc.chd_f, this->chd_audio_read_lba + this->toc.tracks[this->index].offset, 0, CD_MAX_SECTOR_DATA, 96, (uint8_t *)buf, this->chd_hunkbuf, &this->chd_hunknum);
++		} else if (this->toc.tracks[this->index].sbc_type == SUBCODE_RW) {
++			mister_chd_read_sector(this->toc.chd_f, this->chd_audio_read_lba + this->toc.tracks[this->index].offset, 0, CD_MAX_SECTOR_DATA, 96, subc, this->chd_hunkbuf, &this->chd_hunknum);
++			DeinterleaveSubcode(subc, buf);
++		}
++	} else if (this->toc.sub.opened()) {
++		FileReadAdv(&this->toc.sub, subc, 96);
++		DeinterleaveSubcode(subc, buf);
++	}
++}
++
++
+ int cdd_t::SectorSend(uint8_t* header)
+ {
+ 	uint8_t buf[2352 + 2352];
+@@ -992,6 +1004,7 @@ int cdd_t::SectorSend(uint8_t* header)
+ 		len = ReadCDDA(buf);
+ 	}
+ 
++	SubcodeSend();
+ 	if (SendData)
+ 		return SendData(buf, len, CD_DATA_IO_INDEX);
+ 
+-- 
+2.32.0
+
