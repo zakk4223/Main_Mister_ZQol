@@ -134,7 +134,7 @@ index 8dc08e1..edbf8f4 100644
  }
  
 -void cdd_t::ReadSubcode(uint16_t* buf)
-+void DeinterleaveSubcode(uint8_t *subc_data, uint16_t *buf)
++void InterleaveSubcode(uint8_t *subc_data, uint16_t *buf)
  {
 -	(void)buf;
 -	/*
@@ -151,8 +151,8 @@ index 8dc08e1..edbf8f4 100644
  		{
 -			int bits = (subc[(j * 12) + (i / 8)] >> (6 - (i & 6))) & 3;
 +			int bits = (subc_data[(j * 12) + (i / 8)] >> ( 6 - (i & 6))) & 3;
- 			code |= ((bits & 1) << (7 - j));
- 			code |= ((bits >> 1) << (15 - j));
+ 			code |= ((bits & 1) << (15 - j));
+ 			code |= ((bits >> 1) << (7 - j));
  		}
 -
  		buf[n] = code;
@@ -171,11 +171,11 @@ index 8dc08e1..edbf8f4 100644
 +			mister_chd_read_sector(this->toc.chd_f, this->chd_audio_read_lba + this->toc.tracks[this->index].offset, 0, CD_MAX_SECTOR_DATA, 96, (uint8_t *)buf, this->chd_hunkbuf, &this->chd_hunknum);
 +		} else if (this->toc.tracks[this->index].sbc_type == SUBCODE_RW) {
 +			mister_chd_read_sector(this->toc.chd_f, this->chd_audio_read_lba + this->toc.tracks[this->index].offset, 0, CD_MAX_SECTOR_DATA, 96, subc, this->chd_hunkbuf, &this->chd_hunknum);
-+			DeinterleaveSubcode(subc, buf);
++			InterleaveSubcode(subc, buf);
 +		}
 +	} else if (this->toc.sub.opened()) {
 +		FileReadAdv(&this->toc.sub, subc, 96);
-+		DeinterleaveSubcode(subc, buf);
++		InterleaveSubcode(subc, buf);
 +	}
 +}
 +
