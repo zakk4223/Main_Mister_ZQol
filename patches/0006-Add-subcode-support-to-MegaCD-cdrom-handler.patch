@@ -20,7 +20,7 @@ index 4795edc..3c99a20 100644
 +
 +typedef enum
 +{
-+        SUBCODE_NONE = 0, SUBCODE_RW, SUBCODE_RW_RAW 
++        SUBCODE_NONE = 0, SUBCODE_RW, SUBCODE_RW_RAW
 +} cd_subcode_types_t;
 +
  typedef struct
@@ -164,7 +164,7 @@ index 8dc08e1..edbf8f4 100644
 +{
 +
 +	uint8_t subc[96];
-+	if (this->toc.chd_f) 
++	if (this->toc.chd_f)
 +	{
 +		//Just use the read sector call with an offset, since we previously read that sector, it is already in the hunk cache
 +		if (this->toc.tracks[this->index].sbc_type == SUBCODE_RW_RAW) {
