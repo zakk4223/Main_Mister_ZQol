@@ -1,13 +1,16 @@
-From c1c4505f05f722f1a722a80e49ab73e90fa78ffe Mon Sep 17 00:00:00 2001
+From a93d587d32e633acf6fc78a3330313658b67548b Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
 Date: Sat, 3 Jul 2021 04:40:56 -0400
 Subject: [PATCH 2/2] Add subcode support to MegaCD cdrom handler
 
+Add subcode support to MegaCD cdrom handler
+
+Handle .sub files
 ---
- cd.h                       |  9 ++++++-
- support/chd/mister_chd.cpp |  7 ++++++
- support/megacd/megacdd.cpp | 49 ++++++++++++++++++++++++--------------
- 3 files changed, 46 insertions(+), 19 deletions(-)
+ cd.h                       |  9 +++++-
+ support/chd/mister_chd.cpp |  7 +++++
+ support/megacd/megacdd.cpp | 57 +++++++++++++++++++++++++-------------
+ 3 files changed, 52 insertions(+), 21 deletions(-)
 
 diff --git a/cd.h b/cd.h
 index 4795edc..3c99a20 100644
@@ -20,7 +23,7 @@ index 4795edc..3c99a20 100644
 +
 +typedef enum
 +{
-+        SUBCODE_NONE = 0, SUBCODE_RW, SUBCODE_RW_RAW
++        SUBCODE_NONE = 0, SUBCODE_RW, SUBCODE_RW_RAW 
 +} cd_subcode_types_t;
 +
  typedef struct
@@ -62,7 +65,7 @@ index e21eddb..cc38489 100644
  		cd_toc->tracks[cd_toc->last].offset = (sector_cnt + pregap - cd_toc->tracks[cd_toc->last].start);
  		cd_toc->tracks[cd_toc->last].end = cd_toc->tracks[cd_toc->last].start + frames - pregap;
 diff --git a/support/megacd/megacdd.cpp b/support/megacd/megacdd.cpp
-index 8dc08e1..edbf8f4 100644
+index 8dc08e1..202ddc1 100644
 --- a/support/megacd/megacdd.cpp
 +++ b/support/megacd/megacdd.cpp
 @@ -234,6 +234,9 @@ int cdd_t::LoadCUE(const char* filename) {
@@ -129,7 +132,7 @@ index 8dc08e1..edbf8f4 100644
  
  		this->isData = 1;
  
-@@ -955,30 +954,43 @@ int cdd_t::ReadCDDA(uint8_t *buf)
+@@ -955,30 +954,47 @@ int cdd_t::ReadCDDA(uint8_t *buf)
  	return this->audioLength;
  }
  
@@ -139,20 +142,25 @@ index 8dc08e1..edbf8f4 100644
 -	(void)buf;
 -	/*
 -	uint8_t subc[96];
- 	int i, j, n;
+-	int i, j, n;
  
 -	fread(subc, 96, 1, this->toc.sub);
--
++	uint8_t dsub[8][12];
+ 
 -	for (i = 0, n = 0; i < 96; i += 2, n++)
-+	for(i = 0, n = 0; i < 96; i += 2, n++)
++	int i, j, n;
++
++	for(i = 0, n=0; i < 96; i+=2,n++)
  	{
  		int code = 0;
  		for (j = 0; j < 8; j++)
  		{
 -			int bits = (subc[(j * 12) + (i / 8)] >> (6 - (i & 6))) & 3;
-+			int bits = (subc_data[(j * 12) + (i / 8)] >> ( 6 - (i & 6))) & 3;
- 			code |= ((bits & 1) << (15 - j));
- 			code |= ((bits >> 1) << (7 - j));
+-			code |= ((bits & 1) << (7 - j));
+-			code |= ((bits >> 1) << (15 - j));
++			int bits = (subc_data[(j * 12) + (i / 8)] >> (6 - (i&6))) & 3; 
++			code |= ((bits & 1) << (15 - j));
++			code |= ((bits >> 1) << (7 - j));
  		}
 -
  		buf[n] = code;
@@ -162,9 +170,10 @@ index 8dc08e1..edbf8f4 100644
  
 +void cdd_t::ReadSubcode(uint16_t* buf)
 +{
++	uint8_t dsub[8][12];
 +
 +	uint8_t subc[96];
-+	if (this->toc.chd_f)
++	if (this->toc.chd_f) 
 +	{
 +		//Just use the read sector call with an offset, since we previously read that sector, it is already in the hunk cache
 +		if (this->toc.tracks[this->index].sbc_type == SUBCODE_RW_RAW) {
@@ -183,7 +192,7 @@ index 8dc08e1..edbf8f4 100644
  int cdd_t::SectorSend(uint8_t* header)
  {
  	uint8_t buf[2352 + 2352];
-@@ -992,6 +1004,7 @@ int cdd_t::SectorSend(uint8_t* header)
+@@ -992,6 +1008,7 @@ int cdd_t::SectorSend(uint8_t* header)
  		len = ReadCDDA(buf);
  	}
  
