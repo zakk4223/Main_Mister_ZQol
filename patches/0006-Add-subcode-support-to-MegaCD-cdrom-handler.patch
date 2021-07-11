@@ -1,11 +1,8 @@
-From a93d587d32e633acf6fc78a3330313658b67548b Mon Sep 17 00:00:00 2001
+From 710badd7c9f2621702b6bece24c1f553387423b5 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sat, 3 Jul 2021 04:40:56 -0400
-Subject: [PATCH 2/2] Add subcode support to MegaCD cdrom handler
+Date: Sun, 11 Jul 2021 11:10:31 -0400
+Subject: [PATCH 6/6] 0006
 
-Add subcode support to MegaCD cdrom handler
-
-Handle .sub files
 ---
  cd.h                       |  9 +++++-
  support/chd/mister_chd.cpp |  7 +++++

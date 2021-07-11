@@ -1,7 +1,7 @@
-From 50185ef7bfd897f61fad99ab183479ba1392c11c Mon Sep 17 00:00:00 2001
+From baf1c1adcbf3d93b73d9beeb32452e6699454fa5 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 4 Jun 2021 13:58:45 -0400
-Subject: [PATCH 2/5] Add nvram clear option
+Date: Sun, 11 Jul 2021 11:09:29 -0400
+Subject: [PATCH 2/6] 0002
 
 ---
  menu.cpp                      | 17 +++++++++++++++++
@@ -10,10 +10,10 @@ Subject: [PATCH 2/5] Add nvram clear option
  3 files changed, 40 insertions(+)
 
 diff --git a/menu.cpp b/menu.cpp
-index b313a30..5f1f059 100644
+index 12e1801..3a9046e 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -1024,6 +1024,7 @@ void HandleUI(void)
+@@ -1025,6 +1025,7 @@ void HandleUI(void)
  	static unsigned long flash_timer = 0;
  	static int flash_state = 0;
  	static uint32_t dip_submenu, dip2_submenu, dipv;
@@ -21,7 +21,7 @@ index b313a30..5f1f059 100644
  	static int need_reset = 0;
  	static int flat = 0;
  	static int menusub_parent = 0;
-@@ -1575,6 +1576,8 @@ void HandleUI(void)
+@@ -1576,6 +1577,8 @@ void HandleUI(void)
  
  			dip_submenu = -1;
  			dip2_submenu = -1;
@@ -30,7 +30,7 @@ index b313a30..5f1f059 100644
  
  			int last_space = 0;
  
-@@ -1837,6 +1840,16 @@ void HandleUI(void)
+@@ -1839,6 +1842,16 @@ void HandleUI(void)
  				}
  			} while (p);
  
@@ -47,7 +47,7 @@ index b313a30..5f1f059 100644
  			if (!entry) break;
  
  			for (; entry < OsdGetSize() - 1; entry++) MenuWrite(entry, "", 0, 0);
-@@ -1930,6 +1943,10 @@ void HandleUI(void)
+@@ -1932,6 +1945,10 @@ void HandleUI(void)
  				menustate = MENU_ARCADE_DIP1;
  				menusub = 0;
  			}
@@ -59,7 +59,7 @@ index b313a30..5f1f059 100644
  			{
  				static char ext[256];
 diff --git a/support/arcade/mra_loader.cpp b/support/arcade/mra_loader.cpp
-index 326e437..c26fbf3 100644
+index 3f578a8..4eb515e 100644
 --- a/support/arcade/mra_loader.cpp
 +++ b/support/arcade/mra_loader.cpp
 @@ -55,6 +55,27 @@ static int  nvram_idx  = 0;
@@ -103,5 +103,5 @@ index 609f59d..7d0e0aa 100644
  
  #endif
 -- 
-2.31.1
+2.32.0
 
