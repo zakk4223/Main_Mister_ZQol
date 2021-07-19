@@ -1,7 +1,7 @@
-From 805d122153d8e75c0f855beabc2ba6a3be1459fc Mon Sep 17 00:00:00 2001
+From 56f519de18ccd7b288636ce2958bbb6c48889dfc Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sun, 11 Jul 2021 11:09:59 -0400
-Subject: [PATCH 4/6] 0004
+Date: Mon, 19 Jul 2021 14:04:44 -0400
+Subject: [PATCH 4/4] 0004
 
 ---
  input.cpp                  | 222 ++++++++++++++++++++++-
@@ -414,7 +414,7 @@ index f9109d2..e39d977 100644
  #ifdef USE_SCHEDULER
  	scheduler_init();
 diff --git a/menu.cpp b/menu.cpp
-index 3a9046e..131c599 100644
+index d106ddc..b6f1711 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -183,6 +183,13 @@ enum MENU
@@ -1031,7 +1031,7 @@ index c69a0bf..635a51b 100644
  
  #endif
 diff --git a/support/megacd/megacdd.cpp b/support/megacd/megacdd.cpp
-index 3a20965..8dc08e1 100644
+index bbf0abd..a15907f 100644
 --- a/support/megacd/megacdd.cpp
 +++ b/support/megacd/megacdd.cpp
 @@ -6,6 +6,8 @@
@@ -1044,7 +1044,7 @@ index 3a20965..8dc08e1 100644
  
  #define CD_DATA_IO_INDEX 2
 @@ -300,10 +302,11 @@ int cdd_t::Load(const char *filename)
- 		//this->toc.sub = fopen(getFullPath(fname), "r");
+ 		this->loaded = 1;
  
  		printf("\x1b[32mMCD: CD mounted , last track = %u\n\x1b[0m", this->toc.last);
 -
@@ -1066,7 +1066,7 @@ index 3a20965..8dc08e1 100644
  
  void cdd_t::Reset() {
 diff --git a/support/pcecd/pcecdd.cpp b/support/pcecd/pcecdd.cpp
-index afcd1e5..a1a7647 100644
+index 7d747f5..8764680 100644
 --- a/support/pcecd/pcecdd.cpp
 +++ b/support/pcecd/pcecdd.cpp
 @@ -8,8 +8,10 @@
@@ -1080,7 +1080,7 @@ index afcd1e5..a1a7647 100644
  #define PCECD_DATA_IO_INDEX 2
  
  float get_cd_seek_ms(int start_sector, int target_sector);
-@@ -276,6 +278,11 @@ int pcecdd_t::Load(const char *filename)
+@@ -277,6 +279,11 @@ int pcecdd_t::Load(const char *filename)
  
  		//memcpy(&fname[strlen(fname) - 4], ".sub", 4);
  		//this->toc.sub = fopen(getFullPath(fname), "r");
@@ -1092,7 +1092,7 @@ index afcd1e5..a1a7647 100644
  
  		printf("\x1b[32mPCECD: CD mounted , last track = %u\n\x1b[0m", this->toc.last);
  		return 1;
-@@ -310,6 +317,7 @@ void pcecdd_t::Unload()
+@@ -311,6 +318,7 @@ void pcecdd_t::Unload()
  		this->loaded = 0;
  	}
  
@@ -1101,10 +1101,10 @@ index afcd1e5..a1a7647 100644
  }
  
 diff --git a/user_io.cpp b/user_io.cpp
-index c8cea82..60e6391 100644
+index 56d5a82..882fbfe 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
-@@ -1861,11 +1861,24 @@ static void send_pcolchr(const char* name, unsigned char index, int type)
+@@ -1876,11 +1876,24 @@ static void send_pcolchr(const char* name, unsigned char index, int type)
  }
  
  static uint32_t file_crc;
