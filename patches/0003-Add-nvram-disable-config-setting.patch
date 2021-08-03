@@ -1,7 +1,7 @@
-From 6217bf8c2103346b1629ac4ff310a226a2250464 Mon Sep 17 00:00:00 2001
+From 86f2ab5e2b4e6b17d8376f75df220e768c3f03fa Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sun, 11 Jul 2021 11:09:43 -0400
-Subject: [PATCH 3/3] 0003
+Date: Tue, 3 Aug 2021 16:39:09 -0400
+Subject: [PATCH 3/5] Add nvram disable config setting
 
 ---
  cfg.cpp                       | 1 +
@@ -10,10 +10,10 @@ Subject: [PATCH 3/3] 0003
  3 files changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 3d09484..b9b43f3 100644
+index 55c601c..e8e9742 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -83,6 +83,7 @@ static const ini_var_t ini_vars[] =
+@@ -84,6 +84,7 @@ static const ini_var_t ini_vars[] =
  	{ "AFILTER_DEFAULT", (void*)(&(cfg.afilter_default)), STRING, 0, sizeof(cfg.afilter_default) - 1 },
  	{ "VFILTER_DEFAULT", (void*)(&(cfg.vfilter_default)), STRING, 0, sizeof(cfg.vfilter_default) - 1 },
  	{ "LOG_FILE_ENTRY", (void*)(&(cfg.log_file_entry)), UINT8, 0, 1 },
@@ -22,10 +22,10 @@ index 3d09484..b9b43f3 100644
  
  static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
 diff --git a/cfg.h b/cfg.h
-index 1652c7b..6f3955a 100644
+index 3cd3d7c..8da6a7f 100644
 --- a/cfg.h
 +++ b/cfg.h
-@@ -52,6 +52,7 @@ typedef struct {
+@@ -53,6 +53,7 @@ typedef struct {
  	uint8_t browse_expand;
  	uint8_t logo;
  	uint8_t log_file_entry;

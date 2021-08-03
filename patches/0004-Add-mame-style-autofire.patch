@@ -1,7 +1,7 @@
-From 56f519de18ccd7b288636ce2958bbb6c48889dfc Mon Sep 17 00:00:00 2001
+From fce853868c0baa27a64175570420f68ce5f7a1f9 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 19 Jul 2021 14:04:44 -0400
-Subject: [PATCH 4/4] 0004
+Date: Tue, 3 Aug 2021 16:39:23 -0400
+Subject: [PATCH 4/5] Add mame style autofire
 
 ---
  input.cpp                  | 222 ++++++++++++++++++++++-
@@ -17,7 +17,7 @@ Subject: [PATCH 4/4] 0004
  10 files changed, 597 insertions(+), 52 deletions(-)
 
 diff --git a/input.cpp b/input.cpp
-index f2ae248..5a4cb25 100644
+index 0c4a71f..d0e543f 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -27,6 +27,7 @@
@@ -28,7 +28,7 @@ index f2ae248..5a4cb25 100644
  
  #define NUMDEV 30
  #define NUMPLAYERS 6
-@@ -905,15 +906,29 @@ typedef struct
+@@ -910,15 +911,29 @@ typedef struct
  	char     sysfs[512];
  } devInput;
  
@@ -58,7 +58,7 @@ index f2ae248..5a4cb25 100644
  static int set_watch()
  {
  	mwd = -1;
-@@ -1083,6 +1098,9 @@ static int mapping_clear;
+@@ -1094,6 +1109,9 @@ static int mapping_clear;
  static int mapping_set;
  static int last_input_dev = 1<<31;
  static int last_pdsp_dev = 1<<31;
@@ -68,7 +68,7 @@ index f2ae248..5a4cb25 100644
  
  static int player_num_remapping = 0;
  static int remapping_spinner_input = 0;
-@@ -1237,6 +1255,26 @@ void finish_map_setting(int dismiss)
+@@ -1248,6 +1266,26 @@ void finish_map_setting(int dismiss)
  	}
  }
  
@@ -95,7 +95,7 @@ index f2ae248..5a4cb25 100644
  void input_lightgun_save(int idx, uint16_t *cal)
  {
  	static char name[128];
-@@ -1344,6 +1382,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -1355,6 +1393,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  static int kbd_toggle = 0;
  static uint32_t joy[NUMPLAYERS] = {};
  static uint32_t autofire[NUMPLAYERS] = {};
@@ -103,7 +103,7 @@ index f2ae248..5a4cb25 100644
  static uint32_t autofirecodes[NUMPLAYERS][BTN_NUM] = {};
  static int af_delay[NUMPLAYERS] = {};
  
-@@ -1356,6 +1395,7 @@ static int mouse_emu_x = 0;
+@@ -1367,6 +1406,7 @@ static int mouse_emu_x = 0;
  static int mouse_emu_y = 0;
  
  static uint32_t mouse_timer = 0;
@@ -111,7 +111,7 @@ index f2ae248..5a4cb25 100644
  
  #define BTN_TGL 100
  #define BTN_OSD 101
-@@ -1945,6 +1985,10 @@ void swap_player(int cur_dev, int new_num)
+@@ -1957,6 +1997,10 @@ void swap_player(int cur_dev, int new_num)
  	{
  		return;
  	}
@@ -122,7 +122,7 @@ index f2ae248..5a4cb25 100644
          input[cur_dev].num = new_num;
          store_player(new_num, cur_dev);
          //Swap if there was already one assigned there
-@@ -1978,6 +2022,15 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -1990,6 +2034,15 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  	if (ev->type != EV_KEY && ev->type != EV_ABS && ev->type != EV_REL) return;
  	if (ev->type == EV_KEY && (!ev->code || ev->code == KEY_UNKNOWN)) return;
  
@@ -138,7 +138,7 @@ index f2ae248..5a4cb25 100644
  	static uint16_t last_axis = 0;
  
  	int sub_dev = dev;
-@@ -2627,6 +2680,26 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2639,6 +2692,26 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  						}
  					}
  
@@ -165,7 +165,7 @@ index f2ae248..5a4cb25 100644
  					if (ev->code == input[dev].mmap[SYS_MS_BTN_EMU] && (ev->value <= 1) && ((!(mouse_emu & 1)) ^ (!ev->value)))
  					{
  						mouse_emu = ev->value ? mouse_emu | 1 : mouse_emu & ~1;
-@@ -3330,6 +3403,12 @@ int input_test(int getchar)
+@@ -3497,6 +3570,12 @@ int input_test(int getchar)
  
  		pool[NUMDEV + 2].fd = open(LED_MONITOR, O_RDONLY | O_CLOEXEC);
  		pool[NUMDEV + 2].events = POLLPRI;
@@ -178,7 +178,7 @@ index f2ae248..5a4cb25 100644
  
  		state++;
  	}
-@@ -4083,6 +4162,56 @@ int input_test(int getchar)
+@@ -4275,6 +4354,56 @@ int input_test(int getchar)
  	return 0;
  }
  
@@ -235,7 +235,7 @@ index f2ae248..5a4cb25 100644
  int input_poll(int getchar)
  {
  	static int af[NUMPLAYERS] = {};
-@@ -4123,14 +4252,17 @@ int input_poll(int getchar)
+@@ -4315,14 +4444,17 @@ int input_poll(int getchar)
  
  	if (grabbed)
  	{
@@ -255,7 +255,7 @@ index f2ae248..5a4cb25 100644
  			if (joy[i] != joy_prev[i])
  			{
  				if ((joy[i] ^ joy_prev[i]) & autofire[i])
-@@ -4138,9 +4270,6 @@ int input_poll(int getchar)
+@@ -4330,9 +4462,6 @@ int input_poll(int getchar)
  					time[i] = GetTimer(af_delay[i]);
  					af[i] = 0;
  				}
@@ -265,7 +265,7 @@ index f2ae248..5a4cb25 100644
  			}
  
  			if (CheckTimer(time[i]))
-@@ -4150,9 +4279,25 @@ int input_poll(int getchar)
+@@ -4342,9 +4471,25 @@ int input_poll(int getchar)
  				if (joy[i] & autofire[i]) send = 1;
  			}
  
@@ -292,7 +292,7 @@ index f2ae248..5a4cb25 100644
  			}
  		}
  	}
-@@ -4296,3 +4441,68 @@ void parse_buttons()
+@@ -4488,3 +4633,68 @@ void parse_buttons()
  		joy_bcount++;
  	}
  }
@@ -362,7 +362,7 @@ index f2ae248..5a4cb25 100644
 +                }
 +}
 diff --git a/input.h b/input.h
-index eb33221..871cb7e 100644
+index f000556..97b2bf2 100644
 --- a/input.h
 +++ b/input.h
 @@ -71,6 +71,20 @@
@@ -386,7 +386,7 @@ index eb33221..871cb7e 100644
  void set_kbdled(int mask, int state);
  int  get_kbdled(int mask);
  int  toggle_kbdled(int mask);
-@@ -100,6 +114,14 @@ int get_pdsp_mask();
+@@ -101,6 +115,14 @@ int get_pdsp_mask();
  int get_dev_num(int dev);
  int get_remap_spinner_value();
  int get_numplayers();
@@ -414,10 +414,10 @@ index f9109d2..e39d977 100644
  #ifdef USE_SCHEDULER
  	scheduler_init();
 diff --git a/menu.cpp b/menu.cpp
-index d106ddc..b6f1711 100644
+index 91affb2..a67f3c2 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -183,6 +183,13 @@ enum MENU
+@@ -181,6 +181,13 @@ enum MENU
  	// MT32-pi
  	MENU_MT32PI_MAIN1,
  	MENU_MT32PI_MAIN2,
@@ -431,7 +431,7 @@ index d106ddc..b6f1711 100644
  };
  
  static uint32_t menustate = MENU_NONE1;
-@@ -271,6 +278,10 @@ static uint32_t fs_Options;
+@@ -269,6 +276,10 @@ static uint32_t fs_Options;
  static uint32_t fs_MenuSelect;
  static uint32_t fs_MenuCancel;
  
@@ -442,7 +442,7 @@ index d106ddc..b6f1711 100644
  static char* GetExt(char *ext)
  {
  	static char extlist[32];
-@@ -989,6 +1000,52 @@ static int gun_idx = 0;
+@@ -987,6 +998,52 @@ static int gun_idx = 0;
  static uint16_t gun_pos[4] = {};
  static int page = 0;
  
@@ -495,7 +495,7 @@ index d106ddc..b6f1711 100644
  void HandleUI(void)
  {
  	switch (user_io_core_type())
-@@ -2252,6 +2309,7 @@ void HandleUI(void)
+@@ -2233,6 +2290,7 @@ void HandleUI(void)
  					if (!store_name) user_io_store_filename(selPath);
  					user_io_file_tx(selPath, idx, opensave, 0, 0, load_addr);
  					if (user_io_use_cheats()) cheats_init(selPath, user_io_get_file_crc());
@@ -503,7 +503,7 @@ index d106ddc..b6f1711 100644
  				}
  
  				if (addon[0] == 'f' && addon[1] == '1') process_addon(addon, idx);
-@@ -2279,11 +2337,13 @@ void HandleUI(void)
+@@ -2260,11 +2318,13 @@ void HandleUI(void)
  			else if (is_megacd())
  			{
  				mcd_set_image(ioctl_index, selPath);
@@ -517,7 +517,7 @@ index d106ddc..b6f1711 100644
  			}
  			else
  			{
-@@ -2311,7 +2371,7 @@ void HandleUI(void)
+@@ -2292,7 +2352,7 @@ void HandleUI(void)
  			while(1)
  			{
  				n = 0;
@@ -526,7 +526,7 @@ index d106ddc..b6f1711 100644
  
  				if (!menusub) firstmenu = 0;
  				adjvisible = 0;
-@@ -2324,10 +2384,11 @@ void HandleUI(void)
+@@ -2305,10 +2365,11 @@ void HandleUI(void)
  				MenuWrite(n++, s, menusub == 1, 0);
  				MenuWrite(n++, " Button/Key remap for game \x16", menusub == 2, 0);
  				MenuWrite(n++, " Change player assignment  \x16", menusub == 3, 0);
@@ -539,7 +539,7 @@ index d106ddc..b6f1711 100644
  					MenuWrite(n++);
  					int mode = GetUARTMode();
  					const char *p = config_uart_msg[mode];
-@@ -2335,15 +2396,15 @@ void HandleUI(void)
+@@ -2316,15 +2377,15 @@ void HandleUI(void)
  					sprintf(s, " UART mode (%s)            ",p);
  					s[27] = '\x16';
  					s[28] = 0;
@@ -558,7 +558,7 @@ index d106ddc..b6f1711 100644
  
  					memset(s, 0, sizeof(s));
  					s[0] = ' ';
-@@ -2353,15 +2414,15 @@ void HandleUI(void)
+@@ -2334,15 +2395,15 @@ void HandleUI(void)
  					while(strlen(s) < 26) strcat(s, " ");
  					strcat(s, " \x16 ");
  
@@ -577,7 +577,7 @@ index d106ddc..b6f1711 100644
  
  					memset(s, 0, sizeof(s));
  					s[0] = ' ';
-@@ -2371,15 +2432,15 @@ void HandleUI(void)
+@@ -2352,15 +2413,15 @@ void HandleUI(void)
  					while(strlen(s) < 26) strcat(s, " ");
  					strcat(s, " \x16 ");
  
@@ -596,7 +596,7 @@ index d106ddc..b6f1711 100644
  
  					memset(s, 0, sizeof(s));
  					s[0] = ' ';
-@@ -2389,27 +2450,27 @@ void HandleUI(void)
+@@ -2370,27 +2431,27 @@ void HandleUI(void)
  					while (strlen(s) < 26) strcat(s, " ");
  					strcat(s, " \x16 ");
  
@@ -631,7 +631,7 @@ index d106ddc..b6f1711 100644
  				sysinfo_timer = 0;
  
  				if (!adjvisible) break;
-@@ -2420,8 +2481,11 @@ void HandleUI(void)
+@@ -2401,8 +2462,11 @@ void HandleUI(void)
  		break;
  
  	case MENU_COMMON2:
@@ -643,7 +643,7 @@ index d106ddc..b6f1711 100644
  			switch (user_io_core_type())
  			{
  			    case CORE_TYPE_SHARPMZ:
-@@ -2432,6 +2496,7 @@ void HandleUI(void)
+@@ -2413,6 +2477,7 @@ void HandleUI(void)
                      menustate = MENU_NONE1;
                      break;
              };
@@ -651,7 +651,7 @@ index d106ddc..b6f1711 100644
          }
  
  		if (recent && menusub == 0)
-@@ -2454,21 +2519,7 @@ void HandleUI(void)
+@@ -2435,21 +2500,7 @@ void HandleUI(void)
  				break;
  
  			case 1:
@@ -674,7 +674,7 @@ index d106ddc..b6f1711 100644
  				start_map_setting(joy_bcount ? joy_bcount+4 : 8);
  				menustate = MENU_JOYDIGMAP;
  				menusub = 0;
-@@ -2486,20 +2537,26 @@ void HandleUI(void)
+@@ -2467,20 +2518,26 @@ void HandleUI(void)
  				menustate = MENU_JOYNUMREMAP;
  				menusub = 0;
  				break;
@@ -704,7 +704,7 @@ index d106ddc..b6f1711 100644
  				if (video_get_scaler_flt())
  				{
  					snprintf(Selected_tmp, sizeof(Selected_tmp), COEFF_DIR"/%s", video_get_scaler_coeff());
-@@ -2507,12 +2564,12 @@ void HandleUI(void)
+@@ -2488,12 +2545,12 @@ void HandleUI(void)
  					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_COEFF_FILE_SELECTED, MENU_COMMON1);
  				}
  				break;
@@ -719,7 +719,7 @@ index d106ddc..b6f1711 100644
  				if (video_get_gamma_en())
  				{
  					snprintf(Selected_tmp, sizeof(Selected_tmp), GAMMA_DIR"/%s", video_get_gamma_curve());
-@@ -2520,12 +2577,12 @@ void HandleUI(void)
+@@ -2501,12 +2558,12 @@ void HandleUI(void)
  					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_GAMMA_FILE_SELECTED, MENU_COMMON1);
  				}
  				break;
@@ -734,7 +734,7 @@ index d106ddc..b6f1711 100644
  				if (audio_filter_en())
  				{
  					snprintf(Selected_tmp, sizeof(Selected_tmp), AFILTER_DIR"/%s", audio_get_filter());
-@@ -2533,7 +2590,7 @@ void HandleUI(void)
+@@ -2514,7 +2571,7 @@ void HandleUI(void)
  					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_AFILTER_FILE_SELECTED, MENU_COMMON1);
  				}
  				break;
@@ -743,7 +743,7 @@ index d106ddc..b6f1711 100644
  				if (!is_archie())
  				{
  					menustate = MENU_RESET1;
-@@ -2546,7 +2603,7 @@ void HandleUI(void)
+@@ -2527,7 +2584,7 @@ void HandleUI(void)
  				}
  				break;
  
@@ -752,7 +752,7 @@ index d106ddc..b6f1711 100644
  				// Save settings
  				menustate = MENU_GENERIC_MAIN1;
  				menusub = 0;
-@@ -2571,7 +2628,7 @@ void HandleUI(void)
+@@ -2552,7 +2609,7 @@ void HandleUI(void)
  				}
  				break;
  
@@ -761,7 +761,7 @@ index d106ddc..b6f1711 100644
  				{
  					reboot_req = 1;
  
-@@ -2584,7 +2641,7 @@ void HandleUI(void)
+@@ -2565,7 +2622,7 @@ void HandleUI(void)
  				}
  				break;
  
@@ -770,7 +770,7 @@ index d106ddc..b6f1711 100644
  				menustate = MENU_ABOUT1;
  				menusub = 0;
  				break;
-@@ -2597,6 +2654,7 @@ void HandleUI(void)
+@@ -2578,6 +2635,7 @@ void HandleUI(void)
  		else if (left)
  		{
  			// go back to core requesting this menu
@@ -778,7 +778,7 @@ index d106ddc..b6f1711 100644
  			switch (user_io_core_type())
  			{
  			case CORE_TYPE_8BIT:
-@@ -2631,6 +2689,217 @@ void HandleUI(void)
+@@ -2612,6 +2670,217 @@ void HandleUI(void)
  		if(!hold_cnt && reboot_req) fpga_load_rbf("menu.rbf");
  		break;
  
@@ -1101,10 +1101,10 @@ index 7d747f5..8764680 100644
  }
  
 diff --git a/user_io.cpp b/user_io.cpp
-index 56d5a82..882fbfe 100644
+index f5ceaf3..c192899 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
-@@ -1876,11 +1876,24 @@ static void send_pcolchr(const char* name, unsigned char index, int type)
+@@ -1874,11 +1874,24 @@ static void send_pcolchr(const char* name, unsigned char index, int type)
  }
  
  static uint32_t file_crc;
