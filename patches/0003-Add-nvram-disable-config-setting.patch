@@ -1,28 +1,29 @@
-From 86f2ab5e2b4e6b17d8376f75df220e768c3f03fa Mon Sep 17 00:00:00 2001
+From 81051ca3bf0bfcd987ad1738aae3a79a375bfcdb Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 3 Aug 2021 16:39:09 -0400
-Subject: [PATCH 3/5] Add nvram disable config setting
+Date: Wed, 25 Aug 2021 14:00:47 -0400
+Subject: [PATCH 3/5] 0003
 
 ---
- cfg.cpp                       | 1 +
+ cfg.cpp                       | 2 ++
  cfg.h                         | 1 +
  support/arcade/mra_loader.cpp | 5 +++--
- 3 files changed, 5 insertions(+), 2 deletions(-)
+ 3 files changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 55c601c..e8e9742 100644
+index 6c3beca..b21d289 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -84,6 +84,7 @@ static const ini_var_t ini_vars[] =
- 	{ "AFILTER_DEFAULT", (void*)(&(cfg.afilter_default)), STRING, 0, sizeof(cfg.afilter_default) - 1 },
+@@ -85,6 +85,8 @@ static const ini_var_t ini_vars[] =
  	{ "VFILTER_DEFAULT", (void*)(&(cfg.vfilter_default)), STRING, 0, sizeof(cfg.vfilter_default) - 1 },
  	{ "LOG_FILE_ENTRY", (void*)(&(cfg.log_file_entry)), UINT8, 0, 1 },
+ 	{ "BT_AUTO_DISCONNECT", (void*)(&(cfg.bt_auto_disconnect)), UINT32, 0, 180 },
 +	{ "DISABLE_NVRAM", (void*)(&(cfg.disable_nvram)), UINT8, 0, 1},
++
  };
  
  static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
 diff --git a/cfg.h b/cfg.h
-index 3cd3d7c..8da6a7f 100644
+index 7144cfa..922b996 100644
 --- a/cfg.h
 +++ b/cfg.h
 @@ -53,6 +53,7 @@ typedef struct {
@@ -30,9 +31,9 @@ index 3cd3d7c..8da6a7f 100644
  	uint8_t logo;
  	uint8_t log_file_entry;
 +	uint8_t disable_nvram;
+ 	int bt_auto_disconnect;
  	char bootcore[256];
  	char video_conf[1024];
- 	char video_conf_pal[1024];
 diff --git a/support/arcade/mra_loader.cpp b/support/arcade/mra_loader.cpp
 index 4eb515e..e87a79e 100644
 --- a/support/arcade/mra_loader.cpp
