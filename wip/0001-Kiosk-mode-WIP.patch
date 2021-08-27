@@ -1,0 +1,78 @@
+From ad5c1affbb04a4b4e71eaa1adcbe6cd31f758183 Mon Sep 17 00:00:00 2001
+From: Zakk <zakk@rsdio.com>
+Date: Fri, 27 Aug 2021 10:32:10 -0400
+Subject: [PATCH] Kiosk mode WIP
+
+---
+ cfg.cpp  | 1 +
+ cfg.h    | 1 +
+ menu.cpp | 8 ++++----
+ 3 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/cfg.cpp b/cfg.cpp
+index 6c3beca..be40ba4 100644
+--- a/cfg.cpp
++++ b/cfg.cpp
+@@ -85,6 +85,7 @@ static const ini_var_t ini_vars[] =
+ 	{ "VFILTER_DEFAULT", (void*)(&(cfg.vfilter_default)), STRING, 0, sizeof(cfg.vfilter_default) - 1 },
+ 	{ "LOG_FILE_ENTRY", (void*)(&(cfg.log_file_entry)), UINT8, 0, 1 },
+ 	{ "BT_AUTO_DISCONNECT", (void*)(&(cfg.bt_auto_disconnect)), UINT32, 0, 180 },
++	{ "KIOSK_MODE", (void*)(&(cfg.kiosk_mode)), UINT8, 0, 1},
+ };
+ 
+ static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
+diff --git a/cfg.h b/cfg.h
+index 7144cfa..5fb3834 100644
+--- a/cfg.h
++++ b/cfg.h
+@@ -53,6 +53,7 @@ typedef struct {
+ 	uint8_t browse_expand;
+ 	uint8_t logo;
+ 	uint8_t log_file_entry;
++	uint8_t kiosk_mode;
+ 	int bt_auto_disconnect;
+ 	char bootcore[256];
+ 	char video_conf[1024];
+diff --git a/menu.cpp b/menu.cpp
+index 753bc6b..63ff8ee 100644
+--- a/menu.cpp
++++ b/menu.cpp
+@@ -1715,7 +1715,7 @@ void HandleUI(void)
+ 
+ 							s[0] = ' ';
+ 							substrcpy(s + 1, p, 1);
+-							MenuWrite(entry, s, menusub == selentry, d);
++							MenuWrite(entry, s, menusub == selentry, d || cfg.kiosk_mode);
+ 
+ 							// add bit in menu mask
+ 							menumask = (menumask << 1) | 1;
+@@ -1769,7 +1769,7 @@ void HandleUI(void)
+ 							if (arc > 0) strcpy(s + strlen(s), cfg.custom_aspect_ratio[arc - 1]);
+ 							else substrcpy(s + strlen(s), p, 2 + x);
+ 
+-							MenuWrite(entry, s, menusub == selentry, d);
++							MenuWrite(entry, s, menusub == selentry, d || cfg.kiosk_mode);
+ 
+ 							// add bit in menu mask
+ 							menumask = (menumask << 1) | 1;
+@@ -2050,7 +2050,7 @@ void HandleUI(void)
+ 							cheatsub = menusub;
+ 							menusub = 0;
+ 						}
+-						else if ((p[0] == 'O') || (p[0] == 'o'))
++						else if (!cfg.kiosk_mode && ((p[0] == 'O') || (p[0] == 'o')))
+ 						{
+ 							int ex = (p[0] == 'o');
+ 
+@@ -2097,7 +2097,7 @@ void HandleUI(void)
+ 							}
+ 							menustate = MENU_GENERIC_MAIN1;
+ 						}
+-						else if (((p[0] == 'T') || (p[0] == 'R') || (p[0] == 't') || (p[0] == 'r')) && select)
++						else if (((p[0] == 'T') || (p[0] == 'R') || (p[0] == 't') || (p[0] == 'r')) && select && !cfg.kiosk_mode)
+ 						{
+ 							int ex = (p[0] == 't') || (p[0] == 'r');
+ 
+-- 
+2.33.0
+
