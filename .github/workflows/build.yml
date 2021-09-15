@@ -66,6 +66,8 @@ jobs:
       - name: Create downloader database
         if: env.DO_RUN_BUILD == 'YES'
         run: |
+          git config --global user.email "zakk@rsdio.com"
+          git config --global user.name "Automated release bot"
           ../../calculate_db.py
         working-directory: ./main/downloader
         env:
