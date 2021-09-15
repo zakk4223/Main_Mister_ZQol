@@ -46,7 +46,7 @@ jobs:
           ./main/scripts/patchall.sh ./main_mister
       - name: Build Mister
         if: env.DO_RUN_BUILD == 'YES'
-        uses: docker://misterkun/toolchain
+        uses: docker://theypsilon/gcc-linaro:7.5.0
         with:
           args: make -C ./main_mister 
       - name: Set Release Date
@@ -73,7 +73,7 @@ jobs:
         env:
           DB_ID: mister_zqol
           DB_URL: https://raw.githubusercontent.com/zakk4223/Main_Mister_ZQol/main/downloader/db.json.zip
-          BASE_FILES_URL: https://raw.githubusercontent.com/zakk4223/Main_Mister_ZQol/%s/
+          BASE_FILES_URL: https://raw.githubusercontent.com/zakk4223/Main_Mister_ZQol/downloader/%s/
       - name: Check in release
         if: env.DO_RUN_BUILD == 'YES'
         uses: EndBug/add-and-commit@v7
