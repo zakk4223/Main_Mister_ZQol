@@ -66,7 +66,7 @@ jobs:
       - name: Create downloader database
         if: env.DO_RUN_BUILD == 'YES'
         run: |
-          ./calculate_db.py
+          ../../calculate_db.py
         working-directory: ./main/downloader
         env:
           DB_ID: mister_zqol
