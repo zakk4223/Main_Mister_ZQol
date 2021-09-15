@@ -21,7 +21,7 @@ jobs:
           path: main_mister
       - name: Download calculate_db.py
         run: |
-          curl https://raw.githubusercontent.com/MiSTer-devel/Distribution_MiSTer/main/.github/calculate_db.py -o ./
+          curl https://raw.githubusercontent.com/MiSTer-devel/Distribution_MiSTer/main/.github/calculate_db.py -o ./calculate_db.py
           chmod 755 ./calculate_db.py
       - name: Check if build needed
         if: github.event_name == 'schedule'
