@@ -63,17 +63,6 @@ jobs:
         if: env.DO_RUN_BUILD == 'YES' && env.LAST_MISTER_SHA != ''
         run: |
           echo "${LAST_MISTER_SHA}" > ./main/last_build_sum
-      - name: Create downloader database
-        if: env.DO_RUN_BUILD == 'YES'
-        run: |
-          git config --global user.email "zakk@rsdio.com"
-          git config --global user.name "Automated release bot"
-          ../../calculate_db.py
-        working-directory: ./main/downloader
-        env:
-          DB_ID: mister_zqol
-          DB_URL: https://raw.githubusercontent.com/zakk4223/Main_Mister_ZQol/main/downloader/db.json.zip
-          BASE_FILES_URL: https://raw.githubusercontent.com/zakk4223/Main_Mister_ZQol/downloader/%s/
       - name: Check in release
         if: env.DO_RUN_BUILD == 'YES'
         uses: EndBug/add-and-commit@v7
@@ -81,5 +70,18 @@ jobs:
           author_name: Zakk
           author_email: zakk@rsdio.com
           message: "Automated Release ${{ env.RELEASE_DATE }}"
-          add: '["./releases/MiSTer_${{ env.RELEASE_DATE }}", "last_build_sum", "./downloader/MiSTer", "./downloader/db.json.zip"]'
+          add: '["./releases/MiSTer_${{ env.RELEASE_DATE }}", "last_build_sum", "./downloader/MiSTer"]'
           cwd: './main'
+      - name: Create downloader database
+        if: env.DO_RUN_BUILD == 'YES'
+        run: |
+          git config --global user.email "zakk@rsdio.com"
+          git config --global user.name "Automated release bot"
+          rm db.json.zip
+          ../../calculate_db.py
+        working-directory: ./main/downloader
+        env:
+          DB_ID: mister_zqol
+          DB_URL: https://raw.githubusercontent.com/zakk4223/Main_Mister_ZQol/main/downloader/db.json.zip
+          BASE_FILES_URL: https://raw.githubusercontent.com/zakk4223/Main_Mister_ZQol/%s/downloader/
+
