@@ -1,6 +1,6 @@
-From bdc57defb03cb1c2fbe149d53d18f10341c4e6f7 Mon Sep 17 00:00:00 2001
+From 4ba0258d8cb87afb9bf1bd234ea334790cf77a85 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 25 Aug 2021 14:11:06 -0400
+Date: Fri, 17 Sep 2021 11:39:24 -0400
 Subject: [PATCH 4/5] 0004
 
 ---
@@ -17,7 +17,7 @@ Subject: [PATCH 4/5] 0004
  10 files changed, 596 insertions(+), 52 deletions(-)
 
 diff --git a/input.cpp b/input.cpp
-index 5955add..0f893a6 100644
+index 606346c..0c88de8 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -27,6 +27,7 @@
@@ -108,7 +108,7 @@ index 5955add..0f893a6 100644
  
  #define BTN_TGL 100
  #define BTN_OSD 101
-@@ -2008,6 +2047,10 @@ void swap_player(int cur_dev, int new_num)
+@@ -2014,6 +2053,10 @@ void swap_player(int cur_dev, int new_num)
  	{
  		return;
  	}
@@ -119,7 +119,7 @@ index 5955add..0f893a6 100644
          input[cur_dev].num = new_num;
          store_player(new_num, cur_dev);
          //Swap if there was already one assigned there
-@@ -2041,6 +2084,15 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2058,6 +2101,15 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  	if (ev->type != EV_KEY && ev->type != EV_ABS && ev->type != EV_REL) return;
  	if (ev->type == EV_KEY && (!ev->code || ev->code == KEY_UNKNOWN)) return;
  
@@ -135,7 +135,7 @@ index 5955add..0f893a6 100644
  	static uint16_t last_axis = 0;
  
  	int sub_dev = dev;
-@@ -2703,6 +2755,26 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2721,6 +2773,26 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  						}
  					}
  
@@ -162,7 +162,7 @@ index 5955add..0f893a6 100644
  					if (ev->code == input[dev].mmap[SYS_MS_BTN_EMU] && (ev->value <= 1) && ((!(mouse_emu & 1)) ^ (!ev->value)))
  					{
  						mouse_emu = ev->value ? mouse_emu | 1 : mouse_emu & ~1;
-@@ -3710,6 +3782,12 @@ int input_test(int getchar)
+@@ -3732,6 +3804,12 @@ int input_test(int getchar)
  
  		pool[NUMDEV + 2].fd = open(LED_MONITOR, O_RDONLY | O_CLOEXEC);
  		pool[NUMDEV + 2].events = POLLPRI;
@@ -175,7 +175,7 @@ index 5955add..0f893a6 100644
  
  		state++;
  	}
-@@ -4521,6 +4599,56 @@ int input_test(int getchar)
+@@ -4550,6 +4628,56 @@ int input_test(int getchar)
  	return 0;
  }
  
@@ -232,7 +232,7 @@ index 5955add..0f893a6 100644
  int input_poll(int getchar)
  {
  	static int af[NUMPLAYERS] = {};
-@@ -4561,14 +4689,17 @@ int input_poll(int getchar)
+@@ -4590,14 +4718,17 @@ int input_poll(int getchar)
  
  	if (grabbed)
  	{
@@ -252,7 +252,7 @@ index 5955add..0f893a6 100644
  			if (joy[i] != joy_prev[i])
  			{
  				if ((joy[i] ^ joy_prev[i]) & autofire[i])
-@@ -4576,9 +4707,6 @@ int input_poll(int getchar)
+@@ -4605,9 +4736,6 @@ int input_poll(int getchar)
  					time[i] = GetTimer(af_delay[i]);
  					af[i] = 0;
  				}
@@ -262,7 +262,7 @@ index 5955add..0f893a6 100644
  			}
  
  			if (CheckTimer(time[i]))
-@@ -4588,9 +4716,25 @@ int input_poll(int getchar)
+@@ -4617,9 +4745,25 @@ int input_poll(int getchar)
  				if (joy[i] & autofire[i]) send = 1;
  			}
  
@@ -289,7 +289,7 @@ index 5955add..0f893a6 100644
  			}
  		}
  	}
-@@ -4743,3 +4887,68 @@ void parse_buttons()
+@@ -4779,3 +4923,68 @@ void parse_buttons()
  		joy_bcount++;
  	}
  }
@@ -411,7 +411,7 @@ index f9109d2..e39d977 100644
  #ifdef USE_SCHEDULER
  	scheduler_init();
 diff --git a/menu.cpp b/menu.cpp
-index 9c4bc74..ca35e31 100644
+index 15de153..b332029 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -182,6 +182,13 @@ enum MENU
@@ -1098,10 +1098,10 @@ index aac0cef..f026833 100644
  }
  
 diff --git a/user_io.cpp b/user_io.cpp
-index 1117674..8a6f6a5 100644
+index 56c6f54..df160cd 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
-@@ -1865,11 +1865,24 @@ static void send_pcolchr(const char* name, unsigned char index, int type)
+@@ -1870,11 +1870,24 @@ static void send_pcolchr(const char* name, unsigned char index, int type)
  }
  
  static uint32_t file_crc;
@@ -1140,5 +1140,5 @@ index 01fd271..c0b4688 100644
  char *user_io_make_filepath(const char *path, const char *filename);
  char *user_io_get_core_name(int orig = 0);
 -- 
-2.32.0
+2.33.0
 

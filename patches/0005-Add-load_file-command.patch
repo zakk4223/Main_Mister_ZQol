@@ -1,6 +1,6 @@
-From 355bedb15585fb5ba186f7be613d77838572c1ce Mon Sep 17 00:00:00 2001
+From 3284929c3f618cafaeca458a07efc9d8eadb052f Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 25 Aug 2021 14:11:21 -0400
+Date: Fri, 17 Sep 2021 11:39:37 -0400
 Subject: [PATCH 5/5] 0005
 
 ---
@@ -8,7 +8,7 @@ Subject: [PATCH 5/5] 0005
  1 file changed, 218 insertions(+)
 
 diff --git a/input.cpp b/input.cpp
-index 0f893a6..b525cd2 100644
+index 0c88de8..7b32a2a 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -16,6 +16,7 @@
@@ -27,7 +27,7 @@ index 0f893a6..b525cd2 100644
  
  #define NUMDEV 30
  #define NUMPLAYERS 6
-@@ -3458,6 +3460,216 @@ static void touchscreen_proc(int dev, input_event *ev)
+@@ -3480,6 +3482,216 @@ static void touchscreen_proc(int dev, input_event *ev)
  		}
  	}
  
@@ -244,7 +244,7 @@ index 0f893a6..b525cd2 100644
  }
  
  static int vcs_proc(int dev, input_event *ev)
-@@ -4556,7 +4768,12 @@ int input_test(int getchar)
+@@ -4585,7 +4797,12 @@ int input_test(int getchar)
  						len = strlen(cmd);
  						if (len > 4 && !strcasecmp(cmd + len - 4, ".mra")) arcade_load(cmd + 10);
  						else fpga_load_rbf(cmd + 10);
@@ -257,11 +257,11 @@ index 0f893a6..b525cd2 100644
  				}
  			}
  
-@@ -4952,3 +5169,4 @@ void input_autofire_load()
+@@ -4988,3 +5205,4 @@ void input_autofire_load()
                          delete(buf);
                  }
  }
 +
 -- 
-2.32.0
+2.33.0
 

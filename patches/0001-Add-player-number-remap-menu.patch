@@ -1,6 +1,6 @@
-From 03a42c5db997d553933992a7bb469b109fa8d361 Mon Sep 17 00:00:00 2001
+From ee0be96e6610a9bd12f7378c4515af3f275a5f1b Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 25 Aug 2021 13:56:17 -0400
+Date: Fri, 17 Sep 2021 11:37:49 -0400
 Subject: [PATCH 1/5] 0001
 
 ---
@@ -10,7 +10,7 @@ Subject: [PATCH 1/5] 0001
  3 files changed, 322 insertions(+), 4 deletions(-)
 
 diff --git a/input.cpp b/input.cpp
-index a626ed3..5955add 100644
+index 9deb0e9..606346c 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -1101,12 +1101,80 @@ static int mapping_type;
@@ -94,7 +94,7 @@ index a626ed3..5955add 100644
  void start_map_setting(int cnt, int set)
  {
  	mapping_button = 0;
-@@ -1863,6 +1931,7 @@ void reset_players()
+@@ -1869,6 +1937,7 @@ void reset_players()
  	}
  	memset(player_pad, 0, sizeof(player_pad));
  	memset(player_pdsp, 0, sizeof(player_pdsp));
@@ -102,7 +102,7 @@ index a626ed3..5955add 100644
  }
  
  static void store_player(int num, int dev)
-@@ -1905,6 +1974,51 @@ static void restore_player(int dev)
+@@ -1911,6 +1980,51 @@ static void restore_player(int dev)
  	update_num_hw(dev, input[dev].num);
  }
  
@@ -154,7 +154,7 @@ index a626ed3..5955add 100644
  void unflag_players()
  {
  	for (int k = 1; k < NUMPLAYERS; k++)
-@@ -2435,6 +2549,13 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2453,6 +2567,13 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  			if (ev->code < 1024 && input[dev].jkmap[ev->code] && !user_io_osd_is_visible()) ev->code = input[dev].jkmap[ev->code];
  
  			//joystick buttons, digital directions
@@ -168,7 +168,7 @@ index a626ed3..5955add 100644
  			if (ev->code >= 256)
  			{
  				if (input[dev].lightgun_req && !user_io_osd_is_visible())
-@@ -2453,6 +2574,11 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2471,6 +2592,11 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  				if (user_io_osd_is_visible() || video_fb_state())
  				{
@@ -180,7 +180,7 @@ index a626ed3..5955add 100644
  					if (ev->value <= 1)
  					{
  						if ((input[dev].mmap[SYS_BTN_MENU_FUNC] & 0xFFFF) ?
-@@ -2718,6 +2844,10 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2738,6 +2864,10 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  		//analog joystick
  		case EV_ABS:
@@ -191,7 +191,7 @@ index a626ed3..5955add 100644
  			if (!user_io_osd_is_visible())
  			{
  				int value = ev->value;
-@@ -2805,6 +2935,12 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2825,6 +2955,12 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  		// spinner
  		case EV_REL:
@@ -204,7 +204,7 @@ index a626ed3..5955add 100644
  			if (!user_io_osd_is_visible() && ev->code == 7)
  			{
  				if (input[dev].num && input[dev].num <= NUMPLAYERS)
-@@ -2812,7 +2948,6 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2832,7 +2968,6 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  					int value = ev->value;
  					if (ev->value < -128) value = -128;
  					else if (ev->value > 127) value = 127;
@@ -212,7 +212,7 @@ index a626ed3..5955add 100644
  					user_io_analog_joystick(((input[dev].num - 1) << 4) | 0x8F, value, 0);
  				}
  			}
-@@ -3546,6 +3681,11 @@ int input_test(int getchar)
+@@ -3568,6 +3703,11 @@ int input_test(int getchar)
  	struct input_event ev;
  	static uint32_t timeout = 0;
  
@@ -224,7 +224,7 @@ index a626ed3..5955add 100644
  	if (touch_rel && CheckTimer(touch_rel))
  	{
  		touch_rel = 0;
-@@ -4067,6 +4207,7 @@ int input_test(int getchar)
+@@ -4096,6 +4236,7 @@ int input_test(int getchar)
  								if (is_menu() && !video_fb_state())
  								{
  									/*
@@ -254,7 +254,7 @@ index da09999..f000556 100644
  uint32_t get_key_mod();
  uint32_t get_ps2_code(uint16_t key);
 diff --git a/menu.cpp b/menu.cpp
-index 753bc6b..c408054 100644
+index f00856c..0efc1e9 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -102,6 +102,7 @@ enum MENU
@@ -459,5 +459,5 @@ index 753bc6b..c408054 100644
  		helptext_idx = 0;
  		menumask = 1;
 -- 
-2.32.0
+2.33.0
 

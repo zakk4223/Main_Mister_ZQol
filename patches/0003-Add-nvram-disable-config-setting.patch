@@ -1,29 +1,28 @@
-From 81051ca3bf0bfcd987ad1738aae3a79a375bfcdb Mon Sep 17 00:00:00 2001
+From e040335fb2c1c8649279dc0356bf82a96d4209e0 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 25 Aug 2021 14:00:47 -0400
+Date: Fri, 17 Sep 2021 11:39:13 -0400
 Subject: [PATCH 3/5] 0003
 
 ---
- cfg.cpp                       | 2 ++
+ cfg.cpp                       | 1 +
  cfg.h                         | 1 +
  support/arcade/mra_loader.cpp | 5 +++--
- 3 files changed, 6 insertions(+), 2 deletions(-)
+ 3 files changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 6c3beca..b21d289 100644
+index 9161038..de5e5f3 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -85,6 +85,8 @@ static const ini_var_t ini_vars[] =
- 	{ "VFILTER_DEFAULT", (void*)(&(cfg.vfilter_default)), STRING, 0, sizeof(cfg.vfilter_default) - 1 },
- 	{ "LOG_FILE_ENTRY", (void*)(&(cfg.log_file_entry)), UINT8, 0, 1 },
- 	{ "BT_AUTO_DISCONNECT", (void*)(&(cfg.bt_auto_disconnect)), UINT32, 0, 180 },
-+	{ "DISABLE_NVRAM", (void*)(&(cfg.disable_nvram)), UINT8, 0, 1},
-+
- };
+@@ -30,6 +30,7 @@ typedef struct
  
- static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
+ static const ini_var_t ini_vars[] =
+ {
+++       { "DISABLE_NVRAM", (void*)(&(cfg.disable_nvram)), UINT8, 0, 1},
+ 	{ "YPBPR", (void*)(&(cfg.ypbpr)), UINT8, 0, 1 },
+ 	{ "COMPOSITE_SYNC", (void*)(&(cfg.csync)), UINT8, 0, 1 },
+ 	{ "FORCED_SCANDOUBLER", (void*)(&(cfg.forced_scandoubler)), UINT8, 0, 1 },
 diff --git a/cfg.h b/cfg.h
-index 7144cfa..922b996 100644
+index 4b07324..228c041 100644
 --- a/cfg.h
 +++ b/cfg.h
 @@ -53,6 +53,7 @@ typedef struct {
@@ -32,8 +31,8 @@ index 7144cfa..922b996 100644
  	uint8_t log_file_entry;
 +	uint8_t disable_nvram;
  	int bt_auto_disconnect;
+ 	int bt_reset_before_pair;
  	char bootcore[256];
- 	char video_conf[1024];
 diff --git a/support/arcade/mra_loader.cpp b/support/arcade/mra_loader.cpp
 index 4eb515e..e87a79e 100644
 --- a/support/arcade/mra_loader.cpp
@@ -65,5 +64,5 @@ index 4eb515e..e87a79e 100644
  		char path[256] = "nvram/";
  		uint8_t *buf = new uint8_t[nvram_size];
 -- 
-2.32.0
+2.33.0
 
