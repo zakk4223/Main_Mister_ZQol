@@ -1,6 +1,6 @@
-From a894731da082c7e73d408347b7451fce7f232e23 Mon Sep 17 00:00:00 2001
+From 00f40c9a7448fae531943c36db0913a6583111b0 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 17 Sep 2021 11:38:05 -0400
+Date: Sun, 10 Oct 2021 17:39:03 -0400
 Subject: [PATCH 2/5] 0002
 
 ---
@@ -10,10 +10,10 @@ Subject: [PATCH 2/5] 0002
  3 files changed, 40 insertions(+)
 
 diff --git a/menu.cpp b/menu.cpp
-index 0efc1e9..15de153 100644
+index 1ae455c..c3929e0 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -997,6 +997,7 @@ void HandleUI(void)
+@@ -990,6 +990,7 @@ void HandleUI(void)
  	static unsigned long flash_timer = 0;
  	static int flash_state = 0;
  	static uint32_t dip_submenu, dip2_submenu, dipv;
@@ -21,7 +21,7 @@ index 0efc1e9..15de153 100644
  	static int need_reset = 0;
  	static int flat = 0;
  	static int menusub_parent = 0;
-@@ -1539,6 +1540,8 @@ void HandleUI(void)
+@@ -1532,6 +1533,8 @@ void HandleUI(void)
  
  			dip_submenu = -1;
  			dip2_submenu = -1;
@@ -30,7 +30,7 @@ index 0efc1e9..15de153 100644
  
  			int last_space = 0;
  
-@@ -1792,6 +1795,16 @@ void HandleUI(void)
+@@ -1785,6 +1788,16 @@ void HandleUI(void)
  				}
  			} while (p);
  
@@ -47,7 +47,7 @@ index 0efc1e9..15de153 100644
  			if (!entry) break;
  
  			for (; entry < OsdGetSize() - 1; entry++) MenuWrite(entry, "", 0, 0);
-@@ -1890,6 +1903,10 @@ void HandleUI(void)
+@@ -1883,6 +1896,10 @@ void HandleUI(void)
  				menustate = MENU_ARCADE_DIP1;
  				menusub = 0;
  			}
@@ -59,7 +59,7 @@ index 0efc1e9..15de153 100644
  			{
  				static char ext[256];
 diff --git a/support/arcade/mra_loader.cpp b/support/arcade/mra_loader.cpp
-index 3f578a8..4eb515e 100644
+index 582d482..2191682 100644
 --- a/support/arcade/mra_loader.cpp
 +++ b/support/arcade/mra_loader.cpp
 @@ -55,6 +55,27 @@ static int  nvram_idx  = 0;

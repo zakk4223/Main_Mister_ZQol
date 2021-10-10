@@ -1,6 +1,6 @@
-From e040335fb2c1c8649279dc0356bf82a96d4209e0 Mon Sep 17 00:00:00 2001
+From df5a19e5903e275cb6464c466503bffed09c8840 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 17 Sep 2021 11:39:13 -0400
+Date: Sun, 10 Oct 2021 17:39:14 -0400
 Subject: [PATCH 3/5] 0003
 
 ---
@@ -10,7 +10,7 @@ Subject: [PATCH 3/5] 0003
  3 files changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 9161038..de5e5f3 100644
+index 9161038..8543841 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
 @@ -30,6 +30,7 @@ typedef struct
@@ -34,7 +34,7 @@ index 4b07324..228c041 100644
  	int bt_reset_before_pair;
  	char bootcore[256];
 diff --git a/support/arcade/mra_loader.cpp b/support/arcade/mra_loader.cpp
-index 4eb515e..e87a79e 100644
+index 2191682..54075d9 100644
 --- a/support/arcade/mra_loader.cpp
 +++ b/support/arcade/mra_loader.cpp
 @@ -13,6 +13,7 @@
