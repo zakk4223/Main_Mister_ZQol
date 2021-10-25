@@ -26,16 +26,13 @@ If you are using the update_all.sh script, create the file /media/fat/Scripts/up
 
 ```MISTER_DEVEL_UPDATER_URL="https://raw.githubusercontent.com/zakk4223/Updater_script_MiSTer/main_update/mister_updater.sh"```
 
-If you are using the new downloader.sh official MiSTer updater, modify /media/fat/Scripts/downloader.ini and add these sections:
+If you are using the new downloader.sh based update_all official MiSTer updater, modify /media/fat/downloader.ini and add this section to the top:
 ```
-[distribution_mister]
-
 [mister_zqol]
 db_url = 'https://raw.githubusercontent.com/zakk4223/Main_Mister_ZQol/main/downl
 oader/db.json.zip'
 ```
 
-ORDER MATTERS. If you already have a 'distribution_mister' section, do not create a new empty one. Just add the 'mister_zqol' section somewhere after it.
 
 I make no promises I won't break things horribly, but my intent is to only have small 'nice to have' patches here, no large reworks of existing Mister functionality (I lied, the autofire patch is probably not 'small').
 
