@@ -8,7 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DO_RUN_BUILD: YES
+      DO_DB_BUILD: YES
       LAST_MISTER_SHA: ''
+      LAST_DISTDB_SHA: ''
     steps:
       - name: Checkout Main
         uses: actions/checkout@v2
@@ -19,27 +21,38 @@ jobs:
         with:
           repository: MiSTer-devel/Main_MiSTer
           path: main_mister
-      - name: Download calculate_db.py
+      - name: Download distribution MiSTer
         run: |
-          curl https://raw.githubusercontent.com/MiSTer-devel/Distribution_MiSTer/main/.github/calculate_db.py -o ./calculate_db.py
-          chmod 755 ./calculate_db.py
+          curl https://raw.githubusercontent.com/MiSTer-devel/Distribution_MiSTer/main/MiSTer
+      - name: Download distribution db.json.zip
+        run: |
+          curl https://raw.githubusercontent.com/MiSTer-devel/Distribution_MiSTer/main/db.json.zip
+      - name: Extract db.json.zip
+          unzip db.json.zip
+          mv db.json db.json.dist
       - name: Check if build needed
         if: github.event_name == 'schedule'
         run: |
-          LAST_MISTER_RELEASE=`find ./main_mister/releases -type f | cut -d'_' -f3 | sort | tail -1`
-          LAST_MISTER_SHA=`sha1sum ./main_mister/releases/MiSTer_${LAST_MISTER_RELEASE} | cut -f1 -d ' '`
+          LAST_MISTER_SHA=`sha1sum ./MiSTer | cut -f1 -d ' '`
+          LAST_DISTDB_SHA=`sha1sum ./db.json.zip | cut -f1 -d ' '`
           LAST_BUILD_SHA=""
+          LAST_ZDB_SHA=""
           if [[ -f "./main/last_build_sum" ]]; then
             LAST_BUILD_SHA=`cat ./main/last_build_sum`
           fi
+          if [[ -f "./main/last_db_sum" ]]; then
+            LAST_ZDB_SHA=`cat ./main/last_db_sum`
+          fi
+          echo "LAST_DISTDB_SHA=${LAST_DISTDB_SHA}" >> $GITHUB_ENV
           echo "LAST_MISTER_SHA=${LAST_MISTER_SHA}" >> $GITHUB_ENV
+
+          if [[ "$LAST_DISTDB_SHA" == "$LAST_ZDB_SHA" ]]; then
+            echo "DO_DB_REBUILD=NO" >> $GITHUB_ENV
+          fi
+
           if [[ "$LAST_MISTER_SHA" == "$LAST_BUILD_SHA" ]]; then
             echo "DO_RUN_BUILD=NO" >> $GITHUB_ENV  
           fi
-      - name: register ARM
-        if: env.DO_RUN_BUILD == 'YES'
-        run: |
-          docker run --rm --privileged hypriot/qemu-register
       - name: Patch Mister
         if: env.DO_RUN_BUILD == 'YES'
         run: |
@@ -63,25 +76,23 @@ jobs:
         if: env.DO_RUN_BUILD == 'YES' && env.LAST_MISTER_SHA != ''
         run: |
           echo "${LAST_MISTER_SHA}" > ./main/last_build_sum
+      - name: Update database json
+        if: env.DO_RUN_BUILD == 'YES' || env.DO_DB_BUILD == 'YES'
+        run: |
+          rm db.json.zip
+          NEW_MISTER_MD5=`md5sum ./main/downloader/MiSTer`
+          NEW_MISTER_SIZE=`wc -c ./main/downloader/MiSTer | cut -f1 -d ' '`
+          NEW_MISTER_URL="https://raw.githubusercontent.com/zakk4223/Main_Mister_ZQol/main/downloader/MiSTer"
+          jq --arg msum "$NEW_MISTER_MD5" --argjson msize "$NEW_MISTER_SIZE" --arg murl "$NEW_MISTER_URL" '.files.MiSTer.hash = $msum | .files.MiSTer.size = $msize | .files.MiSTer.url = $murl' db.json.dist > db.json
+          zip db.json.zip db.json
+          cp ./db.json.zip ./main/downloader
       - name: Check in release
-        if: env.DO_RUN_BUILD == 'YES'
+        if: env.DO_RUN_BUILD == 'YES' || env.DO_DB_BUILD == 'YES'
         uses: EndBug/add-and-commit@v7
         with:
           author_name: Zakk
           author_email: zakk@rsdio.com
           message: "Automated Release ${{ env.RELEASE_DATE }}"
-          add: '["./releases/MiSTer_${{ env.RELEASE_DATE }}", "last_build_sum", "./downloader/MiSTer"]'
+          add: '["./releases/MiSTer_${{ env.RELEASE_DATE }}", "last_build_sum", "./downloader/MiSTer", "./downloader/db.json.zip"]'
           cwd: './main'
-      - name: Create downloader database
-        if: env.DO_RUN_BUILD == 'YES'
-        run: |
-          git config --global user.email "zakk@rsdio.com"
-          git config --global user.name "Automated release bot"
-          rm db.json.zip
-          ../../calculate_db.py
-        working-directory: ./main/downloader
-        env:
-          DB_ID: mister_zqol
-          DB_URL: https://raw.githubusercontent.com/zakk4223/Main_Mister_ZQol/main/downloader/db.json.zip
-          BASE_FILES_URL: https://raw.githubusercontent.com/zakk4223/Main_Mister_ZQol/%s/downloader/
 
