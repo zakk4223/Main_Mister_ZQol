@@ -28,6 +28,7 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/MiSTer-devel/Distribution_MiSTer/main/db.json.zip
       - name: Extract db.json.zip
+        run: |
           unzip db.json.zip
           mv db.json db.json.dist
       - name: Check if build needed
