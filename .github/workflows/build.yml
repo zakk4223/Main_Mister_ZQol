@@ -23,18 +23,18 @@ jobs:
           path: main_mister
       - name: Download distribution MiSTer
         run: |
-          curl https://raw.githubusercontent.com/MiSTer-devel/Distribution_MiSTer/main/MiSTer
+          curl https://raw.githubusercontent.com/MiSTer-devel/Distribution_MiSTer/main/MiSTer -o MiSTer.dist
       - name: Download distribution db.json.zip
         run: |
-          curl https://raw.githubusercontent.com/MiSTer-devel/Distribution_MiSTer/main/db.json.zip
+          curl https://raw.githubusercontent.com/MiSTer-devel/Distribution_MiSTer/main/db.json.zip -o db.json-dist.zip
       - name: Extract db.json.zip
         run: |
-          unzip db.json.zip
+          unzip db.json-dist.zip
           mv db.json db.json.dist
       - name: Check if build needed
         if: github.event_name == 'schedule'
         run: |
-          LAST_MISTER_SHA=`sha1sum ./MiSTer | cut -f1 -d ' '`
+          LAST_MISTER_SHA=`sha1sum ./MiSTer.dist | cut -f1 -d ' '`
           LAST_DISTDB_SHA=`sha1sum ./db.json.zip | cut -f1 -d ' '`
           LAST_BUILD_SHA=""
           LAST_ZDB_SHA=""
