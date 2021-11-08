@@ -80,7 +80,7 @@ jobs:
       - name: Update database json
         if: env.DO_RUN_BUILD == 'YES' || env.DO_DB_BUILD == 'YES'
         run: |
-          rm db.json.zip
+          rm db.json-dist.zip
           NEW_MISTER_MD5=`md5sum ./main/downloader/MiSTer`
           NEW_MISTER_SIZE=`wc -c ./main/downloader/MiSTer | cut -f1 -d ' '`
           NEW_MISTER_URL="https://raw.githubusercontent.com/zakk4223/Main_Mister_ZQol/main/downloader/MiSTer"
@@ -94,6 +94,6 @@ jobs:
           author_name: Zakk
           author_email: zakk@rsdio.com
           message: "Automated Release ${{ env.RELEASE_DATE }}"
-          add: '["./releases/MiSTer_${{ env.RELEASE_DATE }}", "last_build_sum", "./downloader/MiSTer", "./downloader/db.json.zip"]'
+          add: '["./releases/MiSTer_${{ env.RELEASE_DATE }}", "last_db_sum", "last_build_sum", "./downloader/MiSTer", "./downloader/db.json.zip"]'
           cwd: './main'
 
