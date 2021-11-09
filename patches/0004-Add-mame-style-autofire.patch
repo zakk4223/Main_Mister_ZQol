@@ -1011,7 +1011,7 @@ index ca80e19..3b07da7 100644
 +  }
 +
 +
-+  unsigned char *buffer = (unsigned char *)(ms->map+ms->map_off);
++  volatile unsigned char *buffer = (unsigned char *)(ms->map+ms->map_off);
 +
 +  return (buffer[5]>>5) & 0x07;
 +}
