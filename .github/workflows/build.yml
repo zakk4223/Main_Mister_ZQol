@@ -60,7 +60,7 @@ jobs:
           ./main/scripts/patchall.sh ./main_mister
       - name: Build Mister
         if: env.DO_RUN_BUILD == 'YES'
-        uses: docker://zakk4223/gcc-arm:10.2.1
+        uses: docker://theypsilon/gcc-arm:10.2-2020.11
         with:
           args: make -C ./main_mister 
       - name: Set Release Date
