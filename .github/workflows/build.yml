@@ -35,7 +35,7 @@ jobs:
         if: github.event_name == 'schedule'
         run: |
           LAST_MISTER_SHA=`sha1sum ./MiSTer.dist | cut -f1 -d ' '`
-          LAST_DISTDB_SHA=`sha1sum ./db.json.zip | cut -f1 -d ' '`
+          LAST_DISTDB_SHA=`sha1sum ./db.json-dist.zip | cut -f1 -d ' '`
           LAST_BUILD_SHA=""
           LAST_ZDB_SHA=""
           if [[ -f "./main/last_build_sum" ]]; then
@@ -48,7 +48,7 @@ jobs:
           echo "LAST_MISTER_SHA=${LAST_MISTER_SHA}" >> $GITHUB_ENV
 
           if [[ "$LAST_DISTDB_SHA" == "$LAST_ZDB_SHA" ]]; then
-            echo "DO_DB_REBUILD=NO" >> $GITHUB_ENV
+            echo "DO_DB_BUILD=NO" >> $GITHUB_ENV
           fi
 
           if [[ "$LAST_MISTER_SHA" == "$LAST_BUILD_SHA" ]]; then
