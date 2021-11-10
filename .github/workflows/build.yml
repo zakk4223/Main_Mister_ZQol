@@ -87,6 +87,9 @@ jobs:
           jq --arg msum "$NEW_MISTER_MD5" --argjson msize "$NEW_MISTER_SIZE" --arg murl "$NEW_MISTER_URL" '.files.MiSTer.hash = $msum | .files.MiSTer.size = $msize | .files.MiSTer.url = $murl' db.json.dist > db.json
           zip db.json.zip db.json
           cp ./db.json.zip ./main/downloader
+      - name: Set last DB checksum
+        if: (env.DO_RUN_BUILD == 'YES' || env.DO_DB_BUILD == 'YES') && env.LAST_DISTDB_SHA != ''
+        run: |
           echo "${LAST_DISTDB_SHA}" > ./main/last_db_sum
       - name: Check in release
         if: env.DO_RUN_BUILD == 'YES' || env.DO_DB_BUILD == 'YES'
