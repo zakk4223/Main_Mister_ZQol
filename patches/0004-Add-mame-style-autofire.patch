@@ -1,23 +1,23 @@
-From 4773ee48ae6512019a3fd04a386d54a9b7271eb3 Mon Sep 17 00:00:00 2001
+From 37fddc15daf68392072235d7f03b050482c6ed4a Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sun, 10 Oct 2021 17:39:44 -0400
+Date: Fri, 26 Nov 2021 14:08:34 -0500
 Subject: [PATCH 4/5] 0004
 
 ---
  input.cpp                  | 221 ++++++++++++++++++++++-
  input.h                    |  22 +++
  main.cpp                   |   1 +
- menu.cpp                   | 357 ++++++++++++++++++++++++++++++++-----
+ menu.cpp                   | 358 ++++++++++++++++++++++++++++++++-----
  scaler.cpp                 |  14 ++
  scaler.h                   |   2 +
  support/megacd/megacdd.cpp |   8 +-
  support/pcecd/pcecdd.cpp   |   8 +
  user_io.cpp                |  13 ++
  user_io.h                  |   2 +
- 10 files changed, 596 insertions(+), 52 deletions(-)
+ 10 files changed, 594 insertions(+), 55 deletions(-)
 
 diff --git a/input.cpp b/input.cpp
-index 4b27420..2d8faf6 100644
+index 3495c5b..b9879a1 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -27,6 +27,7 @@
@@ -411,10 +411,10 @@ index f9109d2..e39d977 100644
  #ifdef USE_SCHEDULER
  	scheduler_init();
 diff --git a/menu.cpp b/menu.cpp
-index c3929e0..cbfe986 100644
+index 45e55a9..9fcb6d8 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -183,6 +183,13 @@ enum MENU
+@@ -184,6 +184,13 @@ enum MENU
  	// MT32-pi
  	MENU_MT32PI_MAIN1,
  	MENU_MT32PI_MAIN2,
@@ -428,7 +428,7 @@ index c3929e0..cbfe986 100644
  };
  
  static uint32_t menustate = MENU_NONE1;
-@@ -272,6 +279,10 @@ static uint32_t fs_Options;
+@@ -274,6 +281,10 @@ static uint32_t fs_Options;
  static uint32_t fs_MenuSelect;
  static uint32_t fs_MenuCancel;
  
@@ -439,7 +439,7 @@ index c3929e0..cbfe986 100644
  static char* GetExt(char *ext)
  {
  	static char extlist[32];
-@@ -940,6 +951,52 @@ static int gun_idx = 0;
+@@ -942,6 +953,52 @@ static int gun_idx = 0;
  static uint16_t gun_pos[4] = {};
  static int page = 0;
  
@@ -492,7 +492,7 @@ index c3929e0..cbfe986 100644
  void HandleUI(void)
  {
  	if (bt_timer >= 0)
-@@ -2203,6 +2260,7 @@ void HandleUI(void)
+@@ -2205,6 +2262,7 @@ void HandleUI(void)
  					if (!store_name) user_io_store_filename(selPath);
  					user_io_file_tx(selPath, idx, opensave, 0, 0, load_addr);
  					if (user_io_use_cheats() && !store_name) cheats_init(selPath, user_io_get_file_crc());
@@ -500,7 +500,7 @@ index c3929e0..cbfe986 100644
  				}
  
  				if (addon[0] == 'f' && addon[1] == '1') process_addon(addon, idx);
-@@ -2230,11 +2288,13 @@ void HandleUI(void)
+@@ -2232,11 +2290,13 @@ void HandleUI(void)
  			else if (is_megacd())
  			{
  				mcd_set_image(ioctl_index, selPath);
@@ -514,16 +514,16 @@ index c3929e0..cbfe986 100644
  			}
  			else
  			{
-@@ -2262,7 +2322,7 @@ void HandleUI(void)
+@@ -2264,7 +2324,7 @@ void HandleUI(void)
  			while(1)
  			{
  				n = 0;
--				menumask = 0xf80F;
-+				menumask = 0xf81F;
+-				menumask = 0x3800f;
++				menumask = 0x3801f;
  
  				if (!menusub) firstmenu = 0;
  				adjvisible = 0;
-@@ -2275,10 +2335,11 @@ void HandleUI(void)
+@@ -2277,10 +2337,11 @@ void HandleUI(void)
  				MenuWrite(n++, s, menusub == 1, 0);
  				MenuWrite(n++, " Button/Key remap for game \x16", menusub == 2, 0);
  				MenuWrite(n++, " Change player assignment  \x16", menusub == 3, 0);
@@ -536,7 +536,7 @@ index c3929e0..cbfe986 100644
  					MenuWrite(n++);
  					int mode = GetUARTMode();
  					const char *p = config_uart_msg[mode];
-@@ -2286,15 +2347,15 @@ void HandleUI(void)
+@@ -2288,15 +2349,15 @@ void HandleUI(void)
  					sprintf(s, " UART mode (%s)            ",p);
  					s[27] = '\x16';
  					s[28] = 0;
@@ -555,7 +555,7 @@ index c3929e0..cbfe986 100644
  
  					memset(s, 0, sizeof(s));
  					s[0] = ' ';
-@@ -2304,15 +2365,15 @@ void HandleUI(void)
+@@ -2306,15 +2367,15 @@ void HandleUI(void)
  					while(strlen(s) < 26) strcat(s, " ");
  					strcat(s, " \x16 ");
  
@@ -574,7 +574,7 @@ index c3929e0..cbfe986 100644
  
  					memset(s, 0, sizeof(s));
  					s[0] = ' ';
-@@ -2322,15 +2383,15 @@ void HandleUI(void)
+@@ -2324,15 +2385,15 @@ void HandleUI(void)
  					while(strlen(s) < 26) strcat(s, " ");
  					strcat(s, " \x16 ");
  
@@ -593,7 +593,7 @@ index c3929e0..cbfe986 100644
  
  					memset(s, 0, sizeof(s));
  					s[0] = ' ';
-@@ -2340,27 +2401,27 @@ void HandleUI(void)
+@@ -2342,13 +2403,13 @@ void HandleUI(void)
  					while (strlen(s) < 26) strcat(s, " ");
  					strcat(s, " \x16 ");
  
@@ -601,34 +601,41 @@ index c3929e0..cbfe986 100644
 +					MenuWrite(n++, s, menusub == 11, !audio_filter_en() || !S_ISDIR(getFileType(AFILTER_DIR)));
  				}
  
- 				if (is_minimig() || is_st())
- 				{
--					menumask &= ~0x1800;
-+					menumask &= ~0x3000;
- 				}
- 				else
+ 				if (video_get_shadow_mask_mode() >= 0)
  				{
  					MenuWrite(n++);
--					MenuWrite(n++, " Reset settings", menusub == 11, is_archie());
--					MenuWrite(n++, " Save settings", menusub == 12, 0);
-+					MenuWrite(n++, " Reset settings", menusub == 12, is_archie());
-+					MenuWrite(n++, " Save settings", menusub == 13, 0);
+-					menumask |= 0x1800;
++					menumask |= 0x3000;
+ 					sprintf(s, " Shadow Mask - %s", config_smask_msg[video_get_shadow_mask_mode()]);
+ 					MenuWrite(n++, s, menusub == 11);
+ 
+@@ -2366,19 +2427,19 @@ void HandleUI(void)
+ 
+ 				if (!is_minimig() && !is_st())
+ 				{
+-					menumask |= 0x6000;
++					menumask |= 0xc000;
+ 					MenuWrite(n++);
+-					MenuWrite(n++, " Reset settings", menusub == 13, is_archie());
+-					MenuWrite(n++, " Save settings", menusub == 14, 0);
++					MenuWrite(n++, " Reset settings", menusub == 14, is_archie());
++					MenuWrite(n++, " Save settings", menusub == 15, 0);
  				}
  
  				MenuWrite(n++);
  				cr = n;
--				MenuWrite(n++, " Reboot (hold \x16 cold reboot)", menusub == 13);
--				MenuWrite(n++, " About", menusub == 14);
-+				MenuWrite(n++, " Reboot (hold \x16 cold reboot)", menusub == 14);
-+				MenuWrite(n++, " About", menusub == 15);
+-				MenuWrite(n++, " Reboot (hold \x16 cold reboot)", menusub == 15);
+-				MenuWrite(n++, " About", menusub == 16);
++				MenuWrite(n++, " Reboot (hold \x16 cold reboot)", menusub == 16);
++				MenuWrite(n++, " About", menusub == 17);
  
  				while(n < OsdGetSize() - 1) MenuWrite(n++);
--				MenuWrite(n++, STD_EXIT, menusub == 15, 0, OSD_ARROW_LEFT);
-+				MenuWrite(n++, STD_EXIT, menusub == 16, 0, OSD_ARROW_LEFT);
+-				MenuWrite(n++, STD_EXIT, menusub == 17, 0, OSD_ARROW_LEFT);
++				MenuWrite(n++, STD_EXIT, menusub == 18, 0, OSD_ARROW_LEFT);
  				sysinfo_timer = 0;
  
  				if (!adjvisible) break;
-@@ -2371,8 +2432,11 @@ void HandleUI(void)
+@@ -2389,8 +2450,11 @@ void HandleUI(void)
  		break;
  
  	case MENU_COMMON2:
@@ -640,7 +647,7 @@ index c3929e0..cbfe986 100644
  			switch (user_io_core_type())
  			{
  			    case CORE_TYPE_SHARPMZ:
-@@ -2383,6 +2447,7 @@ void HandleUI(void)
+@@ -2401,6 +2465,7 @@ void HandleUI(void)
                      menustate = MENU_NONE1;
                      break;
              };
@@ -648,7 +655,7 @@ index c3929e0..cbfe986 100644
          }
  
  		if (recent && menusub == 0)
-@@ -2405,21 +2470,7 @@ void HandleUI(void)
+@@ -2423,21 +2488,7 @@ void HandleUI(void)
  				break;
  
  			case 1:
@@ -671,7 +678,7 @@ index c3929e0..cbfe986 100644
  				start_map_setting(joy_bcount ? joy_bcount+4 : 8);
  				menustate = MENU_JOYDIGMAP;
  				menusub = 0;
-@@ -2437,20 +2488,26 @@ void HandleUI(void)
+@@ -2455,20 +2506,26 @@ void HandleUI(void)
  				menustate = MENU_JOYNUMREMAP;
  				menusub = 0;
  				break;
@@ -701,7 +708,7 @@ index c3929e0..cbfe986 100644
  				if (video_get_scaler_flt())
  				{
  					snprintf(Selected_tmp, sizeof(Selected_tmp), COEFF_DIR"/%s", video_get_scaler_coeff());
-@@ -2458,12 +2515,12 @@ void HandleUI(void)
+@@ -2476,12 +2533,12 @@ void HandleUI(void)
  					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_COEFF_FILE_SELECTED, MENU_COMMON1);
  				}
  				break;
@@ -716,7 +723,7 @@ index c3929e0..cbfe986 100644
  				if (video_get_gamma_en())
  				{
  					snprintf(Selected_tmp, sizeof(Selected_tmp), GAMMA_DIR"/%s", video_get_gamma_curve());
-@@ -2471,12 +2528,12 @@ void HandleUI(void)
+@@ -2489,12 +2546,12 @@ void HandleUI(void)
  					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_GAMMA_FILE_SELECTED, MENU_COMMON1);
  				}
  				break;
@@ -731,43 +738,57 @@ index c3929e0..cbfe986 100644
  				if (audio_filter_en())
  				{
  					snprintf(Selected_tmp, sizeof(Selected_tmp), AFILTER_DIR"/%s", audio_get_filter());
-@@ -2484,7 +2541,7 @@ void HandleUI(void)
+@@ -2502,11 +2559,11 @@ void HandleUI(void)
  					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_AFILTER_FILE_SELECTED, MENU_COMMON1);
  				}
  				break;
 -			case 11:
 +			case 12:
+ 				video_set_shadow_mask_mode(video_get_shadow_mask_mode() + 1);
+ 				menustate = MENU_COMMON1;
+ 				break;
+-			case 12:
++			case 13:
+ 				if (video_get_shadow_mask_mode())
+ 				{
+ 					snprintf(Selected_tmp, sizeof(Selected_tmp), SMASK_DIR"/%s", video_get_shadow_mask());
+@@ -2514,7 +2571,7 @@ void HandleUI(void)
+ 					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_SMASK_FILE_SELECTED, MENU_COMMON1);
+ 				}
+ 				break;
+-			case 13:
++			case 14:
  				if (!is_archie())
  				{
  					menustate = MENU_RESET1;
-@@ -2497,7 +2554,7 @@ void HandleUI(void)
- 				}
- 				break;
- 
--			case 12:
-+			case 13:
- 				// Save settings
- 				menustate = MENU_GENERIC_MAIN1;
- 				menusub = 0;
-@@ -2522,7 +2579,7 @@ void HandleUI(void)
- 				}
- 				break;
- 
--			case 13:
-+			case 14:
- 				{
- 					reboot_req = 1;
- 
-@@ -2535,7 +2592,7 @@ void HandleUI(void)
+@@ -2527,7 +2584,7 @@ void HandleUI(void)
  				}
  				break;
  
 -			case 14:
 +			case 15:
+ 				// Save settings
+ 				menustate = MENU_GENERIC_MAIN1;
+ 				menusub = 0;
+@@ -2552,7 +2609,7 @@ void HandleUI(void)
+ 				}
+ 				break;
+ 
+-			case 15:
++			case 16:
+ 				{
+ 					reboot_req = 1;
+ 
+@@ -2565,7 +2622,7 @@ void HandleUI(void)
+ 				}
+ 				break;
+ 
+-			case 16:
++			case 17:
  				menustate = MENU_ABOUT1;
  				menusub = 0;
  				break;
-@@ -2548,6 +2605,7 @@ void HandleUI(void)
+@@ -2578,6 +2635,7 @@ void HandleUI(void)
  		else if (left)
  		{
  			// go back to core requesting this menu
@@ -775,208 +796,203 @@ index c3929e0..cbfe986 100644
  			switch (user_io_core_type())
  			{
  			case CORE_TYPE_8BIT:
-@@ -2582,6 +2640,217 @@ void HandleUI(void)
+@@ -2612,6 +2670,212 @@ void HandleUI(void)
  		if(!hold_cnt && reboot_req) fpga_load_rbf("menu.rbf");
  		break;
  
++
 +	case MENU_AUTOFIRE_LIST1:
++	{
++		OsdSetTitle("Autofire");
++		menu_parse_buttons();
++		menustate = MENU_AUTOFIRE_LIST2;
++		parentstate = MENU_AUTOFIRE_LIST1;
++		af_player_num = get_dev_num(get_last_input_dev());
++		autoFireButton *afbs = get_auto_fire_defs(af_player_num);
++		menumask = 0x1;
++		int menucnt = 0;
++		MenuWrite(0, " New                       \x16", menusub == menucnt++, 0);
++		int n = 1;
++		char bname[32] = {};
++		for(int i = 0; i < 16; i++)
 +		{
-+			OsdSetTitle("Autofire");
-+			menu_parse_buttons();
-+			menustate = MENU_AUTOFIRE_LIST2;
-+			parentstate = MENU_AUTOFIRE_LIST1;
-+			af_player_num = get_dev_num(get_last_input_dev());
-+			autoFireButton *afbs = get_auto_fire_defs(af_player_num);
-+			menumask = 0x1;
-+			int menucnt = 0;
-+			MenuWrite(0, " New                       \x16", menusub == menucnt++, 0);
-+			int n = 1;
-+			char bname[32] = {};
-+			for(int i = 0; i < 16; i++)
++			autoFireButton *afb = afbs+i;
++			if (afb->code)
 +			{
-+				autoFireButton *afb = afbs+i;
-+				if (afb->code)
-+				{
-+					menu_button_name(afb->bnum, bname, sizeof(bname));
-+					sprintf(s, " Button %s [%d Hz]", bname, 60 / (afb->on_frames + afb->off_frames));
-+					s[27] = '\x16';
-+					s[28] = 0;
-+					menumask |= 1<<menucnt;
-+					MenuWrite(n++, s, menusub ==  menucnt++, 0);
-+				}
++				menu_button_name(afb->bnum, bname, sizeof(bname));
++				sprintf(s, " Button %s [%d Hz]", bname, 60 / (afb->on_frames + afb->off_frames));
++				s[27] = '\x16';
++				s[28] = 0;
++				menumask |= 1<<menucnt;
++				MenuWrite(n++, s, menusub ==  menucnt++, 0);
 +			}
-+                        for (; n < OsdGetSize() - 1; n++) MenuWrite(n, "", 0, 0);
-+			break;
 +		}
++		for (; n < OsdGetSize() - 1; n++) MenuWrite(n, "", 0, 0);
++		break;
++	}
 +
 +	case MENU_AUTOFIRE_LIST2:
++	{
++		if (select)
 +		{
-+
-+			if (select)
++			autoFireButton *afbs = get_auto_fire_defs(af_player_num);
++			af_edit_idx = -1;
++			menustate = MENU_AUTOFIRE_EDIT1;
++			parentstate = MENU_AUTOFIRE_LIST1;
++			if (menusub == 0)
 +			{
-+				autoFireButton *afbs = get_auto_fire_defs(af_player_num);
-+				af_edit_idx = -1;
-+				menustate = MENU_AUTOFIRE_EDIT1;
-+				parentstate = MENU_AUTOFIRE_LIST1;
-+				if (menusub == 0)
++				//New, find suitable slot
++
++				for (int i = 0; i < 16; i++)
 +				{
-+					//New, find suitable slot
-+
-+					for (int i = 0; i < 16; i++)
++					autoFireButton *afb = afbs+i;
++					if (!afb->code)
 +					{
-+						autoFireButton *afb = afbs+i;
-+						if (!afb->code)
-+						{
-+							af_edit_idx = i;
-+							break;
-+						}
++						af_edit_idx = i;
++						break;
 +					}
-+
-+				} else {
-+					af_edit_idx = menusub -1;
 +				}
 +
-+
++			} else {
++				af_edit_idx = menusub -1;
 +			}
-+
-+			if (left || back || menu)
-+			{
-+				menustate = MENU_COMMON1;
-+				parentstate = 0;
-+				input_autofire_save();
-+			}
-+			break;
 +		}
 +
++		if (left || back || menu)
++		{
++			menustate = MENU_COMMON1;
++			parentstate = 0;
++			input_autofire_save();
++		}
++		break;
++	}
 +
 +	case MENU_AUTOFIRE_EDIT1:
++	{
++
++		menustate = MENU_AUTOFIRE_EDIT2;
++		parentstate = MENU_AUTOFIRE_EDIT1;
++		autoFireButton *afbs = get_auto_fire_defs(af_player_num);
++		autoFireButton *edit_afb = afbs+af_edit_idx;
++		if (!edit_afb->on_frames)
 +		{
-+
-+			menustate = MENU_AUTOFIRE_EDIT2;
-+			parentstate = MENU_AUTOFIRE_EDIT1;
-+			autoFireButton *afbs = get_auto_fire_defs(af_player_num);
-+			autoFireButton *edit_afb = afbs+af_edit_idx;
-+			if (!edit_afb->on_frames)
-+			{
-+				edit_afb->on_frames = 1;
-+			}
-+
-+			menu_parse_buttons();
-+			char bname[32] = {};
-+			menu_button_name(edit_afb->bnum, bname, sizeof(bname));
-+
-+			menumask = 0x3F;
-+			snprintf(s, sizeof(s), " Button %-18s\x10 \x11", bname);
-+			MenuWrite(0, s, menusub == 0, 0);
-+			snprintf(s, sizeof(s), " Hotkey %-20d\x16",edit_afb->code);
-+			MenuWrite(1, s, menusub == 1, 0);
-+			snprintf(s, sizeof(s), " On Frames  %-14d\x10 \x11", edit_afb->on_frames);
-+			MenuWrite(2, s, menusub == 2, 0);
-+			sprintf(s, " Off Frames %-14d\x10 \x11", edit_afb->off_frames);
-+			MenuWrite(3, s, menusub == 3, 0);
-+			MenuWrite(4, " Done", menusub == 4, 0);
-+			MenuWrite(5, " Delete", menusub == 5, 0);
-+                        for (int n = 6; n < OsdGetSize() - 1; n++) MenuWrite(n, "", 0, 0);
-+
-+
-+			break;
++			edit_afb->on_frames = 1;
 +		}
 +
-+	case MENU_AUTOFIRE_EDIT2:
-+		{
-+			if (select || left || right)
-+			{
-+				menustate = MENU_AUTOFIRE_EDIT1;
-+					autoFireButton *afbs = get_auto_fire_defs(af_player_num);
-+					autoFireButton *edit_afb = afbs+af_edit_idx;
-+				switch(menusub)
-+				{
-+					case 0:
-+						if (select || right)
-+						{
-+							edit_afb->bnum++;
-+							if (edit_afb->bnum-4 >= joy_bcount)
-+							{
-+								edit_afb->bnum = 0;
-+							}
-+						} else if (left) {
-+							edit_afb->bnum--;
-+						}
++		menu_parse_buttons();
++		char bname[32] = {};
++		menu_button_name(edit_afb->bnum, bname, sizeof(bname));
 +
++		menumask = 0x3F;
++		snprintf(s, sizeof(s), " Button %-18s\x10 \x11", bname);
++		MenuWrite(0, s, menusub == 0, 0);
++		snprintf(s, sizeof(s), " Hotkey %-20d\x16",edit_afb->code);
++		MenuWrite(1, s, menusub == 1, 0);
++		snprintf(s, sizeof(s), " On Frames  %-14d\x10 \x11", edit_afb->on_frames);
++		MenuWrite(2, s, menusub == 2, 0);
++		sprintf(s, " Off Frames %-14d\x10 \x11", edit_afb->off_frames);
++		MenuWrite(3, s, menusub == 3, 0);
++		MenuWrite(4, " Done", menusub == 4, 0);
++		MenuWrite(5, " Delete", menusub == 5, 0);
++		for (int n = 6; n < OsdGetSize() - 1; n++) MenuWrite(n, "", 0, 0);
++		break;
++	}
++
++	case MENU_AUTOFIRE_EDIT2:
++	{
++		if (select || left || right)
++		{
++			menustate = MENU_AUTOFIRE_EDIT1;
++			autoFireButton *afbs = get_auto_fire_defs(af_player_num);
++			autoFireButton *edit_afb = afbs+af_edit_idx;
++			switch(menusub)
++			{
++				case 0:
++					if (select || right)
++					{
++						edit_afb->bnum++;
 +						if (edit_afb->bnum-4 >= joy_bcount)
 +						{
 +							edit_afb->bnum = 0;
 +						}
++					} else if (left) {
++						edit_afb->bnum--;
++					}
 +
-+						if (edit_afb->bnum < 0)
-+						{
-+							edit_afb->bnum = joy_bcount+3; //-1 + 4 for directions
-+						}
-+						break;
-+					case 1:
-+						if (select) {
-+							menustate = MENU_AUTOFIRE_CAPTURE1;
-+							start_code_capture(af_player_num);
-+						}
-+						break;
-+					case 2:
-+						if (select || right)
-+						{
-+							edit_afb->on_frames++;
-+						} else if (left) {
-+							edit_afb->on_frames--;
-+						}
++					if (edit_afb->bnum-4 >= joy_bcount)
++					{
++						edit_afb->bnum = 0;
++					}
 +
-+						if (edit_afb->on_frames < 0)
-+						{
-+							edit_afb->on_frames = 0;
-+						}
-+						break;
-+					case 3:
-+						if (select || right)
-+						{
-+							edit_afb->off_frames++;
-+						} else if (left) {
-+							edit_afb->off_frames--;
-+						}
-+						if (edit_afb->off_frames < 0)
-+						{
-+							edit_afb->off_frames = 0;
-+						}
-+						break;
-+					case 4:
-+						if (select)
-+						{
-+							menustate = MENU_AUTOFIRE_LIST1;
-+						}
-+						break;
-+					case 5:
-+						if (select)
-+						{
-+							menustate = MENU_AUTOFIRE_LIST1;
-+							edit_afb->code = 0;
-+							edit_afb->on_frames = 1;
-+							edit_afb->off_frames = 0;
-+							edit_afb->bnum = 0;
-+						}
-+						break;
-+				}
++					if (edit_afb->bnum < 0)
++					{
++						edit_afb->bnum = joy_bcount+3; //-1 + 4 for directions
++					}
++					break;
++				case 1:
++					if (select) {
++						menustate = MENU_AUTOFIRE_CAPTURE1;
++						start_code_capture(af_player_num);
++					}
++					break;
++				case 2:
++					if (select || right)
++					{
++						edit_afb->on_frames++;
++					} else if (left) {
++						edit_afb->on_frames--;
++					}
++
++					if (edit_afb->on_frames < 0)
++					{
++						edit_afb->on_frames = 0;
++					}
++					break;
++				case 3:
++					if (select || right)
++					{
++						edit_afb->off_frames++;
++					} else if (left) {
++						edit_afb->off_frames--;
++					}
++					if (edit_afb->off_frames < 0)
++					{
++						edit_afb->off_frames = 0;
++					}
++					break;
++				case 4:
++					if (select)
++					{
++						menustate = MENU_AUTOFIRE_LIST1;
++					}
++					break;
++				case 5:
++					if (select)
++					{
++						menustate = MENU_AUTOFIRE_LIST1;
++						edit_afb->code = 0;
++						edit_afb->on_frames = 1;
++						edit_afb->off_frames = 0;
++						edit_afb->bnum = 0;
++					}
++					break;
 +			}
-+
-+			if (back || menu)
-+			{
-+				menustate = MENU_AUTOFIRE_LIST1;
-+				menusub = 0;
-+			}
-+			break;
 +		}
-+	case MENU_AUTOFIRE_CAPTURE1:
++
++		if (back || menu)
 +		{
-+                OsdSetTitle("Set Hotkey", 0);
-+                for (int i = 0; i < 5; i++) OsdWrite(i, "", 0, 0);
-+                OsdWrite(5, info_top, 0, 0);
-+                infowrite(6, "Press input hotkey");
-+                OsdWrite(7, info_bottom, 0, 0);
++			menustate = MENU_AUTOFIRE_LIST1;
++			menusub = 0;
++		}
++		break;
++	}
++	case MENU_AUTOFIRE_CAPTURE1:
++	{
++		OsdSetTitle("Set Hotkey", 0);
++		for (int i = 0; i < 5; i++) OsdWrite(i, "", 0, 0);
++		OsdWrite(5, info_top, 0, 0);
++		infowrite(6, "Press input hotkey");
++		OsdWrite(7, info_bottom, 0, 0);
 +
 +		uint32_t captured_code = get_captured_code();
 +		if (captured_code)
@@ -989,15 +1005,15 @@ index c3929e0..cbfe986 100644
 +
 +		}
 +		break;
-+		}
++	}
  	case MENU_ARCADE_DIP1:
  		helptext_idx = 0;
  		menumask = 0;
 diff --git a/scaler.cpp b/scaler.cpp
-index ca80e19..3b07da7 100644
+index d04ad1b..130a7a3 100644
 --- a/scaler.cpp
 +++ b/scaler.cpp
-@@ -125,3 +125,17 @@ int mister_scaler_read(mister_scaler *ms,unsigned char *gbuf)
+@@ -149,3 +149,17 @@ int mister_scaler_read_32(mister_scaler *ms, unsigned char *gbuf) {
  
      return 0;
  }
@@ -1016,11 +1032,11 @@ index ca80e19..3b07da7 100644
 +  return (buffer[5]>>5) & 0x07;
 +}
 diff --git a/scaler.h b/scaler.h
-index c69a0bf..635a51b 100644
+index 3eb4084..7693d5b 100644
 --- a/scaler.h
 +++ b/scaler.h
-@@ -24,5 +24,7 @@ mister_scaler *mister_scaler_init();
- int mister_scaler_read(mister_scaler *,unsigned char *buffer);
+@@ -27,5 +27,7 @@ int mister_scaler_read(mister_scaler *,unsigned char *buffer);
+ int mister_scaler_read_32(mister_scaler *ms, unsigned char *buffer);
  int mister_scaler_read_yuv(mister_scaler *ms,int,unsigned char *y,int, unsigned char *U,int, unsigned char *V);
  void mister_scaler_free(mister_scaler *);
 +int mister_scaler_frame_counter(mister_scaler *);
@@ -1063,7 +1079,7 @@ index bbf0abd..a15907f 100644
  
  void cdd_t::Reset() {
 diff --git a/support/pcecd/pcecdd.cpp b/support/pcecd/pcecdd.cpp
-index aac0cef..f026833 100644
+index 5990ee5..829b70a 100644
 --- a/support/pcecd/pcecdd.cpp
 +++ b/support/pcecd/pcecdd.cpp
 @@ -8,8 +8,10 @@
@@ -1098,10 +1114,10 @@ index aac0cef..f026833 100644
  }
  
 diff --git a/user_io.cpp b/user_io.cpp
-index 81ea23b..b3fb239 100644
+index 9c103fd..3b37891 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
-@@ -1889,11 +1889,24 @@ static void send_pcolchr(const char* name, unsigned char index, int type)
+@@ -1896,11 +1896,24 @@ static void send_pcolchr(const char* name, unsigned char index, int type)
  }
  
  static uint32_t file_crc;
@@ -1127,10 +1143,10 @@ index 81ea23b..b3fb239 100644
  {
  	return use_cheats;
 diff --git a/user_io.h b/user_io.h
-index dcefb8a..74479b0 100644
+index 58eb975..f10d216 100644
 --- a/user_io.h
 +++ b/user_io.h
-@@ -196,6 +196,8 @@ uint32_t user_io_8bit_set_status(uint32_t, uint32_t, int ex = 0);
+@@ -197,6 +197,8 @@ uint32_t user_io_8bit_set_status(uint32_t, uint32_t, int ex = 0);
  int user_io_get_kbd_reset();
  
  uint32_t user_io_get_file_crc();
@@ -1140,5 +1156,5 @@ index dcefb8a..74479b0 100644
  char *user_io_make_filepath(const char *path, const char *filename);
  char *user_io_get_core_name(int orig = 0);
 -- 
-2.33.0
+2.34.0
 
