@@ -1,20 +1,20 @@
-From 37fddc15daf68392072235d7f03b050482c6ed4a Mon Sep 17 00:00:00 2001
+From 665d73eef3ebb41ea61e55df84e5cef05ddd2d3a Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 26 Nov 2021 14:08:34 -0500
+Date: Fri, 26 Nov 2021 15:20:05 -0500
 Subject: [PATCH 4/5] 0004
 
 ---
- input.cpp                  | 221 ++++++++++++++++++++++-
+ input.cpp                  | 221 +++++++++++++++++++++-
  input.h                    |  22 +++
  main.cpp                   |   1 +
- menu.cpp                   | 358 ++++++++++++++++++++++++++++++++-----
+ menu.cpp                   | 362 ++++++++++++++++++++++++++++++++-----
  scaler.cpp                 |  14 ++
  scaler.h                   |   2 +
  support/megacd/megacdd.cpp |   8 +-
  support/pcecd/pcecdd.cpp   |   8 +
  user_io.cpp                |  13 ++
  user_io.h                  |   2 +
- 10 files changed, 594 insertions(+), 55 deletions(-)
+ 10 files changed, 596 insertions(+), 57 deletions(-)
 
 diff --git a/input.cpp b/input.cpp
 index 3495c5b..b9879a1 100644
@@ -411,7 +411,7 @@ index f9109d2..e39d977 100644
  #ifdef USE_SCHEDULER
  	scheduler_init();
 diff --git a/menu.cpp b/menu.cpp
-index 45e55a9..9fcb6d8 100644
+index 45e55a9..a7c7bfa 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -184,6 +184,13 @@ enum MENU
@@ -593,7 +593,7 @@ index 45e55a9..9fcb6d8 100644
  
  					memset(s, 0, sizeof(s));
  					s[0] = ' ';
-@@ -2342,13 +2403,13 @@ void HandleUI(void)
+@@ -2342,15 +2403,15 @@ void HandleUI(void)
  					while (strlen(s) < 26) strcat(s, " ");
  					strcat(s, " \x16 ");
  
@@ -607,9 +607,19 @@ index 45e55a9..9fcb6d8 100644
 -					menumask |= 0x1800;
 +					menumask |= 0x3000;
  					sprintf(s, " Shadow Mask - %s", config_smask_msg[video_get_shadow_mask_mode()]);
- 					MenuWrite(n++, s, menusub == 11);
+-					MenuWrite(n++, s, menusub == 11);
++					MenuWrite(n++, s, menusub == 12);
  
-@@ -2366,19 +2427,19 @@ void HandleUI(void)
+ 					memset(s, 0, sizeof(s));
+ 					s[0] = ' ';
+@@ -2360,25 +2421,25 @@ void HandleUI(void)
+ 					while (strlen(s) < 26) strcat(s, " ");
+ 					strcat(s, " \x16 ");
+ 
+-					MenuWrite(n++, s, menusub == 12, !video_get_shadow_mask_mode() || !S_ISDIR(getFileType(SMASK_DIR)));
++					MenuWrite(n++, s, menusub == 13, !video_get_shadow_mask_mode() || !S_ISDIR(getFileType(SMASK_DIR)));
+ 				}
+ 
  
  				if (!is_minimig() && !is_st())
  				{
