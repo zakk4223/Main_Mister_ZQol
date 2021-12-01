@@ -34,7 +34,7 @@ jobs:
       - name: Check if build needed
         if: github.event_name == 'schedule'
         run: |
-          LAST_MISTER_SHA=`sha1sum ./MiSTer.dist | cut -f1 -d ' '`
+          LAST_MISTER_SHA=`git log -n 1 --pretty=format:"%H"`
           LAST_DISTDB_SHA=`sha1sum ./db.json-dist.zip | cut -f1 -d ' '`
           LAST_BUILD_SHA=""
           LAST_ZDB_SHA=""
