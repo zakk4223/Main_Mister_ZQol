@@ -1,6 +1,6 @@
-From 665d73eef3ebb41ea61e55df84e5cef05ddd2d3a Mon Sep 17 00:00:00 2001
+From 84189fce23782cd769a0135e8e6d3c054655f75a Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 26 Nov 2021 15:20:05 -0500
+Date: Sat, 18 Dec 2021 16:42:06 -0500
 Subject: [PATCH 4/5] 0004
 
 ---
@@ -17,7 +17,7 @@ Subject: [PATCH 4/5] 0004
  10 files changed, 596 insertions(+), 57 deletions(-)
 
 diff --git a/input.cpp b/input.cpp
-index 3495c5b..b9879a1 100644
+index 29d1d35..ed2e228 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -27,6 +27,7 @@
@@ -135,7 +135,7 @@ index 3495c5b..b9879a1 100644
  	static uint16_t last_axis = 0;
  
  	int sub_dev = dev;
-@@ -2753,6 +2805,26 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2745,6 +2797,26 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  						}
  					}
  
@@ -162,7 +162,7 @@ index 3495c5b..b9879a1 100644
  					if (ev->code == input[dev].mmap[SYS_MS_BTN_EMU] && (ev->value <= 1) && ((!(mouse_emu & 1)) ^ (!ev->value)))
  					{
  						mouse_emu = ev->value ? mouse_emu | 1 : mouse_emu & ~1;
-@@ -3777,6 +3849,12 @@ int input_test(int getchar)
+@@ -3769,6 +3841,12 @@ int input_test(int getchar)
  
  		pool[NUMDEV + 2].fd = open(LED_MONITOR, O_RDONLY | O_CLOEXEC);
  		pool[NUMDEV + 2].events = POLLPRI;
@@ -175,7 +175,7 @@ index 3495c5b..b9879a1 100644
  
  		state++;
  	}
-@@ -4611,6 +4689,56 @@ int input_test(int getchar)
+@@ -4603,6 +4681,56 @@ int input_test(int getchar)
  	return 0;
  }
  
@@ -232,7 +232,7 @@ index 3495c5b..b9879a1 100644
  int input_poll(int getchar)
  {
  	static int af[NUMPLAYERS] = {};
-@@ -4651,14 +4779,17 @@ int input_poll(int getchar)
+@@ -4643,14 +4771,17 @@ int input_poll(int getchar)
  
  	if (grabbed)
  	{
@@ -252,7 +252,7 @@ index 3495c5b..b9879a1 100644
  			if (joy[i] != joy_prev[i])
  			{
  				if ((joy[i] ^ joy_prev[i]) & autofire[i])
-@@ -4666,9 +4797,6 @@ int input_poll(int getchar)
+@@ -4658,9 +4789,6 @@ int input_poll(int getchar)
  					time[i] = GetTimer(af_delay[i]);
  					af[i] = 0;
  				}
@@ -262,7 +262,7 @@ index 3495c5b..b9879a1 100644
  			}
  
  			if (CheckTimer(time[i]))
-@@ -4678,9 +4806,25 @@ int input_poll(int getchar)
+@@ -4670,9 +4798,25 @@ int input_poll(int getchar)
  				if (joy[i] & autofire[i]) send = 1;
  			}
  
@@ -289,7 +289,7 @@ index 3495c5b..b9879a1 100644
  			}
  		}
  	}
-@@ -4840,3 +4984,68 @@ void parse_buttons()
+@@ -4832,3 +4976,68 @@ void parse_buttons()
  		joy_bcount++;
  	}
  }
@@ -411,7 +411,7 @@ index f9109d2..e39d977 100644
  #ifdef USE_SCHEDULER
  	scheduler_init();
 diff --git a/menu.cpp b/menu.cpp
-index 45e55a9..a7c7bfa 100644
+index ce2684a..9c48dff 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -184,6 +184,13 @@ enum MENU
@@ -439,7 +439,7 @@ index 45e55a9..a7c7bfa 100644
  static char* GetExt(char *ext)
  {
  	static char extlist[32];
-@@ -942,6 +953,52 @@ static int gun_idx = 0;
+@@ -947,6 +958,52 @@ static int gun_idx = 0;
  static uint16_t gun_pos[4] = {};
  static int page = 0;
  
@@ -492,7 +492,7 @@ index 45e55a9..a7c7bfa 100644
  void HandleUI(void)
  {
  	if (bt_timer >= 0)
-@@ -2205,6 +2262,7 @@ void HandleUI(void)
+@@ -2220,6 +2277,7 @@ void HandleUI(void)
  					if (!store_name) user_io_store_filename(selPath);
  					user_io_file_tx(selPath, idx, opensave, 0, 0, load_addr);
  					if (user_io_use_cheats() && !store_name) cheats_init(selPath, user_io_get_file_crc());
@@ -500,7 +500,7 @@ index 45e55a9..a7c7bfa 100644
  				}
  
  				if (addon[0] == 'f' && addon[1] == '1') process_addon(addon, idx);
-@@ -2232,11 +2290,13 @@ void HandleUI(void)
+@@ -2254,11 +2312,13 @@ void HandleUI(void)
  			else if (is_megacd())
  			{
  				mcd_set_image(ioctl_index, selPath);
@@ -512,9 +512,9 @@ index 45e55a9..a7c7bfa 100644
  				cheats_init(selPath, 0);
 +				input_autofire_load();
  			}
- 			else
+ 			else if (is_psx())
  			{
-@@ -2264,7 +2324,7 @@ void HandleUI(void)
+@@ -2290,7 +2350,7 @@ void HandleUI(void)
  			while(1)
  			{
  				n = 0;
@@ -523,7 +523,7 @@ index 45e55a9..a7c7bfa 100644
  
  				if (!menusub) firstmenu = 0;
  				adjvisible = 0;
-@@ -2277,10 +2337,11 @@ void HandleUI(void)
+@@ -2303,10 +2363,11 @@ void HandleUI(void)
  				MenuWrite(n++, s, menusub == 1, 0);
  				MenuWrite(n++, " Button/Key remap for game \x16", menusub == 2, 0);
  				MenuWrite(n++, " Change player assignment  \x16", menusub == 3, 0);
@@ -536,7 +536,7 @@ index 45e55a9..a7c7bfa 100644
  					MenuWrite(n++);
  					int mode = GetUARTMode();
  					const char *p = config_uart_msg[mode];
-@@ -2288,15 +2349,15 @@ void HandleUI(void)
+@@ -2314,15 +2375,15 @@ void HandleUI(void)
  					sprintf(s, " UART mode (%s)            ",p);
  					s[27] = '\x16';
  					s[28] = 0;
@@ -555,7 +555,7 @@ index 45e55a9..a7c7bfa 100644
  
  					memset(s, 0, sizeof(s));
  					s[0] = ' ';
-@@ -2306,15 +2367,15 @@ void HandleUI(void)
+@@ -2332,15 +2393,15 @@ void HandleUI(void)
  					while(strlen(s) < 26) strcat(s, " ");
  					strcat(s, " \x16 ");
  
@@ -574,7 +574,7 @@ index 45e55a9..a7c7bfa 100644
  
  					memset(s, 0, sizeof(s));
  					s[0] = ' ';
-@@ -2324,15 +2385,15 @@ void HandleUI(void)
+@@ -2350,15 +2411,15 @@ void HandleUI(void)
  					while(strlen(s) < 26) strcat(s, " ");
  					strcat(s, " \x16 ");
  
@@ -593,7 +593,7 @@ index 45e55a9..a7c7bfa 100644
  
  					memset(s, 0, sizeof(s));
  					s[0] = ' ';
-@@ -2342,15 +2403,15 @@ void HandleUI(void)
+@@ -2368,15 +2429,15 @@ void HandleUI(void)
  					while (strlen(s) < 26) strcat(s, " ");
  					strcat(s, " \x16 ");
  
@@ -612,7 +612,7 @@ index 45e55a9..a7c7bfa 100644
  
  					memset(s, 0, sizeof(s));
  					s[0] = ' ';
-@@ -2360,25 +2421,25 @@ void HandleUI(void)
+@@ -2386,25 +2447,25 @@ void HandleUI(void)
  					while (strlen(s) < 26) strcat(s, " ");
  					strcat(s, " \x16 ");
  
@@ -645,7 +645,7 @@ index 45e55a9..a7c7bfa 100644
  				sysinfo_timer = 0;
  
  				if (!adjvisible) break;
-@@ -2389,8 +2450,11 @@ void HandleUI(void)
+@@ -2415,8 +2476,11 @@ void HandleUI(void)
  		break;
  
  	case MENU_COMMON2:
@@ -657,7 +657,7 @@ index 45e55a9..a7c7bfa 100644
  			switch (user_io_core_type())
  			{
  			    case CORE_TYPE_SHARPMZ:
-@@ -2401,6 +2465,7 @@ void HandleUI(void)
+@@ -2427,6 +2491,7 @@ void HandleUI(void)
                      menustate = MENU_NONE1;
                      break;
              };
@@ -665,7 +665,7 @@ index 45e55a9..a7c7bfa 100644
          }
  
  		if (recent && menusub == 0)
-@@ -2423,21 +2488,7 @@ void HandleUI(void)
+@@ -2458,21 +2523,7 @@ void HandleUI(void)
  				break;
  
  			case 1:
@@ -688,7 +688,7 @@ index 45e55a9..a7c7bfa 100644
  				start_map_setting(joy_bcount ? joy_bcount+4 : 8);
  				menustate = MENU_JOYDIGMAP;
  				menusub = 0;
-@@ -2455,20 +2506,26 @@ void HandleUI(void)
+@@ -2490,20 +2541,26 @@ void HandleUI(void)
  				menustate = MENU_JOYNUMREMAP;
  				menusub = 0;
  				break;
@@ -718,7 +718,7 @@ index 45e55a9..a7c7bfa 100644
  				if (video_get_scaler_flt())
  				{
  					snprintf(Selected_tmp, sizeof(Selected_tmp), COEFF_DIR"/%s", video_get_scaler_coeff());
-@@ -2476,12 +2533,12 @@ void HandleUI(void)
+@@ -2511,12 +2568,12 @@ void HandleUI(void)
  					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_COEFF_FILE_SELECTED, MENU_COMMON1);
  				}
  				break;
@@ -733,7 +733,7 @@ index 45e55a9..a7c7bfa 100644
  				if (video_get_gamma_en())
  				{
  					snprintf(Selected_tmp, sizeof(Selected_tmp), GAMMA_DIR"/%s", video_get_gamma_curve());
-@@ -2489,12 +2546,12 @@ void HandleUI(void)
+@@ -2524,12 +2581,12 @@ void HandleUI(void)
  					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_GAMMA_FILE_SELECTED, MENU_COMMON1);
  				}
  				break;
@@ -748,7 +748,7 @@ index 45e55a9..a7c7bfa 100644
  				if (audio_filter_en())
  				{
  					snprintf(Selected_tmp, sizeof(Selected_tmp), AFILTER_DIR"/%s", audio_get_filter());
-@@ -2502,11 +2559,11 @@ void HandleUI(void)
+@@ -2537,11 +2594,11 @@ void HandleUI(void)
  					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_AFILTER_FILE_SELECTED, MENU_COMMON1);
  				}
  				break;
@@ -762,7 +762,7 @@ index 45e55a9..a7c7bfa 100644
  				if (video_get_shadow_mask_mode())
  				{
  					snprintf(Selected_tmp, sizeof(Selected_tmp), SMASK_DIR"/%s", video_get_shadow_mask());
-@@ -2514,7 +2571,7 @@ void HandleUI(void)
+@@ -2549,7 +2606,7 @@ void HandleUI(void)
  					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_SMASK_FILE_SELECTED, MENU_COMMON1);
  				}
  				break;
@@ -771,7 +771,7 @@ index 45e55a9..a7c7bfa 100644
  				if (!is_archie())
  				{
  					menustate = MENU_RESET1;
-@@ -2527,7 +2584,7 @@ void HandleUI(void)
+@@ -2562,7 +2619,7 @@ void HandleUI(void)
  				}
  				break;
  
@@ -780,7 +780,7 @@ index 45e55a9..a7c7bfa 100644
  				// Save settings
  				menustate = MENU_GENERIC_MAIN1;
  				menusub = 0;
-@@ -2552,7 +2609,7 @@ void HandleUI(void)
+@@ -2587,7 +2644,7 @@ void HandleUI(void)
  				}
  				break;
  
@@ -789,7 +789,7 @@ index 45e55a9..a7c7bfa 100644
  				{
  					reboot_req = 1;
  
-@@ -2565,7 +2622,7 @@ void HandleUI(void)
+@@ -2600,7 +2657,7 @@ void HandleUI(void)
  				}
  				break;
  
@@ -798,7 +798,7 @@ index 45e55a9..a7c7bfa 100644
  				menustate = MENU_ABOUT1;
  				menusub = 0;
  				break;
-@@ -2578,6 +2635,7 @@ void HandleUI(void)
+@@ -2613,6 +2670,7 @@ void HandleUI(void)
  		else if (left)
  		{
  			// go back to core requesting this menu
@@ -806,7 +806,7 @@ index 45e55a9..a7c7bfa 100644
  			switch (user_io_core_type())
  			{
  			case CORE_TYPE_8BIT:
-@@ -2612,6 +2670,212 @@ void HandleUI(void)
+@@ -2647,6 +2705,212 @@ void HandleUI(void)
  		if(!hold_cnt && reboot_req) fpga_load_rbf("menu.rbf");
  		break;
  
@@ -1124,10 +1124,10 @@ index 5990ee5..829b70a 100644
  }
  
 diff --git a/user_io.cpp b/user_io.cpp
-index 9c103fd..3b37891 100644
+index ef306bd..d3c63b9 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
-@@ -1896,11 +1896,24 @@ static void send_pcolchr(const char* name, unsigned char index, int type)
+@@ -2051,11 +2051,24 @@ static void send_pcolchr(const char* name, unsigned char index, int type)
  }
  
  static uint32_t file_crc;
@@ -1153,7 +1153,7 @@ index 9c103fd..3b37891 100644
  {
  	return use_cheats;
 diff --git a/user_io.h b/user_io.h
-index 58eb975..f10d216 100644
+index fdfb51c..2d1abdc 100644
 --- a/user_io.h
 +++ b/user_io.h
 @@ -197,6 +197,8 @@ uint32_t user_io_8bit_set_status(uint32_t, uint32_t, int ex = 0);
@@ -1166,5 +1166,5 @@ index 58eb975..f10d216 100644
  char *user_io_make_filepath(const char *path, const char *filename);
  char *user_io_get_core_name(int orig = 0);
 -- 
-2.34.0
+2.34.1
 
