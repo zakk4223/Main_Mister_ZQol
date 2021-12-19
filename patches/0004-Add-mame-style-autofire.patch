@@ -1,6 +1,6 @@
-From 84189fce23782cd769a0135e8e6d3c054655f75a Mon Sep 17 00:00:00 2001
+From 5ebfb74ecfebdc5b768d9e903ad345cfba1f87d0 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sat, 18 Dec 2021 16:42:06 -0500
+Date: Sun, 19 Dec 2021 03:06:39 -0500
 Subject: [PATCH 4/5] 0004
 
 ---
@@ -411,7 +411,7 @@ index f9109d2..e39d977 100644
  #ifdef USE_SCHEDULER
  	scheduler_init();
 diff --git a/menu.cpp b/menu.cpp
-index ce2684a..9c48dff 100644
+index f304127..adbb9f4 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -184,6 +184,13 @@ enum MENU
@@ -512,7 +512,7 @@ index ce2684a..9c48dff 100644
  				cheats_init(selPath, 0);
 +				input_autofire_load();
  			}
- 			else if (is_psx())
+ 			else if (is_psx() && ioctl_index == 1)
  			{
 @@ -2290,7 +2350,7 @@ void HandleUI(void)
  			while(1)
@@ -1124,7 +1124,7 @@ index 5990ee5..829b70a 100644
  }
  
 diff --git a/user_io.cpp b/user_io.cpp
-index ef306bd..d3c63b9 100644
+index 8ec9b5e..f133007 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -2051,11 +2051,24 @@ static void send_pcolchr(const char* name, unsigned char index, int type)
