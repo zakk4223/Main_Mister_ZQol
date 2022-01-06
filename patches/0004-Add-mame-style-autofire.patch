@@ -1,23 +1,23 @@
-From 5ebfb74ecfebdc5b768d9e903ad345cfba1f87d0 Mon Sep 17 00:00:00 2001
+From 1644265e42ef87096a6cba236e751ddff222adcf Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sun, 19 Dec 2021 03:06:39 -0500
+Date: Wed, 5 Jan 2022 22:38:34 -0500
 Subject: [PATCH 4/5] 0004
 
 ---
- input.cpp                  | 221 +++++++++++++++++++++-
+ input.cpp                  | 221 ++++++++++++++++++++++++-
  input.h                    |  22 +++
  main.cpp                   |   1 +
- menu.cpp                   | 362 ++++++++++++++++++++++++++++++++-----
+ menu.cpp                   | 322 ++++++++++++++++++++++++++++++++++---
  scaler.cpp                 |  14 ++
  scaler.h                   |   2 +
  support/megacd/megacdd.cpp |   8 +-
  support/pcecd/pcecdd.cpp   |   8 +
  user_io.cpp                |  13 ++
  user_io.h                  |   2 +
- 10 files changed, 596 insertions(+), 57 deletions(-)
+ 10 files changed, 579 insertions(+), 34 deletions(-)
 
 diff --git a/input.cpp b/input.cpp
-index 29d1d35..ed2e228 100644
+index cbde90e..748e247 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -27,6 +27,7 @@
@@ -162,7 +162,7 @@ index 29d1d35..ed2e228 100644
  					if (ev->code == input[dev].mmap[SYS_MS_BTN_EMU] && (ev->value <= 1) && ((!(mouse_emu & 1)) ^ (!ev->value)))
  					{
  						mouse_emu = ev->value ? mouse_emu | 1 : mouse_emu & ~1;
-@@ -3769,6 +3841,12 @@ int input_test(int getchar)
+@@ -3770,6 +3842,12 @@ int input_test(int getchar)
  
  		pool[NUMDEV + 2].fd = open(LED_MONITOR, O_RDONLY | O_CLOEXEC);
  		pool[NUMDEV + 2].events = POLLPRI;
@@ -175,7 +175,7 @@ index 29d1d35..ed2e228 100644
  
  		state++;
  	}
-@@ -4603,6 +4681,56 @@ int input_test(int getchar)
+@@ -4604,6 +4682,56 @@ int input_test(int getchar)
  	return 0;
  }
  
@@ -232,7 +232,7 @@ index 29d1d35..ed2e228 100644
  int input_poll(int getchar)
  {
  	static int af[NUMPLAYERS] = {};
-@@ -4643,14 +4771,17 @@ int input_poll(int getchar)
+@@ -4644,14 +4772,17 @@ int input_poll(int getchar)
  
  	if (grabbed)
  	{
@@ -252,7 +252,7 @@ index 29d1d35..ed2e228 100644
  			if (joy[i] != joy_prev[i])
  			{
  				if ((joy[i] ^ joy_prev[i]) & autofire[i])
-@@ -4658,9 +4789,6 @@ int input_poll(int getchar)
+@@ -4659,9 +4790,6 @@ int input_poll(int getchar)
  					time[i] = GetTimer(af_delay[i]);
  					af[i] = 0;
  				}
@@ -262,7 +262,7 @@ index 29d1d35..ed2e228 100644
  			}
  
  			if (CheckTimer(time[i]))
-@@ -4670,9 +4798,25 @@ int input_poll(int getchar)
+@@ -4671,9 +4799,25 @@ int input_poll(int getchar)
  				if (joy[i] & autofire[i]) send = 1;
  			}
  
@@ -289,7 +289,7 @@ index 29d1d35..ed2e228 100644
  			}
  		}
  	}
-@@ -4832,3 +4976,68 @@ void parse_buttons()
+@@ -4833,3 +4977,68 @@ void parse_buttons()
  		joy_bcount++;
  	}
  }
@@ -411,10 +411,10 @@ index f9109d2..e39d977 100644
  #ifdef USE_SCHEDULER
  	scheduler_init();
 diff --git a/menu.cpp b/menu.cpp
-index f304127..adbb9f4 100644
+index 09e35b3..4d689fa 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -184,6 +184,13 @@ enum MENU
+@@ -187,6 +187,13 @@ enum MENU
  	// MT32-pi
  	MENU_MT32PI_MAIN1,
  	MENU_MT32PI_MAIN2,
@@ -428,7 +428,7 @@ index f304127..adbb9f4 100644
  };
  
  static uint32_t menustate = MENU_NONE1;
-@@ -274,6 +281,10 @@ static uint32_t fs_Options;
+@@ -275,6 +282,10 @@ static uint32_t fs_Options;
  static uint32_t fs_MenuSelect;
  static uint32_t fs_MenuCancel;
  
@@ -439,7 +439,7 @@ index f304127..adbb9f4 100644
  static char* GetExt(char *ext)
  {
  	static char extlist[32];
-@@ -947,6 +958,52 @@ static int gun_idx = 0;
+@@ -948,6 +959,52 @@ static int gun_idx = 0;
  static uint16_t gun_pos[4] = {};
  static int page = 0;
  
@@ -492,7 +492,7 @@ index f304127..adbb9f4 100644
  void HandleUI(void)
  {
  	if (bt_timer >= 0)
-@@ -2220,6 +2277,7 @@ void HandleUI(void)
+@@ -2221,6 +2278,7 @@ void HandleUI(void)
  					if (!store_name) user_io_store_filename(selPath);
  					user_io_file_tx(selPath, idx, opensave, 0, 0, load_addr);
  					if (user_io_use_cheats() && !store_name) cheats_init(selPath, user_io_get_file_crc());
@@ -500,7 +500,7 @@ index f304127..adbb9f4 100644
  				}
  
  				if (addon[0] == 'f' && addon[1] == '1') process_addon(addon, idx);
-@@ -2254,11 +2312,13 @@ void HandleUI(void)
+@@ -2255,11 +2313,13 @@ void HandleUI(void)
  			else if (is_megacd())
  			{
  				mcd_set_image(ioctl_index, selPath);
@@ -514,16 +514,22 @@ index f304127..adbb9f4 100644
  			}
  			else if (is_psx() && ioctl_index == 1)
  			{
-@@ -2290,7 +2350,7 @@ void HandleUI(void)
+@@ -2291,7 +2351,13 @@ void HandleUI(void)
  			while(1)
  			{
  				n = 0;
--				menumask = 0x3800f;
-+				menumask = 0x3801f;
+-				menumask = 0x3802f;
++
++        // 0, 1, 2, 3, 4, 6, 16, 17, 18
++        //0011 1100 0000 0101 1111
++
++        //1000 1000 0000
++	 			//menumask = 0x7005f; 
++        menumask = 0x3805f;
  
  				if (!menusub) firstmenu = 0;
  				adjvisible = 0;
-@@ -2303,10 +2363,11 @@ void HandleUI(void)
+@@ -2304,10 +2370,11 @@ void HandleUI(void)
  				MenuWrite(n++, s, menusub == 1, 0);
  				MenuWrite(n++, " Button/Key remap for game \x16", menusub == 2, 0);
  				MenuWrite(n++, " Change player assignment  \x16", menusub == 3, 0);
@@ -536,7 +542,7 @@ index f304127..adbb9f4 100644
  					MenuWrite(n++);
  					int mode = GetUARTMode();
  					const char *p = config_uart_msg[mode];
-@@ -2314,15 +2375,15 @@ void HandleUI(void)
+@@ -2315,18 +2382,18 @@ void HandleUI(void)
  					sprintf(s, " UART mode (%s)            ",p);
  					s[27] = '\x16';
  					s[28] = 0;
@@ -544,108 +550,22 @@ index f304127..adbb9f4 100644
 +					MenuWrite(n++, s, menusub == 5);
  				}
  
- 				if (video_get_scaler_flt() >= 0 && !cfg.direct_video)
- 				{
- 					MenuWrite(n++);
--					menumask |= 0x60;
-+					menumask |= 0xC0;
- 					sprintf(s, " Scale filter - %s", config_scaler_msg[video_get_scaler_flt() ? 1 : 0]);
--					MenuWrite(n++, s, menusub == 5);
-+					MenuWrite(n++, s, menusub == 6);
- 
- 					memset(s, 0, sizeof(s));
- 					s[0] = ' ';
-@@ -2332,15 +2393,15 @@ void HandleUI(void)
- 					while(strlen(s) < 26) strcat(s, " ");
- 					strcat(s, " \x16 ");
- 
--					MenuWrite(n++, s, menusub == 6, !video_get_scaler_flt() || !S_ISDIR(getFileType(COEFF_DIR)));
-+					MenuWrite(n++, s, menusub == 7, !video_get_scaler_flt() || !S_ISDIR(getFileType(COEFF_DIR)));
- 				}
- 
- 				if (video_get_gamma_en() >=0)
- 				{
- 					MenuWrite(n++);
--					menumask |= 0x180;
-+					menumask |= 0x300;
- 					sprintf(s, " Gamma correction - %s", config_gamma_msg[video_get_gamma_en() ? 1 : 0]);
--					MenuWrite(n++, s, menusub == 7);
-+					MenuWrite(n++, s, menusub == 8);
- 
- 					memset(s, 0, sizeof(s));
- 					s[0] = ' ';
-@@ -2350,15 +2411,15 @@ void HandleUI(void)
- 					while(strlen(s) < 26) strcat(s, " ");
- 					strcat(s, " \x16 ");
- 
--					MenuWrite(n++, s, menusub == 8, !video_get_gamma_en() || !S_ISDIR(getFileType(GAMMA_DIR)));
-+					MenuWrite(n++, s, menusub == 9, !video_get_gamma_en() || !S_ISDIR(getFileType(GAMMA_DIR)));
- 				}
+ 				MenuWrite(n++);
+-				MenuWrite(n++, " Video processing          \x16", menusub==5);
++				MenuWrite(n++, " Video processing          \x16", menusub==6);
  
  				if (audio_filter_en() >= 0)
  				{
  					MenuWrite(n++);
 -					menumask |= 0x600;
-+					menumask |= 0xC00;
++					menumask |= 0x480;
  					sprintf(s, " Audio filter - %s", config_afilter_msg[audio_filter_en() ? 1 : 0]);
 -					MenuWrite(n++, s, menusub == 9);
-+					MenuWrite(n++, s, menusub == 10);
++					MenuWrite(n++, s, menusub == 7);
  
  					memset(s, 0, sizeof(s));
  					s[0] = ' ';
-@@ -2368,15 +2429,15 @@ void HandleUI(void)
- 					while (strlen(s) < 26) strcat(s, " ");
- 					strcat(s, " \x16 ");
- 
--					MenuWrite(n++, s, menusub == 10, !audio_filter_en() || !S_ISDIR(getFileType(AFILTER_DIR)));
-+					MenuWrite(n++, s, menusub == 11, !audio_filter_en() || !S_ISDIR(getFileType(AFILTER_DIR)));
- 				}
- 
- 				if (video_get_shadow_mask_mode() >= 0)
- 				{
- 					MenuWrite(n++);
--					menumask |= 0x1800;
-+					menumask |= 0x3000;
- 					sprintf(s, " Shadow Mask - %s", config_smask_msg[video_get_shadow_mask_mode()]);
--					MenuWrite(n++, s, menusub == 11);
-+					MenuWrite(n++, s, menusub == 12);
- 
- 					memset(s, 0, sizeof(s));
- 					s[0] = ' ';
-@@ -2386,25 +2447,25 @@ void HandleUI(void)
- 					while (strlen(s) < 26) strcat(s, " ");
- 					strcat(s, " \x16 ");
- 
--					MenuWrite(n++, s, menusub == 12, !video_get_shadow_mask_mode() || !S_ISDIR(getFileType(SMASK_DIR)));
-+					MenuWrite(n++, s, menusub == 13, !video_get_shadow_mask_mode() || !S_ISDIR(getFileType(SMASK_DIR)));
- 				}
- 
- 
- 				if (!is_minimig() && !is_st())
- 				{
--					menumask |= 0x6000;
-+					menumask |= 0xc000;
- 					MenuWrite(n++);
--					MenuWrite(n++, " Reset settings", menusub == 13, is_archie());
--					MenuWrite(n++, " Save settings", menusub == 14, 0);
-+					MenuWrite(n++, " Reset settings", menusub == 14, is_archie());
-+					MenuWrite(n++, " Save settings", menusub == 15, 0);
- 				}
- 
- 				MenuWrite(n++);
- 				cr = n;
--				MenuWrite(n++, " Reboot (hold \x16 cold reboot)", menusub == 15);
--				MenuWrite(n++, " About", menusub == 16);
-+				MenuWrite(n++, " Reboot (hold \x16 cold reboot)", menusub == 16);
-+				MenuWrite(n++, " About", menusub == 17);
- 
- 				while(n < OsdGetSize() - 1) MenuWrite(n++);
--				MenuWrite(n++, STD_EXIT, menusub == 17, 0, OSD_ARROW_LEFT);
-+				MenuWrite(n++, STD_EXIT, menusub == 18, 0, OSD_ARROW_LEFT);
- 				sysinfo_timer = 0;
- 
- 				if (!adjvisible) break;
-@@ -2415,8 +2476,11 @@ void HandleUI(void)
+@@ -2364,8 +2431,11 @@ void HandleUI(void)
  		break;
  
  	case MENU_COMMON2:
@@ -657,7 +577,7 @@ index f304127..adbb9f4 100644
  			switch (user_io_core_type())
  			{
  			    case CORE_TYPE_SHARPMZ:
-@@ -2427,6 +2491,7 @@ void HandleUI(void)
+@@ -2376,6 +2446,7 @@ void HandleUI(void)
                      menustate = MENU_NONE1;
                      break;
              };
@@ -665,7 +585,7 @@ index f304127..adbb9f4 100644
          }
  
  		if (recent && menusub == 0)
-@@ -2458,21 +2523,7 @@ void HandleUI(void)
+@@ -2398,21 +2469,7 @@ void HandleUI(void)
  				break;
  
  			case 1:
@@ -688,14 +608,13 @@ index f304127..adbb9f4 100644
  				start_map_setting(joy_bcount ? joy_bcount+4 : 8);
  				menustate = MENU_JOYDIGMAP;
  				menusub = 0;
-@@ -2490,20 +2541,26 @@ void HandleUI(void)
- 				menustate = MENU_JOYNUMREMAP;
+@@ -2431,21 +2488,27 @@ void HandleUI(void)
  				menusub = 0;
  				break;
--
- 			case 4:
-+
-+				af_player_num = get_dev_num(get_last_input_dev());
+ 
+-			case 4:
++      case 4:
++        af_player_num = get_dev_num(get_last_input_dev());
 +				menustate = MENU_AUTOFIRE_LIST1;
 +				menusub = 0;
 +				break;
@@ -709,96 +628,18 @@ index f304127..adbb9f4 100644
  
 -			case 5:
 +			case 6:
- 				video_set_scaler_flt(video_get_scaler_flt() ? 0 : 1);
- 				menustate = MENU_COMMON1;
- 				break;
- 
--			case 6:
-+			case 7:
- 				if (video_get_scaler_flt())
  				{
- 					snprintf(Selected_tmp, sizeof(Selected_tmp), COEFF_DIR"/%s", video_get_scaler_coeff());
-@@ -2511,12 +2568,12 @@ void HandleUI(void)
- 					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_COEFF_FILE_SELECTED, MENU_COMMON1);
+ 					menustate = MENU_VIDEOPROC1;
+ 					menusub = 0;
  				}
  				break;
--			case 7:
-+			case 8:
- 				video_set_gamma_en(video_get_gamma_en() ? 0 : 1);
- 				menustate = MENU_COMMON1;
- 				break;
  
--			case 8:
-+			case 9:
- 				if (video_get_gamma_en())
- 				{
- 					snprintf(Selected_tmp, sizeof(Selected_tmp), GAMMA_DIR"/%s", video_get_gamma_curve());
-@@ -2524,12 +2581,12 @@ void HandleUI(void)
- 					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_GAMMA_FILE_SELECTED, MENU_COMMON1);
- 				}
- 				break;
 -			case 9:
-+			case 10:
++			case 7:
  				audio_set_filter_en(audio_filter_en() ? 0 : 1);
  				menustate = MENU_COMMON1;
  				break;
- 
--			case 10:
-+			case 11:
- 				if (audio_filter_en())
- 				{
- 					snprintf(Selected_tmp, sizeof(Selected_tmp), AFILTER_DIR"/%s", audio_get_filter());
-@@ -2537,11 +2594,11 @@ void HandleUI(void)
- 					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_AFILTER_FILE_SELECTED, MENU_COMMON1);
- 				}
- 				break;
--			case 11:
-+			case 12:
- 				video_set_shadow_mask_mode(video_get_shadow_mask_mode() + 1);
- 				menustate = MENU_COMMON1;
- 				break;
--			case 12:
-+			case 13:
- 				if (video_get_shadow_mask_mode())
- 				{
- 					snprintf(Selected_tmp, sizeof(Selected_tmp), SMASK_DIR"/%s", video_get_shadow_mask());
-@@ -2549,7 +2606,7 @@ void HandleUI(void)
- 					SelectFile(Selected_tmp, 0, SCANO_DIR | SCANO_TXT, MENU_SMASK_FILE_SELECTED, MENU_COMMON1);
- 				}
- 				break;
--			case 13:
-+			case 14:
- 				if (!is_archie())
- 				{
- 					menustate = MENU_RESET1;
-@@ -2562,7 +2619,7 @@ void HandleUI(void)
- 				}
- 				break;
- 
--			case 14:
-+			case 15:
- 				// Save settings
- 				menustate = MENU_GENERIC_MAIN1;
- 				menusub = 0;
-@@ -2587,7 +2644,7 @@ void HandleUI(void)
- 				}
- 				break;
- 
--			case 15:
-+			case 16:
- 				{
- 					reboot_req = 1;
- 
-@@ -2600,7 +2657,7 @@ void HandleUI(void)
- 				}
- 				break;
- 
--			case 16:
-+			case 17:
- 				menustate = MENU_ABOUT1;
- 				menusub = 0;
- 				break;
-@@ -2613,6 +2670,7 @@ void HandleUI(void)
+@@ -2523,6 +2586,7 @@ void HandleUI(void)
  		else if (left)
  		{
  			// go back to core requesting this menu
@@ -806,8 +647,25 @@ index f304127..adbb9f4 100644
  			switch (user_io_core_type())
  			{
  			case CORE_TYPE_8BIT:
-@@ -2647,6 +2705,212 @@ void HandleUI(void)
- 		if(!hold_cnt && reboot_req) fpga_load_rbf("menu.rbf");
+@@ -2630,7 +2694,7 @@ void HandleUI(void)
+ 	case MENU_VIDEOPROC2:
+ 		if (menu || left)
+ 		{
+-			menusub = 5;
++			menusub = 6;
+ 			menustate = MENU_COMMON1;
+ 			break;
+ 		}
+@@ -2714,13 +2778,219 @@ void HandleUI(void)
+ 				break;
+ 
+ 			case 10:
+-				menusub = 5;
++				menusub = 6;
+ 				menustate = MENU_COMMON1;
+ 				break;
+ 			}
+ 		}
  		break;
  
 +
