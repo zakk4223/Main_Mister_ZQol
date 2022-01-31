@@ -1,6 +1,6 @@
-From b5bdae6cfcaee82278a14d510b2e0d513c4f9789 Mon Sep 17 00:00:00 2001
+From cdc45f4287094742003bb1505d0adeaf066fb975 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 5 Jan 2022 22:38:51 -0500
+Date: Mon, 31 Jan 2022 13:50:03 -0500
 Subject: [PATCH 5/5] 0005
 
 ---
@@ -8,7 +8,7 @@ Subject: [PATCH 5/5] 0005
  1 file changed, 215 insertions(+)
 
 diff --git a/input.cpp b/input.cpp
-index 748e247..0f85351 100644
+index 52c39e2..b21492e 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -16,6 +16,7 @@
@@ -27,7 +27,7 @@ index 748e247..0f85351 100644
  
  #define NUMDEV 30
  #define NUMPLAYERS 6
-@@ -3518,6 +3520,216 @@ static void touchscreen_proc(int dev, input_event *ev)
+@@ -3523,6 +3525,216 @@ static void touchscreen_proc(int dev, input_event *ev)
  		}
  	}
  
@@ -244,7 +244,7 @@ index 748e247..0f85351 100644
  }
  
  static int vcs_proc(int dev, input_event *ev)
-@@ -4639,6 +4851,8 @@ int input_test(int getchar)
+@@ -4650,6 +4862,8 @@ int input_test(int getchar)
  					else if (!strncmp(cmd, "screenshot", 10))
  					{
  						user_io_screenshot_cmd(cmd);
@@ -253,7 +253,7 @@ index 748e247..0f85351 100644
  					}
  				}
  			}
-@@ -5042,3 +5256,4 @@ void input_autofire_load()
+@@ -5053,3 +5267,4 @@ void input_autofire_load()
                          delete(buf);
                  }
  }
