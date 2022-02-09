@@ -1,10 +1,10 @@
-From f38219c9e8daa4e25aee8ab722f4485d4689dd92 Mon Sep 17 00:00:00 2001
+From 272cdaff5369f50bb36a67eed99fe44ebbb5d83b Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 31 Jan 2022 13:49:38 -0500
+Date: Tue, 8 Feb 2022 23:21:40 -0500
 Subject: [PATCH 4/5] 0004
 
 ---
- input.cpp                  | 221 +++++++++++++++++++++++++-
+ input.cpp                  | 224 +++++++++++++++++++++++++-
  input.h                    |  22 +++
  main.cpp                   |   1 +
  menu.cpp                   | 316 ++++++++++++++++++++++++++++++++++---
@@ -14,10 +14,10 @@ Subject: [PATCH 4/5] 0004
  support/pcecd/pcecdd.cpp   |   8 +
  user_io.cpp                |  13 ++
  user_io.h                  |   2 +
- 10 files changed, 573 insertions(+), 34 deletions(-)
+ 10 files changed, 575 insertions(+), 35 deletions(-)
 
 diff --git a/input.cpp b/input.cpp
-index cb54576..52c39e2 100644
+index ddf307d..480a461 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -27,6 +27,7 @@
@@ -28,7 +28,7 @@ index cb54576..52c39e2 100644
  
  #define NUMDEV 30
  #define NUMPLAYERS 6
-@@ -918,6 +919,8 @@ typedef struct
+@@ -919,6 +920,8 @@ typedef struct
  static devInput input[NUMDEV] = {};
  static devInput player_pad[NUMPLAYERS] = {};
  static devInput player_pdsp[NUMPLAYERS] = {};
@@ -37,7 +37,7 @@ index cb54576..52c39e2 100644
  
  #define JOYCON_COMBO(dev)    (input[(dev)].misc_flags & (1 << 31))
  #define JOYCON_LEFT(dev)     (input[(dev)].misc_flags & (1 << 30))
-@@ -930,6 +933,17 @@ static devInput player_pdsp[NUMPLAYERS] = {};
+@@ -931,6 +934,17 @@ static devInput player_pdsp[NUMPLAYERS] = {};
  int mfd = -1;
  int mwd = -1;
  
@@ -55,7 +55,7 @@ index cb54576..52c39e2 100644
  static int set_watch()
  {
  	mwd = -1;
-@@ -1105,6 +1119,9 @@ static int mapping_clear;
+@@ -1106,6 +1120,9 @@ static int mapping_clear;
  static int mapping_set;
  static int last_input_dev = 1<<31;
  static int last_pdsp_dev = 1<<31;
@@ -65,7 +65,7 @@ index cb54576..52c39e2 100644
  
  static int player_num_remapping = 0;
  static int remapping_spinner_input = 0;
-@@ -1267,6 +1284,26 @@ void finish_map_setting(int dismiss)
+@@ -1268,6 +1285,26 @@ void finish_map_setting(int dismiss)
  	}
  }
  
@@ -92,7 +92,7 @@ index cb54576..52c39e2 100644
  void input_lightgun_save(int idx, uint16_t *cal)
  {
  	static char name[128];
-@@ -1374,6 +1411,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -1376,6 +1413,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  static int kbd_toggle = 0;
  static uint32_t joy[NUMPLAYERS] = {};
  static uint32_t autofire[NUMPLAYERS] = {};
@@ -100,7 +100,7 @@ index cb54576..52c39e2 100644
  static uint32_t autofirecodes[NUMPLAYERS][BTN_NUM] = {};
  static int af_delay[NUMPLAYERS] = {};
  
-@@ -1390,6 +1428,7 @@ static int mouse_emu_x = 0;
+@@ -1392,6 +1430,7 @@ static int mouse_emu_x = 0;
  static int mouse_emu_y = 0;
  
  static uint32_t mouse_timer = 0;
@@ -108,7 +108,7 @@ index cb54576..52c39e2 100644
  
  #define BTN_TGL 100
  #define BTN_OSD 101
-@@ -2026,6 +2065,10 @@ void swap_player(int cur_dev, int new_num)
+@@ -2028,6 +2067,10 @@ void swap_player(int cur_dev, int new_num)
  	{
  		return;
  	}
@@ -119,7 +119,7 @@ index cb54576..52c39e2 100644
          input[cur_dev].num = new_num;
          store_player(new_num, cur_dev);
          //Swap if there was already one assigned there
-@@ -2070,6 +2113,15 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2072,6 +2115,15 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  	if (ev->type != EV_KEY && ev->type != EV_ABS && ev->type != EV_REL) return;
  	if (ev->type == EV_KEY && (!ev->code || ev->code == KEY_UNKNOWN)) return;
  
@@ -135,7 +135,7 @@ index cb54576..52c39e2 100644
  	static uint16_t last_axis = 0;
  
  	int sub_dev = dev;
-@@ -2750,6 +2802,26 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2752,6 +2804,26 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  						}
  					}
  
@@ -162,20 +162,30 @@ index cb54576..52c39e2 100644
  					if (ev->code == input[dev].mmap[SYS_MS_BTN_EMU] && (ev->value <= 1) && ((!(mouse_emu & 1)) ^ (!ev->value)))
  					{
  						mouse_emu = ev->value ? mouse_emu | 1 : mouse_emu & ~1;
-@@ -3775,6 +3847,12 @@ int input_test(int getchar)
+@@ -3777,7 +3849,6 @@ int input_test(int getchar)
  
  		pool[NUMDEV + 2].fd = open(LED_MONITOR, O_RDONLY | O_CLOEXEC);
  		pool[NUMDEV + 2].events = POLLPRI;
+-
+ 		state++;
+ 	}
+ 
+@@ -4038,6 +4109,14 @@ int input_test(int getchar)
+ 			unflag_players();
+ 		}
+ 		cur_leds |= 0x80;
 +		if (scaler_inst)
 +		{
 +			mister_scaler_free(scaler_inst);
 +		}
 +
 +		scaler_inst = mister_scaler_init();
- 
++
++
  		state++;
  	}
-@@ -4615,6 +4693,56 @@ int input_test(int getchar)
+ 
+@@ -4639,6 +4718,56 @@ int input_test(int getchar)
  	return 0;
  }
  
@@ -232,7 +242,7 @@ index cb54576..52c39e2 100644
  int input_poll(int getchar)
  {
  	static int af[NUMPLAYERS] = {};
-@@ -4655,14 +4783,17 @@ int input_poll(int getchar)
+@@ -4679,14 +4808,17 @@ int input_poll(int getchar)
  
  	if (grabbed)
  	{
@@ -252,7 +262,7 @@ index cb54576..52c39e2 100644
  			if (joy[i] != joy_prev[i])
  			{
  				if ((joy[i] ^ joy_prev[i]) & autofire[i])
-@@ -4670,9 +4801,6 @@ int input_poll(int getchar)
+@@ -4694,9 +4826,6 @@ int input_poll(int getchar)
  					time[i] = GetTimer(af_delay[i]);
  					af[i] = 0;
  				}
@@ -262,7 +272,7 @@ index cb54576..52c39e2 100644
  			}
  
  			if (CheckTimer(time[i]))
-@@ -4682,9 +4810,25 @@ int input_poll(int getchar)
+@@ -4706,9 +4835,25 @@ int input_poll(int getchar)
  				if (joy[i] & autofire[i]) send = 1;
  			}
  
@@ -289,7 +299,7 @@ index cb54576..52c39e2 100644
  			}
  		}
  	}
-@@ -4844,3 +4988,68 @@ void parse_buttons()
+@@ -4868,3 +5013,68 @@ void parse_buttons()
  		joy_bcount++;
  	}
  }
@@ -411,7 +421,7 @@ index f9109d2..e39d977 100644
  #ifdef USE_SCHEDULER
  	scheduler_init();
 diff --git a/menu.cpp b/menu.cpp
-index ced7cbe..c415cec 100644
+index 03dbbb0..19a9668 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -188,6 +188,13 @@ enum MENU
@@ -439,7 +449,7 @@ index ced7cbe..c415cec 100644
  static char* GetExt(char *ext)
  {
  	static char extlist[32];
-@@ -949,6 +960,52 @@ static int gun_idx = 0;
+@@ -956,6 +967,52 @@ static int gun_idx = 0;
  static uint16_t gun_pos[4] = {};
  static int page = 0;
  
@@ -492,7 +502,7 @@ index ced7cbe..c415cec 100644
  void HandleUI(void)
  {
  	if (bt_timer >= 0)
-@@ -2222,6 +2279,7 @@ void HandleUI(void)
+@@ -2230,6 +2287,7 @@ void HandleUI(void)
  					if (!store_name) user_io_store_filename(selPath);
  					user_io_file_tx(selPath, idx, opensave, 0, 0, load_addr);
  					if (user_io_use_cheats() && !store_name) cheats_init(selPath, user_io_get_file_crc());
@@ -500,7 +510,7 @@ index ced7cbe..c415cec 100644
  				}
  
  				if (addon[0] == 'f' && addon[1] == '1') process_addon(addon, idx);
-@@ -2256,11 +2314,13 @@ void HandleUI(void)
+@@ -2264,11 +2322,13 @@ void HandleUI(void)
  			else if (is_megacd())
  			{
  				mcd_set_image(ioctl_index, selPath);
@@ -514,7 +524,7 @@ index ced7cbe..c415cec 100644
  			}
  			else if (is_psx() && ioctl_index == 1)
  			{
-@@ -2292,7 +2352,8 @@ void HandleUI(void)
+@@ -2300,7 +2360,8 @@ void HandleUI(void)
  			while(1)
  			{
  				n = 0;
@@ -524,7 +534,7 @@ index ced7cbe..c415cec 100644
  
  				if (!menusub) firstmenu = 0;
  				adjvisible = 0;
-@@ -2305,10 +2366,11 @@ void HandleUI(void)
+@@ -2313,10 +2374,11 @@ void HandleUI(void)
  				MenuWrite(n++, s, menusub == 1, 0);
  				MenuWrite(n++, " Button/Key remap for game \x16", menusub == 2, 0);
  				MenuWrite(n++, " Change player assignment  \x16", menusub == 3, 0);
@@ -537,7 +547,7 @@ index ced7cbe..c415cec 100644
  					MenuWrite(n++);
  					int mode = GetUARTMode();
  					const char *p = config_uart_msg[mode];
-@@ -2316,18 +2378,18 @@ void HandleUI(void)
+@@ -2324,18 +2386,18 @@ void HandleUI(void)
  					sprintf(s, " UART mode (%s)            ",p);
  					s[27] = '\x16';
  					s[28] = 0;
@@ -560,7 +570,7 @@ index ced7cbe..c415cec 100644
  
  					memset(s, 0, sizeof(s));
  					s[0] = ' ';
-@@ -2365,8 +2427,11 @@ void HandleUI(void)
+@@ -2373,8 +2435,11 @@ void HandleUI(void)
  		break;
  
  	case MENU_COMMON2:
@@ -572,7 +582,7 @@ index ced7cbe..c415cec 100644
  			switch (user_io_core_type())
  			{
  			    case CORE_TYPE_SHARPMZ:
-@@ -2377,6 +2442,7 @@ void HandleUI(void)
+@@ -2385,6 +2450,7 @@ void HandleUI(void)
                      menustate = MENU_NONE1;
                      break;
              };
@@ -580,7 +590,7 @@ index ced7cbe..c415cec 100644
          }
  
  		if (recent && menusub == 0)
-@@ -2399,21 +2465,7 @@ void HandleUI(void)
+@@ -2407,21 +2473,7 @@ void HandleUI(void)
  				break;
  
  			case 1:
@@ -603,7 +613,7 @@ index ced7cbe..c415cec 100644
  				start_map_setting(joy_bcount ? joy_bcount+4 : 8);
  				menustate = MENU_JOYDIGMAP;
  				menusub = 0;
-@@ -2432,21 +2484,27 @@ void HandleUI(void)
+@@ -2440,21 +2492,27 @@ void HandleUI(void)
  				menusub = 0;
  				break;
  
@@ -634,7 +644,7 @@ index ced7cbe..c415cec 100644
  				audio_set_filter_en(audio_filter_en() ? 0 : 1);
  				menustate = MENU_COMMON1;
  				break;
-@@ -2524,6 +2582,7 @@ void HandleUI(void)
+@@ -2532,6 +2590,7 @@ void HandleUI(void)
  		else if (left)
  		{
  			// go back to core requesting this menu
@@ -642,7 +652,7 @@ index ced7cbe..c415cec 100644
  			switch (user_io_core_type())
  			{
  			case CORE_TYPE_8BIT:
-@@ -2634,7 +2693,7 @@ void HandleUI(void)
+@@ -2642,7 +2701,7 @@ void HandleUI(void)
  	case MENU_VIDEOPROC2:
  		if (menu || left)
  		{
@@ -651,7 +661,7 @@ index ced7cbe..c415cec 100644
  			menustate = MENU_COMMON1;
  			break;
  		}
-@@ -2730,13 +2789,218 @@ void HandleUI(void)
+@@ -2738,13 +2797,218 @@ void HandleUI(void)
  				break;
  
  			case 11:
@@ -976,10 +986,10 @@ index 5990ee5..829b70a 100644
  }
  
 diff --git a/user_io.cpp b/user_io.cpp
-index 8ec9b5e..f133007 100644
+index 5f281a4..9c6272d 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
-@@ -2051,11 +2051,24 @@ static void send_pcolchr(const char* name, unsigned char index, int type)
+@@ -2058,11 +2058,24 @@ static void send_pcolchr(const char* name, unsigned char index, int type)
  }
  
  static uint32_t file_crc;
@@ -1018,5 +1028,5 @@ index fdfb51c..2d1abdc 100644
  char *user_io_make_filepath(const char *path, const char *filename);
  char *user_io_get_core_name(int orig = 0);
 -- 
-2.34.1
+2.35.1
 
