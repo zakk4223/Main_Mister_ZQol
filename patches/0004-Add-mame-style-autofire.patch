@@ -1,6 +1,6 @@
-From 272cdaff5369f50bb36a67eed99fe44ebbb5d83b Mon Sep 17 00:00:00 2001
+From e6d8877932c33591bf3c4fbf3da5c222136468ad Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 8 Feb 2022 23:21:40 -0500
+Date: Sun, 13 Feb 2022 14:42:11 -0500
 Subject: [PATCH 4/5] 0004
 
 ---
@@ -13,11 +13,11 @@ Subject: [PATCH 4/5] 0004
  support/megacd/megacdd.cpp |   8 +-
  support/pcecd/pcecdd.cpp   |   8 +
  user_io.cpp                |  13 ++
- user_io.h                  |   2 +
- 10 files changed, 575 insertions(+), 35 deletions(-)
+ user_io.h                  |   3 +
+ 10 files changed, 576 insertions(+), 35 deletions(-)
 
 diff --git a/input.cpp b/input.cpp
-index ddf307d..480a461 100644
+index 5e3238e..485525c 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -27,6 +27,7 @@
@@ -421,7 +421,7 @@ index f9109d2..e39d977 100644
  #ifdef USE_SCHEDULER
  	scheduler_init();
 diff --git a/menu.cpp b/menu.cpp
-index 03dbbb0..19a9668 100644
+index 1142d8a..dcb5a59 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -188,6 +188,13 @@ enum MENU
@@ -652,7 +652,7 @@ index 03dbbb0..19a9668 100644
  			switch (user_io_core_type())
  			{
  			case CORE_TYPE_8BIT:
-@@ -2642,7 +2701,7 @@ void HandleUI(void)
+@@ -2651,7 +2710,7 @@ void HandleUI(void)
  	case MENU_VIDEOPROC2:
  		if (menu || left)
  		{
@@ -661,7 +661,7 @@ index 03dbbb0..19a9668 100644
  			menustate = MENU_COMMON1;
  			break;
  		}
-@@ -2738,13 +2797,218 @@ void HandleUI(void)
+@@ -2778,13 +2837,218 @@ void HandleUI(void)
  				break;
  
  			case 11:
@@ -986,10 +986,10 @@ index 5990ee5..829b70a 100644
  }
  
 diff --git a/user_io.cpp b/user_io.cpp
-index 5f281a4..9c6272d 100644
+index 243a9a5..6de8a6c 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
-@@ -2058,11 +2058,24 @@ static void send_pcolchr(const char* name, unsigned char index, int type)
+@@ -2059,11 +2059,24 @@ static void send_pcolchr(const char* name, unsigned char index, int type)
  }
  
  static uint32_t file_crc;
@@ -1015,18 +1015,19 @@ index 5f281a4..9c6272d 100644
  {
  	return use_cheats;
 diff --git a/user_io.h b/user_io.h
-index fdfb51c..2d1abdc 100644
+index ea863f0..5bca8aa 100644
 --- a/user_io.h
 +++ b/user_io.h
-@@ -197,6 +197,8 @@ uint32_t user_io_8bit_set_status(uint32_t, uint32_t, int ex = 0);
+@@ -195,6 +195,9 @@ void user_io_read_confstr();
+ char *user_io_get_confstr(int index);
+ uint32_t user_io_status(uint32_t, uint32_t, int ex = 0);
  int user_io_get_kbd_reset();
- 
- uint32_t user_io_get_file_crc();
 +void user_io_set_cd_toc_crc(uint32_t cd_crc);
 +uint32_t user_io_get_cd_toc_crc();
- int  user_io_file_mount(const char *name, unsigned char index = 0, char pre = 0);
- char *user_io_make_filepath(const char *path, const char *filename);
- char *user_io_get_core_name(int orig = 0);
++
+ 
+ uint32_t user_io_get_file_crc();
+ int  user_io_file_mount(const char *name, unsigned char index = 0, char pre = 0, int pre_size = 0);
 -- 
 2.35.1
 
