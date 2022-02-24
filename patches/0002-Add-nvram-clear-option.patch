@@ -1,6 +1,6 @@
-From 4f1974c6257640c66259fd6490bd225ddea06833 Mon Sep 17 00:00:00 2001
+From 288d2e905b6cf05ca1794f65362e4555e44d4069 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sun, 13 Feb 2022 14:36:26 -0500
+Date: Thu, 24 Feb 2022 12:37:22 -0500
 Subject: [PATCH 2/5] 0002
 
 ---
@@ -10,10 +10,10 @@ Subject: [PATCH 2/5] 0002
  3 files changed, 40 insertions(+)
 
 diff --git a/menu.cpp b/menu.cpp
-index b457bd2..1142d8a 100644
+index e10d8f8..c7bbaf1 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -1006,6 +1006,7 @@ void HandleUI(void)
+@@ -1008,6 +1008,7 @@ void HandleUI(void)
  	static unsigned long flash_timer = 0;
  	static int flash_state = 0;
  	static uint32_t dip_submenu, dip2_submenu, dipv;
@@ -21,7 +21,7 @@ index b457bd2..1142d8a 100644
  	static int need_reset = 0;
  	static int flat = 0;
  	static int menusub_parent = 0;
-@@ -1548,6 +1549,8 @@ void HandleUI(void)
+@@ -1575,6 +1576,8 @@ void HandleUI(void)
  
  			dip_submenu = -1;
  			dip2_submenu = -1;
@@ -30,7 +30,7 @@ index b457bd2..1142d8a 100644
  
  			int last_space = 0;
  
-@@ -1801,6 +1804,16 @@ void HandleUI(void)
+@@ -1834,6 +1837,16 @@ void HandleUI(void)
  				}
  			} while (p);
  
@@ -47,7 +47,7 @@ index b457bd2..1142d8a 100644
  			if (!entry) break;
  
  			for (; entry < OsdGetSize() - 1; entry++) MenuWrite(entry, "", 0, 0);
-@@ -1899,6 +1912,10 @@ void HandleUI(void)
+@@ -1941,6 +1954,10 @@ void HandleUI(void)
  				menustate = MENU_ARCADE_DIP1;
  				menusub = 0;
  			}
@@ -59,7 +59,7 @@ index b457bd2..1142d8a 100644
  			{
  				static char ext[256];
 diff --git a/support/arcade/mra_loader.cpp b/support/arcade/mra_loader.cpp
-index 582d482..2191682 100644
+index fec1dbe..2273d14 100644
 --- a/support/arcade/mra_loader.cpp
 +++ b/support/arcade/mra_loader.cpp
 @@ -55,6 +55,27 @@ static int  nvram_idx  = 0;
@@ -91,17 +91,18 @@ index 582d482..2191682 100644
  {
  	if(nvram_idx && nvram_size)
 diff --git a/support/arcade/mra_loader.h b/support/arcade/mra_loader.h
-index 609f59d..7d0e0aa 100644
+index c2b2691..6d106f8 100644
 --- a/support/arcade/mra_loader.h
 +++ b/support/arcade/mra_loader.h
-@@ -34,5 +34,7 @@ void arcade_sw_load(int n);
+@@ -45,6 +45,8 @@ void arcade_sw_load(int n);
  void arcade_override_name(const char *xml);
  
  void arcade_nvm_save();
 +bool arcade_has_nvm();
 +void arcade_nvm_clear();
  
- #endif
+ mgl_struct* mgl_parse(const char *xml);
+ mgl_struct* mgl_get();
 -- 
 2.35.1
 
