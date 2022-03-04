@@ -1,6 +1,6 @@
-From ea3cd27cd0985beaaaa0afc9e25577534b64b12f Mon Sep 17 00:00:00 2001
+From e8d8525105c64a981ac2e0e0183950ce35fbf166 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 24 Feb 2022 12:37:56 -0500
+Date: Fri, 4 Mar 2022 17:16:44 -0500
 Subject: [PATCH 4/5] 0004
 
 ---
@@ -13,8 +13,8 @@ Subject: [PATCH 4/5] 0004
  support/megacd/megacdd.cpp |   8 +-
  support/pcecd/pcecdd.cpp   |   8 +
  user_io.cpp                |  13 ++
- user_io.h                  |   3 +
- 10 files changed, 576 insertions(+), 35 deletions(-)
+ user_io.h                  |   2 +
+ 10 files changed, 575 insertions(+), 35 deletions(-)
 
 diff --git a/input.cpp b/input.cpp
 index f423660..625477f 100644
@@ -421,10 +421,10 @@ index f9109d2..e39d977 100644
  #ifdef USE_SCHEDULER
  	scheduler_init();
 diff --git a/menu.cpp b/menu.cpp
-index c7bbaf1..8320be5 100644
+index 53860f6..a85a581 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -188,6 +188,13 @@ enum MENU
+@@ -191,6 +191,13 @@ enum MENU
  	// MT32-pi
  	MENU_MT32PI_MAIN1,
  	MENU_MT32PI_MAIN2,
@@ -438,7 +438,7 @@ index c7bbaf1..8320be5 100644
  };
  
  static uint32_t menustate = MENU_NONE1;
-@@ -276,6 +283,10 @@ static uint32_t fs_Options;
+@@ -279,6 +286,10 @@ static uint32_t fs_Options;
  static uint32_t fs_MenuSelect;
  static uint32_t fs_MenuCancel;
  
@@ -449,7 +449,7 @@ index c7bbaf1..8320be5 100644
  static char* GetExt(char *ext)
  {
  	static char extlist[32];
-@@ -958,6 +969,52 @@ static int gun_idx = 0;
+@@ -961,6 +972,52 @@ static int gun_idx = 0;
  static uint16_t gun_pos[4] = {};
  static int page = 0;
  
@@ -502,7 +502,7 @@ index c7bbaf1..8320be5 100644
  void HandleUI(void)
  {
  	if (bt_timer >= 0)
-@@ -2279,6 +2336,7 @@ void HandleUI(void)
+@@ -2307,6 +2364,7 @@ void HandleUI(void)
  					if (!store_name) user_io_store_filename(selPath);
  					user_io_file_tx(selPath, idx, opensave, 0, 0, load_addr);
  					if (user_io_use_cheats() && !store_name) cheats_init(selPath, user_io_get_file_crc());
@@ -510,7 +510,7 @@ index c7bbaf1..8320be5 100644
  				}
  
  				if (addon[0] == 'f' && addon[1] == '1') process_addon(addon, idx);
-@@ -2315,11 +2373,13 @@ void HandleUI(void)
+@@ -2344,11 +2402,13 @@ void HandleUI(void)
  			else if (is_megacd())
  			{
  				mcd_set_image(ioctl_index, selPath);
@@ -524,17 +524,17 @@ index c7bbaf1..8320be5 100644
  			}
  			else if (is_psx() && ioctl_index == 1)
  			{
-@@ -2350,7 +2410,8 @@ void HandleUI(void)
+@@ -2381,7 +2441,8 @@ void HandleUI(void)
  			while(1)
  			{
  				n = 0;
--				menumask = 0x3802f;
+-				menumask = 0x7802f;
 +
 +        menumask = 0x3805f;
  
  				if (!menusub) firstmenu = 0;
  				adjvisible = 0;
-@@ -2363,10 +2424,11 @@ void HandleUI(void)
+@@ -2394,10 +2455,11 @@ void HandleUI(void)
  				MenuWrite(n++, s, menusub == 1, 0);
  				MenuWrite(n++, " Button/Key remap for game \x16", menusub == 2, 0);
  				MenuWrite(n++, " Change player assignment  \x16", menusub == 3, 0);
@@ -547,7 +547,7 @@ index c7bbaf1..8320be5 100644
  					MenuWrite(n++);
  					int mode = GetUARTMode();
  					const char *p = config_uart_msg[mode];
-@@ -2374,18 +2436,18 @@ void HandleUI(void)
+@@ -2405,18 +2467,18 @@ void HandleUI(void)
  					sprintf(s, " UART mode (%s)            ",p);
  					s[27] = '\x16';
  					s[28] = 0;
@@ -570,7 +570,7 @@ index c7bbaf1..8320be5 100644
  
  					memset(s, 0, sizeof(s));
  					s[0] = ' ';
-@@ -2423,8 +2485,11 @@ void HandleUI(void)
+@@ -2455,8 +2517,11 @@ void HandleUI(void)
  		break;
  
  	case MENU_COMMON2:
@@ -582,7 +582,7 @@ index c7bbaf1..8320be5 100644
  			switch (user_io_core_type())
  			{
  			    case CORE_TYPE_SHARPMZ:
-@@ -2435,6 +2500,7 @@ void HandleUI(void)
+@@ -2467,6 +2532,7 @@ void HandleUI(void)
                      menustate = MENU_NONE1;
                      break;
              };
@@ -590,7 +590,7 @@ index c7bbaf1..8320be5 100644
          }
  
  		if (recent && menusub == 0)
-@@ -2457,21 +2523,7 @@ void HandleUI(void)
+@@ -2489,21 +2555,7 @@ void HandleUI(void)
  				break;
  
  			case 1:
@@ -613,7 +613,7 @@ index c7bbaf1..8320be5 100644
  				start_map_setting(joy_bcount ? joy_bcount+4 : 8);
  				menustate = MENU_JOYDIGMAP;
  				menusub = 0;
-@@ -2490,21 +2542,27 @@ void HandleUI(void)
+@@ -2522,21 +2574,27 @@ void HandleUI(void)
  				menusub = 0;
  				break;
  
@@ -644,7 +644,7 @@ index c7bbaf1..8320be5 100644
  				audio_set_filter_en(audio_filter_en() ? 0 : 1);
  				menustate = MENU_COMMON1;
  				break;
-@@ -2582,6 +2640,7 @@ void HandleUI(void)
+@@ -2621,6 +2679,7 @@ void HandleUI(void)
  		else if (left)
  		{
  			// go back to core requesting this menu
@@ -652,7 +652,7 @@ index c7bbaf1..8320be5 100644
  			switch (user_io_core_type())
  			{
  			case CORE_TYPE_8BIT:
-@@ -2701,7 +2760,7 @@ void HandleUI(void)
+@@ -2740,7 +2799,7 @@ void HandleUI(void)
  	case MENU_VIDEOPROC2:
  		if (menu || left)
  		{
@@ -661,7 +661,7 @@ index c7bbaf1..8320be5 100644
  			menustate = MENU_COMMON1;
  			break;
  		}
-@@ -2828,13 +2887,218 @@ void HandleUI(void)
+@@ -2867,13 +2926,218 @@ void HandleUI(void)
  				break;
  
  			case 11:
@@ -878,9 +878,9 @@ index c7bbaf1..8320be5 100644
 +               }
 +               break;
 +       }
- 	case MENU_ARCADE_DIP1:
- 		helptext_idx = 0;
- 		menumask = 0;
+ 	case MENU_DOC_FILE_SELECTED:
+ 		if (cfg.fb_terminal)
+ 		{
 diff --git a/scaler.cpp b/scaler.cpp
 index d04ad1b..130a7a3 100644
 --- a/scaler.cpp
@@ -986,10 +986,10 @@ index 5990ee5..829b70a 100644
  }
  
 diff --git a/user_io.cpp b/user_io.cpp
-index b2d0a8f..8c2d82d 100644
+index 81499bb..9b45ccf 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
-@@ -2075,11 +2075,24 @@ static void send_pcolchr(const char* name, unsigned char index, int type)
+@@ -2082,11 +2082,24 @@ static void send_pcolchr(const char* name, unsigned char index, int type)
  }
  
  static uint32_t file_crc;
@@ -1015,16 +1015,15 @@ index b2d0a8f..8c2d82d 100644
  {
  	return use_cheats;
 diff --git a/user_io.h b/user_io.h
-index ea863f0..5bca8aa 100644
+index bf4d640..20bffe6 100644
 --- a/user_io.h
 +++ b/user_io.h
-@@ -195,6 +195,9 @@ void user_io_read_confstr();
- char *user_io_get_confstr(int index);
+@@ -196,6 +196,8 @@ char *user_io_get_confstr(int index);
  uint32_t user_io_status(uint32_t, uint32_t, int ex = 0);
  int user_io_get_kbd_reset();
+ void user_io_set_kbd_reset(int reset);
 +void user_io_set_cd_toc_crc(uint32_t cd_crc);
 +uint32_t user_io_get_cd_toc_crc();
-+
  
  uint32_t user_io_get_file_crc();
  int  user_io_file_mount(const char *name, unsigned char index = 0, char pre = 0, int pre_size = 0);
