@@ -1,6 +1,6 @@
-From b1796503cc9831669ba18b5cbc415db254ce5ea4 Mon Sep 17 00:00:00 2001
+From e8f826dcac9a56188f67a8f0ca2fe4c661cc676e Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sun, 13 Mar 2022 05:30:21 -0400
+Date: Sun, 13 Mar 2022 19:30:16 -0400
 Subject: [PATCH 4/5] 0004
 
 ---
@@ -17,7 +17,7 @@ Subject: [PATCH 4/5] 0004
  10 files changed, 575 insertions(+), 35 deletions(-)
 
 diff --git a/input.cpp b/input.cpp
-index a35c50f..3d128c2 100644
+index bb6e3b4..c5883fe 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -27,6 +27,7 @@
@@ -162,7 +162,7 @@ index a35c50f..3d128c2 100644
  					if (ev->code == input[dev].mmap[SYS_MS_BTN_EMU] && (ev->value <= 1) && ((!(mouse_emu & 1)) ^ (!ev->value)))
  					{
  						mouse_emu = ev->value ? mouse_emu | 1 : mouse_emu & ~1;
-@@ -4045,7 +4117,6 @@ int input_test(int getchar)
+@@ -4121,7 +4193,6 @@ int input_test(int getchar)
  
  		pool[NUMDEV + 2].fd = open(LED_MONITOR, O_RDONLY | O_CLOEXEC);
  		pool[NUMDEV + 2].events = POLLPRI;
@@ -170,7 +170,7 @@ index a35c50f..3d128c2 100644
  		state++;
  	}
  
-@@ -4337,6 +4408,14 @@ int input_test(int getchar)
+@@ -4413,6 +4484,14 @@ int input_test(int getchar)
  			unflag_players();
  		}
  		cur_leds |= 0x80;
@@ -185,7 +185,7 @@ index a35c50f..3d128c2 100644
  		state++;
  	}
  
-@@ -4959,6 +5038,56 @@ int input_test(int getchar)
+@@ -5041,6 +5120,56 @@ int input_test(int getchar)
  	return 0;
  }
  
@@ -242,7 +242,7 @@ index a35c50f..3d128c2 100644
  int input_poll(int getchar)
  {
  	static int af[NUMPLAYERS] = {};
-@@ -4999,14 +5128,17 @@ int input_poll(int getchar)
+@@ -5081,14 +5210,17 @@ int input_poll(int getchar)
  
  	if (grabbed)
  	{
@@ -262,7 +262,7 @@ index a35c50f..3d128c2 100644
  			if (joy[i] != joy_prev[i])
  			{
  				if ((joy[i] ^ joy_prev[i]) & autofire[i])
-@@ -5014,9 +5146,6 @@ int input_poll(int getchar)
+@@ -5096,9 +5228,6 @@ int input_poll(int getchar)
  					time[i] = GetTimer(af_delay[i]);
  					af[i] = 0;
  				}
@@ -272,7 +272,7 @@ index a35c50f..3d128c2 100644
  			}
  
  			if (CheckTimer(time[i]))
-@@ -5026,9 +5155,25 @@ int input_poll(int getchar)
+@@ -5108,9 +5237,25 @@ int input_poll(int getchar)
  				if (joy[i] & autofire[i]) send = 1;
  			}
  
@@ -299,9 +299,9 @@ index a35c50f..3d128c2 100644
  			}
  		}
  	}
-@@ -5246,3 +5391,68 @@ int rumble_player(int pnum, uint16_t strong_mag, uint16_t weak_mag, uint16_t dur
- 	if (dev_num == -1) return 0;
- 	return rumble_input_device(dev_num, strong_mag, weak_mag, duration, delay);
+@@ -5270,3 +5415,68 @@ void parse_buttons()
+ 		joy_bcount++;
+ 	}
  }
 +
 +static void input_autofire_save_filename(char *fname, size_t pathlen, bool core_only)
@@ -369,7 +369,7 @@ index a35c50f..3d128c2 100644
 +                }
 +}
 diff --git a/input.h b/input.h
-index e299ec3..f42b01d 100644
+index f7215fb..ec3860b 100644
 --- a/input.h
 +++ b/input.h
 @@ -71,6 +71,20 @@
