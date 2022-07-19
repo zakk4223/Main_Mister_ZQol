@@ -1,14 +1,14 @@
-From 47c740ab5961fd65e5ff9aba7728dca999b60d40 Mon Sep 17 00:00:00 2001
+From 4f077504cd5bcdecb37d65525449d036581fa804 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 5 May 2022 11:14:56 -0400
+Date: Tue, 19 Jul 2022 10:51:25 -0400
 Subject: [PATCH 5/5] 0005
 
 ---
- input.cpp | 215 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 215 insertions(+)
+ input.cpp | 214 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 214 insertions(+)
 
 diff --git a/input.cpp b/input.cpp
-index ae3b129..fd5a5e5 100644
+index 9438f06..62903cd 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -16,6 +16,7 @@
@@ -19,15 +19,7 @@ index ae3b129..fd5a5e5 100644
  
  #include "input.h"
  #include "user_io.h"
-@@ -28,6 +29,7 @@
- #include "joymapping.h"
- #include "support.h"
- #include "scaler.h"
-+#include "cheats.h"
- 
- #define NUMDEV 30
- #define NUMPLAYERS 6
-@@ -3848,6 +3850,216 @@ static void touchscreen_proc(int dev, input_event *ev)
+@@ -3854,6 +3855,216 @@ static void touchscreen_proc(int dev, input_event *ev)
  		}
  	}
  
@@ -244,7 +236,7 @@ index ae3b129..fd5a5e5 100644
  }
  
  static int vcs_proc(int dev, input_event *ev)
-@@ -5273,6 +5485,8 @@ int input_test(int getchar)
+@@ -5356,6 +5567,8 @@ int input_test(int getchar)
  					else if (!strncmp(cmd, "screenshot", 10))
  					{
  						user_io_screenshot_cmd(cmd);
@@ -253,11 +245,11 @@ index ae3b129..fd5a5e5 100644
  					}
  				}
  			}
-@@ -5676,3 +5890,4 @@ void input_autofire_load()
+@@ -5761,3 +5974,4 @@ void input_autofire_load()
                          delete(buf);
                  }
  }
 +
 -- 
-2.36.0
+2.37.1
 

@@ -1,6 +1,6 @@
-From 3e789b60a70f0c59c29c08e6f2af61d6ea143140 Mon Sep 17 00:00:00 2001
+From 0e98dae89d75d0940dc7dad30f8fd00634613269 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 5 May 2022 11:13:26 -0400
+Date: Tue, 19 Jul 2022 10:50:24 -0400
 Subject: [PATCH 3/5] 0003
 
 ---
@@ -10,7 +10,7 @@ Subject: [PATCH 3/5] 0003
  3 files changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index be62b2b..60353b8 100644
+index 395c96b..951f71d 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
 @@ -31,6 +31,7 @@ typedef struct
@@ -22,7 +22,7 @@ index be62b2b..60353b8 100644
  	{ "COMPOSITE_SYNC", (void*)(&(cfg.csync)), UINT8, 0, 1 },
  	{ "FORCED_SCANDOUBLER", (void*)(&(cfg.forced_scandoubler)), UINT8, 0, 1 },
 diff --git a/cfg.h b/cfg.h
-index 7fb1a0f..d520f59 100644
+index e4f1e2b..3050e9d 100644
 --- a/cfg.h
 +++ b/cfg.h
 @@ -9,6 +9,7 @@
@@ -64,5 +64,5 @@ index 0429413..9ba3473 100644
  		char path[256] = "nvram/";
  		uint8_t *buf = new uint8_t[nvram_size];
 -- 
-2.36.0
+2.37.1
 
