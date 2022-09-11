@@ -1,6 +1,6 @@
-From ede269366b779533c865cb2719e72c80140aff04 Mon Sep 17 00:00:00 2001
+From 3e75b3bd1325969236266318ed6dd2d358ee6b7b Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 22 Aug 2022 18:35:38 -0400
+Date: Sun, 11 Sep 2022 03:29:19 -0400
 Subject: [PATCH 2/5] 0002
 
 ---
@@ -59,10 +59,10 @@ index dd99c35..257d68e 100644
  			{
  				static char ext[256];
 diff --git a/support/arcade/mra_loader.cpp b/support/arcade/mra_loader.cpp
-index 5593428..0429413 100644
+index 0de177d..5a8f176 100644
 --- a/support/arcade/mra_loader.cpp
 +++ b/support/arcade/mra_loader.cpp
-@@ -55,6 +55,27 @@ static int  nvram_idx  = 0;
+@@ -57,6 +57,27 @@ static int  nvram_idx  = 0;
  static int  nvram_size = 0;
  static char nvram_name[200] = {};
  
@@ -91,11 +91,11 @@ index 5593428..0429413 100644
  {
  	if(nvram_idx && nvram_size)
 diff --git a/support/arcade/mra_loader.h b/support/arcade/mra_loader.h
-index 031b831..ecd3f25 100644
+index f4c56a0..38bdb4a 100644
 --- a/support/arcade/mra_loader.h
 +++ b/support/arcade/mra_loader.h
-@@ -62,6 +62,8 @@ void arcade_sw_load(int n);
- void arcade_override_name(const char *xml);
+@@ -66,6 +66,8 @@ void arcade_pre_parse(const char *xml);
+ bool arcade_is_vertical();
  
  void arcade_nvm_save();
 +bool arcade_has_nvm();

@@ -1,6 +1,6 @@
-From 227b56fb06a04989ef418770040ed5a3b0f3bb93 Mon Sep 17 00:00:00 2001
+From d72513252473df049cccc90620f2e9dbd9ae0412 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 22 Aug 2022 18:35:47 -0400
+Date: Sun, 11 Sep 2022 03:29:28 -0400
 Subject: [PATCH 3/5] 0003
 
 ---
@@ -10,10 +10,10 @@ Subject: [PATCH 3/5] 0003
  3 files changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 9f4de31..59809f7 100644
+index 3df2de3..81ff672 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -31,6 +31,7 @@ typedef struct
+@@ -32,6 +32,7 @@ typedef struct
  
  static const ini_var_t ini_vars[] =
  {
@@ -34,7 +34,7 @@ index 2078df3..311a6c8 100644
  	uint8_t forced_scandoubler;
  	uint8_t key_menu_as_rgui;
 diff --git a/support/arcade/mra_loader.cpp b/support/arcade/mra_loader.cpp
-index 0429413..9ba3473 100644
+index 5a8f176..d90ca20 100644
 --- a/support/arcade/mra_loader.cpp
 +++ b/support/arcade/mra_loader.cpp
 @@ -13,6 +13,7 @@
@@ -45,7 +45,7 @@ index 0429413..9ba3473 100644
  
  #include "buffer.h"
  #include "mra_loader.h"
-@@ -78,7 +79,7 @@ void arcade_nvm_clear()
+@@ -80,7 +81,7 @@ void arcade_nvm_clear()
  
  void arcade_nvm_save()
  {
@@ -54,7 +54,7 @@ index 0429413..9ba3473 100644
  	{
  		char path[256] = CONFIG_DIR"/nvram/";
  		FileCreatePath(path);
-@@ -102,7 +103,7 @@ void arcade_nvm_save()
+@@ -104,7 +105,7 @@ void arcade_nvm_save()
  
  static void arcade_nvm_load()
  {
