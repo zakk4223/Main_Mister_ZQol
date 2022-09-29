@@ -1,0 +1,1124 @@
+From 7319776604401f6b9923b93290adc0a4545d584a Mon Sep 17 00:00:00 2001
+From: Zakk <zakk@rsdio.com>
+Date: Thu, 29 Sep 2022 17:19:35 -0400
+Subject: [PATCH 4/5] 0004
+
+---
+ input.cpp  | 348 ++++++++++++++++++++++++++++++++++++++++++++---
+ input.h    |  32 +++++
+ menu.cpp   | 388 ++++++++++++++++++++++++++++++++++++++++++++++++++---
+ scaler.cpp |  15 +++
+ scaler.h   |   1 +
+ 5 files changed, 754 insertions(+), 30 deletions(-)
+
+diff --git a/input.cpp b/input.cpp
+index f83387d..270175e 100644
+--- a/input.cpp
++++ b/input.cpp
+@@ -26,6 +26,7 @@
+ #include "osd.h"
+ #include "video.h"
+ #include "joymapping.h"
++#include "scaler.h"
+ #include "support.h"
+ #include "profiling.h"
+ #include "gamecontroller_db.h"
+@@ -1192,12 +1193,15 @@ typedef struct
+ 	char     id[80];
+ 	char     name[128];
+ 	char     sysfs[512];
++	unsigned char state_bits[(KEY_MAX + 7) / 8];
++	advancedButtonMap advanced_map[19];
+ } devInput;
+ 
+ static devInput input[NUMDEV] = {};
+ static devInput player_pad[NUMPLAYERS] = {};
+ static devInput player_pdsp[NUMPLAYERS] = {};
+ 
++
+ #define JOYCON_COMBO(dev)    (input[(dev)].misc_flags & (1 << 31))
+ #define JOYCON_LEFT(dev)     (input[(dev)].misc_flags & (1 << 30))
+ #define JOYCON_RIGHT(dev)    (input[(dev)].misc_flags & (1 << 29))
+@@ -1209,6 +1213,16 @@ static devInput player_pdsp[NUMPLAYERS] = {};
+ int mfd = -1;
+ int mwd = -1;
+ 
++
++advancedButtonMap *get_advanced_map_defs(int pnum)
++{
++	if (pnum < 0 || pnum >= NUMPLAYERS)
++	{
++		return NULL;
++	}
++	return player_pad[pnum].advanced_map; 
++}
++
+ static int set_watch()
+ {
+ 	mwd = -1;
+@@ -1389,6 +1403,11 @@ static int last_pdsp_dev = 1<<31;
+ static int player_num_remapping = 0;
+ static int remapping_spinner_input = 0;
+ 
++static bool ev_capturing = false;
++static int ev_capture_pnum = -1;
++static uint32_t captured_ev_code = 0;
++
++
+ static uint32_t tmp_axis[4];
+ static int tmp_axis_n = 0;
+ 
+@@ -1547,6 +1566,27 @@ void finish_map_setting(int dismiss)
+ 	}
+ }
+ 
++
++void start_code_capture(int pnum)
++{
++
++	printf("CAPTURING FOR %d\n", pnum);
++	ev_capture_pnum = pnum;
++	ev_capturing = true;
++	captured_ev_code = 0;
++}
++
++void end_code_capture()
++{
++	ev_capturing = false;
++	captured_ev_code = 0;
++}
++
++uint32_t get_captured_code()
++{
++	return captured_ev_code;
++}
++
+ void input_lightgun_save(int idx, int32_t *cal)
+ {
+ 	static char name[128];
+@@ -1656,6 +1696,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+ static int kbd_toggle = 0;
+ static uint32_t joy[NUMPLAYERS] = {};
+ static uint32_t autofire[NUMPLAYERS] = {};
++static uint32_t autofire_new[NUMPLAYERS] = {};
+ static uint32_t autofirecodes[NUMPLAYERS][BTN_NUM] = {};
+ static int af_delay[NUMPLAYERS] = {};
+ 
+@@ -1674,6 +1715,7 @@ static int mouse_emu_x = 0;
+ static int mouse_emu_y = 0;
+ 
+ static uint32_t mouse_timer = 0;
++static mister_scaler *scaler_inst = NULL;
+ 
+ #define BTN_TGL 100
+ #define BTN_OSD 101
+@@ -2358,9 +2400,20 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+ 
+ 	int sub_dev = dev;
+ 
++
+ 	//check if device is a part of multifunctional device
+ 	if (!JOYCON_COMBINED(dev) && input[dev].bind >= 0) dev = input[dev].bind;
+ 
++	if (input[dev].num && ev_capturing && ev_capture_pnum == input[dev].num && ev->type == EV_KEY)
++	{
++		captured_ev_code = ev->code;
++		if (ev->value)
++		{
++			captured_ev_code |= 0x80000000;
++		}
++		return;
++	}
++
+ 	if (ev->type == EV_KEY)
+ 	{
+ 		if (input[dev].timeout > 0) input[dev].timeout = cfg.bt_auto_disconnect * 10;
+@@ -2475,6 +2528,9 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+ 			}
+ 			input[dev].has_map++;
+ 		}
++
++		input_advanced_load(dev);
++
+ 		input[dev].has_map++;
+ 	}
+ 
+@@ -2920,7 +2976,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+ 
+ 				if (user_io_osd_is_visible() || video_fb_state())
+ 				{
+-					if (player_num_remapping && input[dev].num)
++					if (input[dev].num)
+ 					{
+ 						last_input_dev = dev;
+ 					}
+@@ -3045,6 +3101,15 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+ 						input[dev].has_map = 1;
+ 					}
+ 
++					//maintain the current state bitmap
++					if (ev->value)
++					{
++						input[dev].state_bits[ev->code / 8] |= (1 << (ev->code % 8));
++
++					} else {
++						input[dev].state_bits[ev->code / 8] &= ~(1 << (ev->code % 8));
++					}
++
+ 					for (uint i = 0; i < BTN_NUM; i++)
+ 					{
+ 						if (ev->code == (input[dev].map[i] & 0xFFFF) || ev->code == (input[dev].map[i] >> 16))
+@@ -3055,6 +3120,61 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+ 							// support 2 simultaneous functions for 1 button if defined in 2 sets. No return.
+ 						}
+ 					}
++					for (uint i = 0; i < 19; i++)
++					{
++						advancedButtonMap *abm = &player_pad[input[dev].num].advanced_map[i];
++
++
++						bool is_pressed = true;
++
++						for (unsigned int i = 0; i < sizeof(abm->codes)/sizeof(uint32_t); i++)
++						{
++							if (!abm->codes[i]) 
++							{
++									if (i == 0) is_pressed = false;
++									break;
++							}
++							if (!(input[dev].state_bits[abm->codes[i] / 8] & (1 << (abm->codes[i] % 8))))
++							{
++								is_pressed = false;
++								break;
++							}
++						}
++
++						if (is_pressed)
++						{
++							//In the case where an advanced button map uses a key/button from the original mapping style, turn off
++							//any mappings from original map
++							int cidx = 0;
++							while(abm->codes[cidx])
++							{
++								for (uint i = 0; i < BTN_NUM; i++)
++								{
++									if (abm->codes[cidx] == (input[dev].map[i] & 0xFFFF) || abm->codes[cidx] == (input[dev].map[i] >> 16))
++									{
++										joy_digital(input[dev].num, 1 << i, origcode, 0, i, (ev->code == input[dev].mmap[SYS_BTN_OSD_KTGL + 1] || ev->code == input[dev].mmap[SYS_BTN_OSD_KTGL + 2]));
++										
++									}
++								}
++								cidx++;
++							}
++						}
++
++						//if (is_pressed)
++						//{
++							abm->pressed = is_pressed; 
++							abm->cur_state_frames = 0;
++							abm->last_frame = -1;
++							if (abm->pressed)
++							{
++								abm->is_on = true;
++							} else {
++								abm->is_on = false;
++							}
++						//}
++
++					}
++
+ 
+ 					if (ev->code == input[dev].mmap[SYS_MS_BTN_EMU] && (ev->value <= 1) && ((!(mouse_emu & 1)) ^ (!ev->value)))
+ 					{
+@@ -4644,6 +4764,12 @@ int input_test(int getchar)
+ 			unflag_players();
+ 		}
+ 		cur_leds |= 0x80;
++		if (scaler_inst)
++		{
++			mister_scaler_free(scaler_inst);
++		}
++
++		scaler_inst = mister_scaler_init();
+ 		state++;
+ 	}
+ 
+@@ -5149,7 +5275,7 @@ int input_test(int getchar)
+ 										int treshold = range / 4;
+ 
+ 										int only_max = 1;
+-										for (int n = 0; n < 4; n++) if (input[dev].mmap[SYS_AXIS1_X + n] && ((input[dev].mmap[SYS_AXIS1_X + n] & 0xFFFF) == ev.code)) only_max = 0;
++										for (int n = 0; n < 4; n++) if (input[dev].mmap[SYS_AXIS1_X + n] && ((input[dev].mmap[SYS_AXIS1_X + n] & 0xFFFF) == ev.code)) {only_max = 0;};
+ 
+ 										if (ev.value < center - treshold && !only_max) axis_edge = 1;
+ 										if (ev.value > center + treshold) axis_edge = 2;
+@@ -5328,6 +5454,107 @@ int input_test(int getchar)
+ 	return 0;
+ }
+ 
++
++void execute_advanced_sys_button(int pnum, advancedButtonMap *abm) 
++{
++
++	int sys_btn = abm->bnum;
++
++	switch(sys_btn)
++	{
++			case SYS_BTN_SCREENSHOT:
++				user_io_screenshot(nullptr, 1);
++				break;
++			case SYS_BTN_RESET:
++				if (abm->pressed && abm->cur_state_frames <= 60)
++				{	
++					ProgressMessage("Resetting", "Resetting...", abm->cur_state_frames, 60);
++					if (abm->cur_state_frames == 60)
++					{
++						ProgressMessage(0,0,0,0);
++						if (is_x86()) x86_init();
++						if (is_megacd()) mcd_set_image(0, "");
++						if (is_pce()) pcecd_reset();
++						if (is_saturn()) saturn_reset();
++						if (is_pcxt()) pcxt_init();
++						user_io_status_set("0", 1, 0);
++						user_io_status_set("0",0,0);
++					}
++				}
++				if (!abm->pressed)
++				{
++					ProgressMessage(0,0,0,0);
++				}
++				break;
++	}
++}
++
++void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
++{
++	autofire_new[pnum] = joy_state;
++
++	for (uint i = 0; i < 19; i++)
++	{
++			advancedButtonMap *abm = &player_pad[pnum+1].advanced_map[i];
++
++			if (!abm->codes[0]) continue;
++			
++			bool has_autofire = abm->on_frames && abm->off_frames;
++			if (abm->pressed)
++			{
++				if (abm->last_frame != curr_frame)
++				{
++					abm->last_frame = curr_frame;
++					abm->cur_state_frames++;
++
++					if (has_autofire)
++					{
++						if (abm->is_on)
++						{
++							if (abm->cur_state_frames > abm->on_frames)
++							{
++								abm->cur_state_frames = 1;
++								//If off_frames is set to zero, never switch state
++								//(continually pressed)
++								if (abm->off_frames)
++								{
++									abm->is_on = !abm->is_on;
++								}
++
++							}
++						} else {
++							if (abm->cur_state_frames > abm->off_frames)
++							{
++								abm->cur_state_frames = 1;
++								abm->is_on = !abm->is_on;
++							}
++						}
++					}
++
++					if (abm->bnum & 0xF0)
++					{
++						execute_advanced_sys_button(pnum, abm);
++						continue;
++					}
++				}
++
++				if (!(joy[pnum] & 1<<abm->bnum))
++				{
++					if (abm->is_on) autofire_new[pnum] |= 1<<abm->bnum;
++					else autofire_new[pnum] &= ~(1<<abm->bnum);
++				}
++			} else {
++				//Also execute on button release
++				if (abm->bnum & 0xF0 && abm->cur_state_frames == 0)
++				{
++					execute_advanced_sys_button(pnum, abm);
++					abm->cur_state_frames = 1;
++					continue;
++				}
++			}
++	}
++}
++
+ int input_poll(int getchar)
+ {
+ 	PROFILE_FUNCTION();
+@@ -5370,6 +5597,8 @@ int input_poll(int getchar)
+ 
+ 	if (grabbed)
+ 	{
++		int curr_frame = mister_scaler_frame_counter(scaler_inst);
++
+ 		for (int i = 0; i < NUMPLAYERS; i++)
+ 		{
+ 			if (af_delay[i] < AF_MIN) af_delay[i] = AF_MIN;
+@@ -5377,29 +5606,30 @@ int input_poll(int getchar)
+ 			if (!time[i]) time[i] = GetTimer(af_delay[i]);
+ 			int send = 0;
+ 
++			if (CheckTimer(time[i]))
++			{
++				time[i] = GetTimer(af_delay[i]);
++				af[i] = !af[i];
++				if (joy[i] & autofire[i]) send = 1;
++			}
++
++			process_advanced_map(i, curr_frame, joy[i]);
+ 			int newdir = ((joy[i] & 0xF) != (joy_prev[i] & 0xF));
+-			if (joy[i] != joy_prev[i])
++
++			if (autofire_new[i] != joy_prev[i])
+ 			{
+-				if ((joy[i] ^ joy_prev[i]) & autofire[i])
++				send = 1;
++				if ((autofire_new[i] ^ joy_prev[i]) & autofire[i])
+ 				{
+ 					time[i] = GetTimer(af_delay[i]);
+ 					af[i] = 0;
+ 				}
+-
+-				send = 1;
+-				joy_prev[i] = joy[i];
+-			}
+-
+-			if (CheckTimer(time[i]))
+-			{
+-				time[i] = GetTimer(af_delay[i]);
+-				af[i] = !af[i];
+-				if (joy[i] & autofire[i]) send = 1;
++				joy_prev[i] = autofire_new[i];
+ 			}
+ 
+ 			if (send)
+ 			{
+-				user_io_digital_joystick(i, af[i] ? joy[i] & ~autofire[i] : joy[i], newdir);
++				user_io_digital_joystick(i, af[i] ? autofire_new[i] & ~autofire[i] : autofire_new[i], newdir);
+ 			}
+ 		}
+ 	}
+@@ -5559,3 +5789,91 @@ void parse_buttons()
+ 		joy_bcount++;
+ 	}
+ }
++
++
++static void input_advanced_save_filename(char *fname, size_t pathlen, int dev_num, bool def=false)
++{
++	if (def || is_menu()) snprintf(fname, pathlen, "advanced_input_%s%s_v3.map", input[dev_num].idstr, input[dev_num].mod ? "_m" : "");
++	else snprintf(fname, pathlen, "%s_advanced_input_%s%s_v3.map", user_io_get_core_name(), input[dev_num].idstr, input[dev_num].mod ? "_m" : "");
++}
++
++void input_advanced_save(int player_num)
++{
++	char path[256] = {JOYMAP_DIR};
++	char fname[256] = {};
++
++	int dev_num = -1;
++	if (player_num == -1) return;
++	for (int i = 0; i < NUMDEV; i++) 
++	{
++		if (input[i].num == player_num)
++		{
++			dev_num = input[i].bind >= 0 ? input[i].bind : i;	
++			break;
++		}
++	}
++	if (dev_num >= 0)
++	{
++		input_advanced_save_filename(fname, sizeof(fname), dev_num);
++		strncat(path, fname, sizeof(path)-1);
++		uint8_t *buf = new uint8_t[sizeof(advancedButtonMap)*16];
++		if (buf)
++		{
++			memcpy(buf, player_pad[player_num].advanced_map, sizeof(advancedButtonMap)*16);
++			FileSaveConfig(path, buf, sizeof(advancedButtonMap)*16);
++			delete[](buf);
++		}
++	}
++}
++
++
++void input_advanced_load(int dev_num)
++{
++	char path[256] = {JOYMAP_DIR};
++	uint8_t *buf = new uint8_t[sizeof(advancedButtonMap)*16];
++	if (buf)
++	{
++		memset(buf, 0, sizeof(advancedButtonMap)*16);
++		char fname[256] = {};
++		input_advanced_save_filename(fname, sizeof(fname), dev_num, false); 
++		strncat(path, fname, sizeof(path)-1);
++		FileLoadConfig(path, buf, sizeof(advancedButtonMap)*16);
++		memcpy(&input[dev_num].advanced_map, buf, sizeof(advancedButtonMap)*16);
++		delete[](buf);
++	}
++	//Load the sys buttons from main menu, add them to the end of the array
++	
++	buf = new uint8_t[sizeof(advancedButtonMap)*3];
++	strncpy(path, JOYMAP_DIR, sizeof(path));
++	if (buf)
++	{
++
++		memset(buf, 0, sizeof(advancedButtonMap)*3);
++		char fname[256] = {};
++		input_advanced_save_filename(fname, sizeof(fname), dev_num, true); 
++		strncat(path, fname, sizeof(path)-1);
++		FileLoadConfig(path, buf, sizeof(advancedButtonMap)*3);
++		memcpy(&input[dev_num].advanced_map[16], buf, sizeof(advancedButtonMap)*3);
++		delete[](buf);
++	}
++
++	//If any of the controller specific maps are for sys buttons, disable the ones from menu core
++	for(int i=0; i < 16; i++)
++	{
++			advancedButtonMap *abm = &input[dev_num].advanced_map[i];
++			if (abm->bnum & 0xF0)
++			{
++				for (int j=0; j < 3; j++)
++				{
++					if (abm->bnum == input[dev_num].advanced_map[j].bnum)
++						input[dev_num].advanced_map[16+j].codes[0] = 0;
++				}
++			}
++	}
++
++
++
++}
++
++
++
+diff --git a/input.h b/input.h
+index f7215fb..a36d4f2 100644
+--- a/input.h
++++ b/input.h
+@@ -69,8 +69,26 @@
+ #define SPIN_LEFT          30
+ #define SPIN_RIGHT         31
+ 
++#define SYS_BTN_SCREENSHOT 0xF0 
++#define SYS_BTN_RESET 0xF1 
++#define SYS_BTN_SAVESTATE 0xF2 
++
++
+ #define KEY_EMU (KEY_MAX+1)
+ 
++
++typedef struct {
++
++        int bnum;
++        uint32_t codes[8];
++        int on_frames;
++        int off_frames;
++        int cur_state_frames;
++        bool is_on;
++        bool pressed;
++        int last_frame;
++} advancedButtonMap;
++
+ void set_kbdled(int mask, int state);
+ int  get_kbdled(int mask);
+ int  toggle_kbdled(int mask);
+@@ -103,6 +121,18 @@ int get_dev_num(int dev);
+ int get_remap_spinner_value();
+ int get_numplayers();
+ 
++
++void start_code_capture(int pnum);
++void end_code_capture();
++uint32_t get_captured_code();
++int get_last_input_dev();
++int get_dev_num(int dev);
++void input_autofire_save();
++void input_autofire_load();
++
++advancedButtonMap *get_advanced_map_defs(int pnum);
++
++
+ uint32_t get_key_mod();
+ uint32_t get_ps2_code(uint16_t key);
+ uint32_t get_amiga_code(uint16_t key);
+@@ -122,5 +152,7 @@ extern uint8_t ps2_kbd_scan_set;
+ void parse_buttons();
+ char *get_buttons(int type = 0);
+ void set_ovr_buttons(char *s, int type);
++void input_advanced_save(int player_num);
++void input_advanced_load(int dev_num);
+ 
+ #endif
+diff --git a/menu.cpp b/menu.cpp
+index 51891b7..9ff3bc3 100644
+--- a/menu.cpp
++++ b/menu.cpp
+@@ -192,6 +192,13 @@ enum MENU
+ 	// MT32-pi
+ 	MENU_MT32PI_MAIN1,
+ 	MENU_MT32PI_MAIN2,
++
++	//Advanced Button Map
++	MENU_ADVANCED_MAP_LIST1,
++	MENU_ADVANCED_MAP_LIST2,
++	MENU_ADVANCED_MAP_EDIT1,
++	MENU_ADVANCED_MAP_EDIT2,
++	MENU_ADVANCED_MAP_CAPTURE1,
+ };
+ 
+ static uint32_t menustate = MENU_NONE1;
+@@ -280,6 +287,10 @@ static uint32_t fs_Options;
+ static uint32_t fs_MenuSelect;
+ static uint32_t fs_MenuCancel;
+ 
++static int abm_edit_idx = -1;
++static int abm_player_num = 0;
++static uint32_t abm_edit_codes[8] = {};
++
+ static char* GetExt(char *ext)
+ {
+ 	static char extlist[32];
+@@ -447,6 +458,23 @@ static uint8_t GetASCIIKey(uint32_t keycode)
+ 	return keycode_table[get_amiga_code(keycode & 0xFFFF) & 0x7F];
+ }
+ 
++
++void build_advanced_map_code_str(uint32_t *abm_codes, size_t abm_size, char *code_str, size_t code_size)
++{
++					strncat(code_str, "[", code_size);
++					for (unsigned int i = 0; i < abm_size/sizeof(uint32_t); i++)
++					{
++						char cs[64] = {};
++						if (!abm_codes[i]) break;
++						snprintf(cs, sizeof(cs), "%d,", abm_codes[i]);
++						strncat(code_str, cs, code_size);
++					}
++					int code_len = strlen(code_str);
++					if (code_str[code_len-1] == ',') code_str[code_len-1] = 0;
++					strcat(code_str, "]");
++}
++
++
+ /* the Atari core handles OSD keys competely inside the core */
+ static uint32_t menu_key = 0;
+ 
+@@ -899,6 +927,63 @@ static int gun_idx = 0;
+ static int32_t gun_pos[4] = {};
+ static int page = 0;
+ 
++
++static void menu_button_name(int button, char *buf, size_t bsize)
++{
++	switch(button)
++	{
++	        case 0:
++	                strncpy(buf, "Right", bsize);
++	                break;
++	        case 1:
++	                strncpy(buf, "Left", bsize);
++	                break;
++	        case 2:
++	                strncpy(buf, "Down", bsize);
++	                break;
++	        case 3:
++	                strncpy(buf, "Up", bsize);
++	                break;
++					case 0xF0:
++									strncpy(buf, "Screenshot", bsize);
++									break;
++					case 0xF1:
++								  strncpy(buf, "Reset", bsize);
++									break;
++					case 0xF2: 
++									strncpy(buf, "Savestate(sys)", bsize);
++									break;
++	        default:
++	                if ((button-4 < joy_bcount) && joy_bnames[button-4][0])
++	                {
++	                        strncpy(buf, joy_bnames[button-4], bsize);
++	                } else {
++	                        snprintf(buf, bsize, "%d", button-4);
++	                }
++	}
++}
++
++
++static void menu_parse_buttons()
++{
++	if (is_minimig())
++	{
++		joy_bcount = 7;
++		strcpy(joy_bnames[0], "A(Red/Fire)");
++		strcpy(joy_bnames[1], "B(Blue)");
++		strcpy(joy_bnames[2], "C(Yellow)");
++		strcpy(joy_bnames[3], "D(Green)");
++		strcpy(joy_bnames[4], "RT");
++		strcpy(joy_bnames[5], "LT");
++		strcpy(joy_bnames[6], "Pause");
++	}
++	else
++	{
++		parse_buttons();
++  }
++}
++
++
+ void HandleUI(void)
+ {
+ 	PROFILE_FUNCTION();
+@@ -2377,7 +2462,7 @@ void HandleUI(void)
+ 			while(1)
+ 			{
+ 				n = 0;
+-				menumask = 0x7802f;
++				menumask = 0x3805f;
+ 
+ 				if (!menusub) firstmenu = 0;
+ 				adjvisible = 0;
+@@ -2390,6 +2475,7 @@ void HandleUI(void)
+ 				MenuWrite(n++, s, menusub == 1, 0);
+ 				MenuWrite(n++, " Button/Key remap for game \x16", menusub == 2, 0);
+ 				MenuWrite(n++, " Change player assignment  \x16", menusub == 3, 0);
++				MenuWrite(n++, " Advanced Mapping          \x16", menusub == 4, 0);
+ 
+ 				if (user_io_get_uart_mode())
+ 				{
+@@ -2401,18 +2487,18 @@ void HandleUI(void)
+ 					sprintf(s, " UART mode (%s)            ",p);
+ 					s[27] = '\x16';
+ 					s[28] = 0;
+-					MenuWrite(n++, s, menusub == 4);
++					MenuWrite(n++, s, menusub == 5);
+ 				}
+ 
+ 				MenuWrite(n++);
+-				MenuWrite(n++, " Video processing          \x16", menusub==5);
++				MenuWrite(n++, " Video processing          \x16", menusub==6);
+ 
+ 				if (audio_filter_en() >= 0)
+ 				{
+ 					MenuWrite(n++);
+-					menumask |= 0x600;
++					menumask |= 0x480;
+ 					sprintf(s, " Audio filter - %s", config_afilter_msg[audio_filter_en() ? 1 : 0]);
+-					MenuWrite(n++, s, menusub == 9);
++					MenuWrite(n++, s, menusub == 7);
+ 
+ 					memset(s, 0, sizeof(s));
+ 					s[0] = ' ';
+@@ -2521,20 +2607,26 @@ void HandleUI(void)
+ 				break;
+ 
+ 			case 4:
++				abm_player_num = get_dev_num(get_last_input_dev());
++				menustate = MENU_ADVANCED_MAP_LIST1;
++				menusub = 0;
++				break;
++
++			case 5:
+ 				{
+ 					menustate = MENU_UART1;
+ 					menusub = 0;
+ 				}
+ 				break;
+ 
+-			case 5:
++			case 6:
+ 				{
+ 					menustate = MENU_VIDEOPROC1;
+ 					menusub = 0;
+ 				}
+ 				break;
+ 
+-			case 9:
++			case 7:
+ 				audio_set_filter_en(audio_filter_en() ? 0 : 1);
+ 				menustate = MENU_COMMON1;
+ 				break;
+@@ -2872,6 +2964,267 @@ void HandleUI(void)
+ 		}
+ 		break;
+ 
++
++	case MENU_ADVANCED_MAP_LIST1:
++	{
++			OsdSetTitle("Advanced");
++			menu_parse_buttons();
++			menustate = MENU_ADVANCED_MAP_LIST2;
++			parentstate = MENU_ADVANCED_MAP_LIST1;
++			abm_player_num = get_dev_num(get_last_input_dev());
++
++			advancedButtonMap *abms = get_advanced_map_defs(abm_player_num);
++			menumask = 0x3;
++			uint32_t menucnt = 0;
++			MenuWrite(0, " New                       \x16", menusub == menucnt++, 0);
++			MenuWrite(1, " Save                      \x16", menusub == menucnt++, 0);
++			int n = 2;
++			char bname[32] = {};
++			for(int i = 0; i < 16; i++)
++			{
++				advancedButtonMap *abm = abms+i;
++				bool has_autofire = abm->on_frames && abm->off_frames;
++				if (abm->codes[0])
++ 				{
++					menu_button_name(abm->bnum, bname, sizeof(bname));
++					char code_str[256] = {};
++					build_advanced_map_code_str(abm->codes, sizeof(abm->codes), code_str, sizeof(code_str));
++					if (has_autofire)
++					{
++						sprintf(s, " %s->%s [%d Hz]", code_str, bname, 60 / (abm->on_frames + abm->off_frames));
++					} else {
++						sprintf(s, " %s->%s", code_str, bname);			
++					}
++					s[27] = '\x16';
++					s[28] = 0;
++					menumask |= 1<<menucnt;
++					MenuWrite(n++, s, menusub ==  menucnt++, 0);
++				}
++      }
++	 		for (; n < OsdGetSize() - 1; n++) MenuWrite(n, "", 0, 0);
++			break;
++	}
++
++			case MENU_ADVANCED_MAP_LIST2:
++				{
++					if (select)
++					{
++						advancedButtonMap *abms = get_advanced_map_defs(abm_player_num);
++						abm_edit_idx = -1;
++						menustate = MENU_ADVANCED_MAP_EDIT1;
++						parentstate = MENU_ADVANCED_MAP_LIST1;
++						if (menusub == 0)
++						{
++							//New, find suitable slot
++
++							for (int i = 0; i < 16; i++)
++								{
++									advancedButtonMap *abm = abms+i;
++									if (!abm->codes[0])
++									{
++										abm_edit_idx = i;
++										break;
++									}
++								}
++
++							if (is_menu())
++							{
++								(abms+abm_edit_idx)->bnum = SYS_BTN_SCREENSHOT;
++							}
++						} else if (menusub == 1) {
++							input_advanced_save(abm_player_num);
++							menustate = MENU_ADVANCED_MAP_LIST1;
++						} else {
++							abm_edit_idx = menusub -2;
++						}
++					}
++
++					if (left || back || menu)
++					{
++						menustate = is_menu() ? MENU_SYSTEM1 : MENU_COMMON1;
++						parentstate = 0;
++					}
++					break;
++				}
++
++			case MENU_ADVANCED_MAP_EDIT1:
++				{
++
++					menustate = MENU_ADVANCED_MAP_EDIT2;
++					parentstate = MENU_ADVANCED_MAP_EDIT1;
++					advancedButtonMap *abms = get_advanced_map_defs(abm_player_num);
++					advancedButtonMap *edit_abm = abms+abm_edit_idx;
++					if (!edit_abm->on_frames)
++					{
++						edit_abm->on_frames = 1;
++					}
++
++					menu_parse_buttons();
++					char bname[32] = {};
++					menu_button_name(edit_abm->bnum, bname, sizeof(bname));
++
++					bool has_autofire = edit_abm->on_frames && edit_abm->off_frames;
++					menumask = 0x67;
++					if (has_autofire)
++					{
++						menumask |= 0x18;
++					}
++					uint32_t n = 0;
++					char code_str[256] = {};
++					build_advanced_map_code_str(edit_abm->codes, sizeof(edit_abm->codes), code_str, sizeof(code_str));
++					snprintf(s, sizeof(s), " Button: %-17s\x10 \x11", bname);
++					MenuWrite(n, s, menusub == n, 0); n++;
++					snprintf(s, sizeof(s), " Hotkey %-20s\x16",code_str);
++					MenuWrite(n, s, menusub == n, 0); n++;
++					snprintf(s, sizeof(s), " Autofire: %s", has_autofire ? "ON" : "OFF");
++					MenuWrite(n, s, menusub == n, 0); n++;
++					snprintf(s, sizeof(s), " On Frames  %-14d\x10 \x11", edit_abm->on_frames);
++					MenuWrite(n, s, menusub == n, !has_autofire); n++;
++					sprintf(s, " Off Frames %-14d\x10 \x11", edit_abm->off_frames);
++					MenuWrite(n, s, menusub == n, !has_autofire); n++;
++					MenuWrite(n, " Delete", menusub == n, 0); n++;
++					MenuWrite(n, " Done", menusub == n, 0); n++;
++					for (int i = n; i < OsdGetSize() - 1; i++) MenuWrite(i, "", 0, 0);
++					break;
++				}
++
++			case MENU_ADVANCED_MAP_EDIT2:
++				{
++					if (select || left || right)
++					{
++						menustate = MENU_ADVANCED_MAP_EDIT1;
++						advancedButtonMap *abms = get_advanced_map_defs(abm_player_num);
++						advancedButtonMap *edit_abm = abms+abm_edit_idx;
++						bool has_autofire = edit_abm->on_frames && edit_abm->off_frames;
++						switch(menusub)
++							{
++								case 0:
++									if (select || right)
++									{
++										edit_abm->bnum++;
++										if (edit_abm->bnum-4 >= joy_bcount)
++										{
++											if (edit_abm->bnum < SYS_BTN_SCREENSHOT) edit_abm->bnum = SYS_BTN_SCREENSHOT;
++											if (edit_abm->bnum > SYS_BTN_SAVESTATE) edit_abm->bnum = is_menu() ? SYS_BTN_SCREENSHOT : 0;
++										}
++									} else if (left) {
++										edit_abm->bnum--;
++										if (edit_abm->bnum < 0) edit_abm->bnum = SYS_BTN_SAVESTATE;
++										if (edit_abm->bnum < SYS_BTN_SCREENSHOT && edit_abm->bnum-4 >= joy_bcount) edit_abm->bnum = is_menu() ? SYS_BTN_SAVESTATE : joy_bcount+3;
++									}
++
++									break;
++								case 1:
++									if (select) {
++										menustate = MENU_ADVANCED_MAP_CAPTURE1;
++										memset(abm_edit_codes, 0, sizeof(abm_edit_codes));
++										start_code_capture(abm_player_num);
++									}
++									break;
++								
++								case 2: 
++									if (select)
++									{
++										if (has_autofire)
++										{
++											edit_abm->off_frames = edit_abm->on_frames = 0;
++										} else {
++											edit_abm->off_frames = edit_abm->on_frames = 1;
++										}
++									}
++									break;
++								case 3:
++									if (select || right)
++									{
++										edit_abm->on_frames++;
++									} else if (left) {
++										edit_abm->on_frames--;
++									}
++
++									if (edit_abm->on_frames < 0)
++									{
++										edit_abm->on_frames = 0;
++									}
++									break;
++								case 4:
++									if (select || right)
++									{
++										edit_abm->off_frames++;
++									} else if (left) {
++										edit_abm->off_frames--;
++									}
++									if (edit_abm->off_frames < 0)
++									{
++										edit_abm->off_frames = 0;
++									}
++									break;
++								case 5:
++									if (select)
++									{
++										menustate = MENU_ADVANCED_MAP_LIST1;
++										edit_abm->codes[0] = 0;
++										edit_abm->on_frames = 0;
++										edit_abm->off_frames = 0;
++										edit_abm->bnum = 0;
++									}
++									break;
++								case 6:
++									if (select)
++									{
++										menustate = MENU_ADVANCED_MAP_LIST1;
++									}
++									break;
++							}
++					}
++
++					if (back || menu)
++					{
++						menustate = MENU_ADVANCED_MAP_LIST1;
++						menusub = 0;
++					}
++					break;
++				}
++			case MENU_ADVANCED_MAP_CAPTURE1:
++				{
++					advancedButtonMap *abms = get_advanced_map_defs(abm_player_num);
++					advancedButtonMap *edit_abm = abms+abm_edit_idx;
++					OsdSetTitle("Set Hotkey", 0);
++					for (int i = 0; i < 5; i++) OsdWrite(i, "", 0, 0);
++					OsdWrite(5, info_top, 0, 0);
++					infowrite(6, "Press input hotkey");
++					OsdWrite(7, info_bottom, 0, 0);
++					char code_str[256] = {};
++					build_advanced_map_code_str(abm_edit_codes, sizeof(abm_edit_codes), code_str, sizeof(code_str));
++					OsdWrite(10, code_str, 0, 0);
++
++					uint32_t captured_code = get_captured_code();
++					if (captured_code)
++					{
++						int code_idx = 0;
++						bool is_captured = false;
++						uint8_t pressed = (captured_code & 0x80000000) >> 28 ;
++						captured_code &= 0x0000FFFF;
++						while(abm_edit_codes[code_idx] && code_idx < sizeof(abm_edit_codes)/sizeof(abm_edit_codes[0]))
++					  {
++								if (abm_edit_codes[code_idx] == captured_code) is_captured = true;
++								code_idx++;
++						}
++						if (!is_captured && pressed && (code_idx < sizeof(abm_edit_codes)/sizeof(abm_edit_codes[0])))
++						{
++							abm_edit_codes[code_idx] = captured_code;
++						}
++						if (!pressed && is_captured)  
++						{
++							end_code_capture();
++							menustate = MENU_ADVANCED_MAP_EDIT1;
++							memcpy(edit_abm->codes, abm_edit_codes, sizeof(edit_abm->codes));
++						} else {
++							menustate = MENU_ADVANCED_MAP_CAPTURE1;
++						}
++
++					}
++					break;
++				}
+ 	case MENU_DOC_FILE_SELECTED:
+ 		if (cfg.fb_terminal)
+ 		{
+@@ -6252,7 +6605,7 @@ void HandleUI(void)
+ 
+ 		m = 0;
+ 		OsdSetTitle("System Settings", OSD_ARROW_LEFT);
+-		menumask = 0x7F;
++		menumask = 0xFF;
+ 
+ 		OsdWrite(m++);
+ 		sprintf(s, "       MiSTer v%s", version + 5);
+@@ -6303,17 +6656,18 @@ void HandleUI(void)
+ 		OsdWrite(m++, "");
+ 		OsdWrite(m++, " Remap keyboard            \x16", menusub == 1);
+ 		OsdWrite(m++, " Define joystick buttons   \x16", menusub == 2);
+-		OsdWrite(m++, " Scripts                   \x16", menusub == 3);
+-		OsdWrite(m++, " Help                      \x16", menusub == 4);
++		OsdWrite(m++, " Advanced Buttons          \x16", menusub == 3);
++		OsdWrite(m++, " Scripts                   \x16", menusub == 4);
++		OsdWrite(m++, " Help                      \x16", menusub == 5);
+ 		OsdWrite(m++, "");
+ 		cr = m;
+-		OsdWrite(m++, " Reboot (hold \x16 cold reboot)", menusub == 5);
++		OsdWrite(m++, " Reboot (hold \x16 cold reboot)", menusub == 6);
+ 		sysinfo_timer = 0;
+ 
+ 		reboot_req = 0;
+ 
+ 		while(m < OsdGetSize()-1) OsdWrite(m++, "");
+-		OsdWrite(15, STD_EXIT, menusub == 6);
++		OsdWrite(15, STD_EXIT, menusub == 7);
+ 		menustate = MENU_SYSTEM2;
+ 		break;
+ 
+@@ -6342,6 +6696,10 @@ void HandleUI(void)
+ 				break;
+ 
+ 			case 3:
++				menustate = MENU_ADVANCED_MAP_LIST1;
++				break;
++
++			case 4:
+ 				{
+ 					uint8_t confirm[32] = {};
+ 					int match = 0;
+@@ -6368,13 +6726,13 @@ void HandleUI(void)
+ 				}
+ 				break;
+ 
+-			case 4:
++			case 5:
+ 				strcpy(Selected_tmp, DOCS_DIR);
+ 				FileCreatePath(Selected_tmp);
+ 				SelectFile(Selected_tmp, "PDFTXTMD ", SCANO_DIR | SCANO_TXT, MENU_DOC_FILE_SELECTED, MENU_NONE1);
+ 				break;
+ 
+-			case 5:
++			case 6:
+ 				{
+ 					reboot_req = 1;
+ 
+@@ -6387,7 +6745,7 @@ void HandleUI(void)
+ 				}
+ 				break;
+ 
+-			case 6:
++			case 7:
+ 				menustate = MENU_NONE1;
+ 				break;
+ 			}
+diff --git a/scaler.cpp b/scaler.cpp
+index d04ad1b..0e394be 100644
+--- a/scaler.cpp
++++ b/scaler.cpp
+@@ -149,3 +149,18 @@ int mister_scaler_read_32(mister_scaler *ms, unsigned char *gbuf) {
+ 
+     return 0;
+ }
++
++
++int mister_scaler_frame_counter(mister_scaler *ms)
++{
++  if (!ms)
++  {
++          return 0;
++  }
++
++
++  volatile unsigned char *buffer = (unsigned char *)(ms->map+ms->map_off);
++
++  return (buffer[5]>>5) & 0x07;
++}
++
+diff --git a/scaler.h b/scaler.h
+index 3eb4084..2d9dcb0 100644
+--- a/scaler.h
++++ b/scaler.h
+@@ -27,5 +27,6 @@ int mister_scaler_read(mister_scaler *,unsigned char *buffer);
+ int mister_scaler_read_32(mister_scaler *ms, unsigned char *buffer);
+ int mister_scaler_read_yuv(mister_scaler *ms,int,unsigned char *y,int, unsigned char *U,int, unsigned char *V);
+ void mister_scaler_free(mister_scaler *);
++int mister_scaler_frame_counter(mister_scaler *ms);
+ 
+ #endif
+-- 
+2.37.3
+

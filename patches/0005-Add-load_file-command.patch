@@ -1,14 +1,14 @@
-From d44ba6a9e5381fffdce8427923705b339f229c67 Mon Sep 17 00:00:00 2001
+From 23953a07e5147db3e2bdc287ec64a72a25c1ae43 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sun, 11 Sep 2022 03:29:50 -0400
+Date: Thu, 29 Sep 2022 17:24:05 -0400
 Subject: [PATCH 5/5] 0005
 
 ---
- input.cpp | 214 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 214 insertions(+)
+ input.cpp | 213 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 213 insertions(+)
 
 diff --git a/input.cpp b/input.cpp
-index 2d1bf4c..e55c729 100644
+index 270175e..ff204b1 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -16,6 +16,7 @@
@@ -19,7 +19,7 @@ index 2d1bf4c..e55c729 100644
  
  #include "input.h"
  #include "user_io.h"
-@@ -3861,6 +3862,216 @@ static void touchscreen_proc(int dev, input_event *ev)
+@@ -3908,6 +3909,216 @@ static void touchscreen_proc(int dev, input_event *ev)
  		}
  	}
  
@@ -236,7 +236,7 @@ index 2d1bf4c..e55c729 100644
  }
  
  static int vcs_proc(int dev, input_event *ev)
-@@ -5365,6 +5576,8 @@ int input_test(int getchar)
+@@ -5411,6 +5622,8 @@ int input_test(int getchar)
  					else if (!strncmp(cmd, "screenshot", 10))
  					{
  						user_io_screenshot_cmd(cmd);
@@ -245,11 +245,6 @@ index 2d1bf4c..e55c729 100644
  					}
  				}
  			}
-@@ -5770,3 +5983,4 @@ void input_autofire_load()
-                         delete(buf);
-                 }
- }
-+
 -- 
-2.37.2
+2.37.3
 
