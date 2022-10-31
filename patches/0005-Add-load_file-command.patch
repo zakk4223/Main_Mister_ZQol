@@ -1,6 +1,6 @@
-From b618384ea9aeeff82f7dd804c6267ceb4be4bd0e Mon Sep 17 00:00:00 2001
+From 415a9966de98e7d346facfe9a5022c1f8ea55ce9 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 29 Sep 2022 21:11:48 -0400
+Date: Mon, 31 Oct 2022 15:08:56 -0400
 Subject: [PATCH 5/5] 0005
 
 ---
@@ -8,7 +8,7 @@ Subject: [PATCH 5/5] 0005
  1 file changed, 211 insertions(+)
 
 diff --git a/input.cpp b/input.cpp
-index 270175e..6ee90c7 100644
+index 3bb5b6d..79e18af 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -16,6 +16,7 @@
@@ -19,7 +19,7 @@ index 270175e..6ee90c7 100644
  
  #include "input.h"
  #include "user_io.h"
-@@ -30,6 +31,7 @@
+@@ -31,6 +32,7 @@
  #include "support.h"
  #include "profiling.h"
  #include "gamecontroller_db.h"
@@ -27,7 +27,7 @@ index 270175e..6ee90c7 100644
  
  #define NUMDEV 30
  #define NUMPLAYERS 6
-@@ -3908,6 +3910,213 @@ static void touchscreen_proc(int dev, input_event *ev)
+@@ -3935,6 +3937,213 @@ static void touchscreen_proc(int dev, input_event *ev)
  		}
  	}
  
@@ -241,15 +241,15 @@ index 270175e..6ee90c7 100644
  }
  
  static int vcs_proc(int dev, input_event *ev)
-@@ -5411,6 +5620,8 @@ int input_test(int getchar)
+@@ -5438,6 +5647,8 @@ int input_test(int getchar)
  					else if (!strncmp(cmd, "screenshot", 10))
  					{
  						user_io_screenshot_cmd(cmd);
 +					} else if (!strncmp(cmd, "load_file ", 10)) {
 +						input_load_file(cmd);
  					}
- 				}
- 			}
+ 					else if (!strncmp(cmd, "volume ", 7))
+ 					{
 -- 
-2.37.3
+2.38.1
 

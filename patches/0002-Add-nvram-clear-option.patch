@@ -1,6 +1,6 @@
-From c9a7c5686f60750ae63d0c4a21b7689e97e64604 Mon Sep 17 00:00:00 2001
+From 68cd1ac71f3b129dbde4e0ea52752eaa670b12a2 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 29 Sep 2022 21:10:05 -0400
+Date: Mon, 31 Oct 2022 15:08:01 -0400
 Subject: [PATCH 2/5] 0002
 
 ---
@@ -10,7 +10,7 @@ Subject: [PATCH 2/5] 0002
  3 files changed, 40 insertions(+)
 
 diff --git a/menu.cpp b/menu.cpp
-index bae626d..51891b7 100644
+index afadef1..0236b5a 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -951,6 +951,7 @@ void HandleUI(void)
@@ -104,5 +104,5 @@ index f4c56a0..38bdb4a 100644
  mgl_struct* mgl_parse(const char *xml);
  mgl_struct* mgl_get();
 -- 
-2.37.3
+2.38.1
 
