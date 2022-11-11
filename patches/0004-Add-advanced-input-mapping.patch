@@ -1,18 +1,18 @@
-From ec1c4b75e6b930f384cc1ef0220e79ff987a7480 Mon Sep 17 00:00:00 2001
+From adeedb8439e8514a070e06edefe18a0b0d38d0fb Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 31 Oct 2022 15:08:37 -0400
+Date: Fri, 11 Nov 2022 11:34:35 -0500
 Subject: [PATCH 4/5] 0004
 
 ---
- input.cpp  | 348 ++++++++++++++++++++++++++++++++++++++++++++---
+ input.cpp  | 347 ++++++++++++++++++++++++++++++++++++++++++++---
  input.h    |  32 +++++
  menu.cpp   | 388 ++++++++++++++++++++++++++++++++++++++++++++++++++---
  scaler.cpp |  15 +++
  scaler.h   |   1 +
- 5 files changed, 754 insertions(+), 30 deletions(-)
+ 5 files changed, 753 insertions(+), 30 deletions(-)
 
 diff --git a/input.cpp b/input.cpp
-index b17e717..3bb5b6d 100644
+index a813d21..60b78e2 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -27,6 +27,7 @@
@@ -112,7 +112,7 @@ index b17e717..3bb5b6d 100644
  
  #define BTN_TGL 100
  #define BTN_OSD 101
-@@ -2367,9 +2409,20 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2380,9 +2422,20 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  	int sub_dev = dev;
  
@@ -133,7 +133,7 @@ index b17e717..3bb5b6d 100644
  	if (ev->type == EV_KEY)
  	{
  		if (input[dev].timeout > 0) input[dev].timeout = cfg.bt_auto_disconnect * 10;
-@@ -2484,6 +2537,9 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2497,6 +2550,9 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  			}
  			input[dev].has_map++;
  		}
@@ -143,7 +143,7 @@ index b17e717..3bb5b6d 100644
  		input[dev].has_map++;
  	}
  
-@@ -2947,7 +3003,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2960,7 +3016,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  				if (user_io_osd_is_visible() || video_fb_state())
  				{
@@ -152,7 +152,7 @@ index b17e717..3bb5b6d 100644
  					{
  						last_input_dev = dev;
  					}
-@@ -3072,6 +3128,15 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3097,6 +3153,15 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  						input[dev].has_map = 1;
  					}
  
@@ -168,7 +168,7 @@ index b17e717..3bb5b6d 100644
  					for (uint i = 0; i < BTN_NUM; i++)
  					{
  						if (ev->code == (input[dev].map[i] & 0xFFFF) || ev->code == (input[dev].map[i] >> 16))
-@@ -3082,6 +3147,61 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3107,6 +3172,61 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  							// support 2 simultaneous functions for 1 button if defined in 2 sets. No return.
  						}
  					}
@@ -230,7 +230,7 @@ index b17e717..3bb5b6d 100644
  
  					if (ev->code == input[dev].mmap[SYS_MS_BTN_EMU] && (ev->value <= 1) && ((!(mouse_emu & 1)) ^ (!ev->value)))
  					{
-@@ -4671,6 +4791,12 @@ int input_test(int getchar)
+@@ -4696,6 +4816,12 @@ int input_test(int getchar)
  			unflag_players();
  		}
  		cur_leds |= 0x80;
@@ -243,7 +243,7 @@ index b17e717..3bb5b6d 100644
  		state++;
  	}
  
-@@ -5176,7 +5302,7 @@ int input_test(int getchar)
+@@ -5201,7 +5327,7 @@ int input_test(int getchar)
  										int treshold = range / 4;
  
  										int only_max = 1;
@@ -252,7 +252,7 @@ index b17e717..3bb5b6d 100644
  
  										if (ev.value < center - treshold && !only_max) axis_edge = 1;
  										if (ev.value > center + treshold) axis_edge = 2;
-@@ -5361,6 +5487,107 @@ int input_test(int getchar)
+@@ -5386,6 +5512,106 @@ int input_test(int getchar)
  	return 0;
  }
  
@@ -274,11 +274,10 @@ index b17e717..3bb5b6d 100644
 +					if (abm->cur_state_frames == 60)
 +					{
 +						ProgressMessage(0,0,0,0);
-+						if (is_x86()) x86_init();
++						if (is_x86() || is_pcxt()) { x86_init(); ResetUART(); }
 +						if (is_megacd()) mcd_set_image(0, "");
 +						if (is_pce()) pcecd_reset();
 +						if (is_saturn()) saturn_reset();
-+						if (is_pcxt()) pcxt_init();
 +						user_io_status_set("0", 1, 0);
 +						user_io_status_set("0",0,0);
 +					}
@@ -360,7 +359,7 @@ index b17e717..3bb5b6d 100644
  int input_poll(int getchar)
  {
  	PROFILE_FUNCTION();
-@@ -5403,6 +5630,8 @@ int input_poll(int getchar)
+@@ -5428,6 +5654,8 @@ int input_poll(int getchar)
  
  	if (grabbed)
  	{
@@ -369,7 +368,7 @@ index b17e717..3bb5b6d 100644
  		for (int i = 0; i < NUMPLAYERS; i++)
  		{
  			if (af_delay[i] < AF_MIN) af_delay[i] = AF_MIN;
-@@ -5410,29 +5639,30 @@ int input_poll(int getchar)
+@@ -5435,29 +5663,30 @@ int input_poll(int getchar)
  			if (!time[i]) time[i] = GetTimer(af_delay[i]);
  			int send = 0;
  
@@ -413,7 +412,7 @@ index b17e717..3bb5b6d 100644
  			}
  		}
  	}
-@@ -5592,3 +5822,91 @@ void parse_buttons()
+@@ -5617,3 +5846,91 @@ void parse_buttons()
  		joy_bcount++;
  	}
  }
@@ -564,7 +563,7 @@ index f7215fb..a36d4f2 100644
  
  #endif
 diff --git a/menu.cpp b/menu.cpp
-index 0236b5a..195e00a 100644
+index d284f0c..76d796a 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -192,6 +192,13 @@ enum MENU
@@ -680,7 +679,7 @@ index 0236b5a..195e00a 100644
  void HandleUI(void)
  {
  	PROFILE_FUNCTION();
-@@ -2378,7 +2463,7 @@ void HandleUI(void)
+@@ -2367,7 +2452,7 @@ void HandleUI(void)
  			while(1)
  			{
  				n = 0;
@@ -689,7 +688,7 @@ index 0236b5a..195e00a 100644
  
  				if (!menusub) firstmenu = 0;
  				adjvisible = 0;
-@@ -2391,6 +2476,7 @@ void HandleUI(void)
+@@ -2380,6 +2465,7 @@ void HandleUI(void)
  				MenuWrite(n++, s, menusub == 1, 0);
  				MenuWrite(n++, " Button/Key remap for game \x16", menusub == 2, 0);
  				MenuWrite(n++, " Change player assignment  \x16", menusub == 3, 0);
@@ -697,7 +696,7 @@ index 0236b5a..195e00a 100644
  
  				if (user_io_get_uart_mode())
  				{
-@@ -2402,18 +2488,18 @@ void HandleUI(void)
+@@ -2391,18 +2477,18 @@ void HandleUI(void)
  					sprintf(s, " UART mode (%s)            ",p);
  					s[27] = '\x16';
  					s[28] = 0;
@@ -720,7 +719,7 @@ index 0236b5a..195e00a 100644
  
  					memset(s, 0, sizeof(s));
  					s[0] = ' ';
-@@ -2522,20 +2608,26 @@ void HandleUI(void)
+@@ -2511,20 +2597,26 @@ void HandleUI(void)
  				break;
  
  			case 4:
@@ -749,7 +748,7 @@ index 0236b5a..195e00a 100644
  				audio_set_filter_en(audio_filter_en() ? 0 : 1);
  				menustate = MENU_COMMON1;
  				break;
-@@ -2873,6 +2965,267 @@ void HandleUI(void)
+@@ -2861,6 +2953,267 @@ void HandleUI(void)
  		}
  		break;
  
@@ -1017,7 +1016,7 @@ index 0236b5a..195e00a 100644
  	case MENU_DOC_FILE_SELECTED:
  		if (cfg.fb_terminal)
  		{
-@@ -6253,7 +6606,7 @@ void HandleUI(void)
+@@ -6240,7 +6593,7 @@ void HandleUI(void)
  
  		m = 0;
  		OsdSetTitle("System Settings", OSD_ARROW_LEFT);
@@ -1026,7 +1025,7 @@ index 0236b5a..195e00a 100644
  
  		OsdWrite(m++);
  		sprintf(s, "       MiSTer v%s", version + 5);
-@@ -6304,17 +6657,18 @@ void HandleUI(void)
+@@ -6291,17 +6644,18 @@ void HandleUI(void)
  		OsdWrite(m++, "");
  		OsdWrite(m++, " Remap keyboard            \x16", menusub == 1);
  		OsdWrite(m++, " Define joystick buttons   \x16", menusub == 2);
@@ -1049,7 +1048,7 @@ index 0236b5a..195e00a 100644
  		menustate = MENU_SYSTEM2;
  		break;
  
-@@ -6343,6 +6697,10 @@ void HandleUI(void)
+@@ -6330,6 +6684,10 @@ void HandleUI(void)
  				break;
  
  			case 3:
@@ -1060,7 +1059,7 @@ index 0236b5a..195e00a 100644
  				{
  					uint8_t confirm[32] = {};
  					int match = 0;
-@@ -6369,13 +6727,13 @@ void HandleUI(void)
+@@ -6356,13 +6714,13 @@ void HandleUI(void)
  				}
  				break;
  
@@ -1076,7 +1075,7 @@ index 0236b5a..195e00a 100644
  				{
  					reboot_req = 1;
  
-@@ -6388,7 +6746,7 @@ void HandleUI(void)
+@@ -6375,7 +6733,7 @@ void HandleUI(void)
  				}
  				break;
  
