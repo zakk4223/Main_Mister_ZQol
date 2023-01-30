@@ -1,6 +1,6 @@
-From 57b7ae09c2cebc87c7cfce1e5ee819c98a4bb55a Mon Sep 17 00:00:00 2001
+From 69f9a85e54c6d36486fd350eb7380e7308fd0ecc Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 11 Nov 2022 11:28:27 -0500
+Date: Fri, 20 Jan 2023 05:01:32 -0500
 Subject: [PATCH 1/5] 0001
 
 ---
@@ -10,7 +10,7 @@ Subject: [PATCH 1/5] 0001
  3 files changed, 322 insertions(+), 3 deletions(-)
 
 diff --git a/input.cpp b/input.cpp
-index 468f80e..a813d21 100644
+index 0ac77fd..0a922b7 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -1384,12 +1384,80 @@ static int mapping_type;
@@ -451,5 +451,5 @@ index efcc7aa..38dc38c 100644
  		helptext_idx = 0;
  		menumask = 1;
 -- 
-2.38.1
+2.39.1
 
