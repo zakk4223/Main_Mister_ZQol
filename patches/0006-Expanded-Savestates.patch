@@ -1,0 +1,351 @@
+From b5ad66b2ae075b46b2618ae47d5c3fb310e5fa08 Mon Sep 17 00:00:00 2001
+From: Zakk <zakk@rsdio.com>
+Date: Wed, 8 Feb 2023 12:13:54 -0500
+Subject: [PATCH 6/6] Expanded Savestates
+
+---
+ cfg.cpp     |  3 ++
+ cfg.h       |  3 ++
+ input.cpp   | 11 +++++++-
+ input.h     |  1 +
+ menu.cpp    | 81 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ menu.h      |  1 +
+ user_io.cpp | 76 +++++++++++++++++++++++++++++++++++++++++++++++--
+ user_io.h   |  8 ++++++
+ 8 files changed, 181 insertions(+), 3 deletions(-)
+
+diff --git a/cfg.cpp b/cfg.cpp
+index 7542a95..fe66d8d 100644
+--- a/cfg.cpp
++++ b/cfg.cpp
+@@ -115,6 +115,9 @@ static const ini_var_t ini_vars[] =
+ 	{ "VIDEO_HUE", (void *)(&(cfg.video_hue)), UINT16, 0, 360},
+ 	{ "VIDEO_GAIN_OFFSET", (void *)(&(cfg.video_gain_offset)), STRING, 0, sizeof(cfg.video_gain_offset)},
+ 	{ "HDR", (void*)(&cfg.hdr), UINT8, 0, 2 },
++  { "SS_LOAD_BIT", (void *)(&(cfg.ss_load_bit)), STRING, 0, sizeof(cfg.ss_load_bit) - 1},
++  { "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
++  { "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
+ };
+ 
+ static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
+diff --git a/cfg.h b/cfg.h
+index b6b54d8..48cd32e 100644
+--- a/cfg.h
++++ b/cfg.h
+@@ -87,6 +87,9 @@ typedef struct {
+ 	uint16_t video_hue;
+ 	char video_gain_offset[256];
+ 	uint8_t hdr;
++  char ss_load_bit[8];
++  char ss_save_bit[8];
++  char ss_current_slot[15];
+ } cfg_t;
+ 
+ extern cfg_t cfg;
+diff --git a/input.cpp b/input.cpp
+index 8988663..f79e775 100644
+--- a/input.cpp
++++ b/input.cpp
+@@ -3295,6 +3295,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+ 
+ 						//if (is_pressed)
+ 						//{
++              abm->last_pressed = abm->pressed;
+ 							abm->pressed = is_pressed; 
+ 							abm->cur_state_frames = 0;
+ 							abm->last_frame = -1;
+@@ -5814,8 +5815,16 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
+ 
+ 	int sys_btn = abm->bnum;
+ 
++  printf("SYS BTN %X\n", sys_btn);
++
+ 	switch(sys_btn)
+ 	{
++      case SYS_BTN_SAVESTATE:
++        if (!abm->pressed && abm->cur_state_frames == 0)
++        {
++          menu_open_savestate_osd();
++        }
++        break;
+ 			case SYS_BTN_SCREENSHOT:
+         if (abm->pressed && abm->cur_state_frames == 1)
+ 				  user_io_screenshot(nullptr, 1);
+@@ -5909,7 +5918,7 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
+ 				}
+ 			} else {
+ 				//Also execute on button release
+-				if (abm->bnum & 0xF0 && abm->cur_state_frames == 0)
++				if ((abm->bnum & 0xF0) && (abm->last_pressed != abm->pressed && abm->cur_state_frames == 0))
+ 				{
+ 					execute_advanced_sys_button(pnum, abm);
+ 					abm->cur_state_frames = 1;
+diff --git a/input.h b/input.h
+index 370b1f0..75b50db 100644
+--- a/input.h
++++ b/input.h
+@@ -96,6 +96,7 @@ typedef struct {
+         int cur_state_frames;
+         advanced_button_state button_state;
+         bool pressed;
++        bool last_pressed;
+         int last_frame;
+ } advancedButtonMap;
+ 
+diff --git a/menu.cpp b/menu.cpp
+index 8c7dad0..4f4d004 100644
+--- a/menu.cpp
++++ b/menu.cpp
+@@ -199,8 +199,13 @@ enum MENU
+ 	MENU_ADVANCED_MAP_EDIT1,
+ 	MENU_ADVANCED_MAP_EDIT2,
+ 	MENU_ADVANCED_MAP_CAPTURE1,
++
++  //System save state menu
++  MENU_SAVE_STATE1,
++  MENU_SAVE_STATE2,
+ };
+ 
++static bool menu_open_savestate = false;
+ static uint32_t menustate = MENU_NONE1;
+ static uint32_t parentstate;
+ static uint32_t menusub = 0;
+@@ -1127,6 +1132,7 @@ void HandleUI(void)
+ 	minus = false;
+ 	recent = false;
+ 
++  if (menu_open_savestate) menu = true;
+ 	if (c && cfg.bootcore[0] != '\0') cfg.bootcore[0] = '\0';
+ 
+ 	if (is_menu() && cfg.osd_timeout >= 5)
+@@ -1409,6 +1415,7 @@ void HandleUI(void)
+ 			}
+ 			else if (is_st()) menustate = MENU_ST_MAIN1;
+ 			else if (is_archie()) menustate = MENU_ARCHIE_MAIN1;
++      else if (menu_open_savestate) { menustate = MENU_SAVE_STATE1; menu_open_savestate = false;}
+ 			else {
+ 				if (is_menu())
+ 				{
+@@ -3256,6 +3263,67 @@ void HandleUI(void)
+ 					}
+ 					break;
+ 				}
++  case MENU_SAVE_STATE1:
++   {
++					menustate = MENU_SAVE_STATE2;
++					parentstate = MENU_SAVE_STATE1;
++
++					menumask = 0x07;
++					uint32_t n = 0;
++
++					snprintf(s, sizeof(s), " Slot %d", ss_menu_get_slot());
++          MenuWrite(n, s, menusub == n, 0); n++;
++          MenuWrite(n, " Save", menusub == n, 0); n++;
++					MenuWrite(n, " Load", menusub == n, 0); n++;
++					for (int i = n; i < OsdGetSize() - 1; i++) MenuWrite(i, "", 0, 0);
++   }
++   break;
++  case MENU_SAVE_STATE2:
++   {
++     if (select || minus || plus || left || right)
++     {
++       menustate = MENU_SAVE_STATE1;
++       uint8_t curr_save_slot = ss_menu_get_slot();
++       switch(menusub)
++       {
++         case 0:
++            if (select || plus || right)
++            {
++                curr_save_slot++;
++                if (curr_save_slot > 24) curr_save_slot = 0;
++            } else if (minus || left) {
++              if (curr_save_slot == 0)
++              {
++                curr_save_slot = 24;
++              } else {
++                curr_save_slot--;
++              }
++            }
++            ss_menu_set_slot(curr_save_slot);
++           break;
++         case 1:
++           if (select)
++           {
++            ss_menu_save();
++            menustate = MENU_NONE1;
++           }
++           break;
++        case 2:
++           if (select)
++           {
++             printf("SS MENU LOAD\n");
++             ss_menu_load();
++             menustate = MENU_NONE1;
++           }
++           break;
++       }
++     }
++     if (menu)
++     {
++        menustate = MENU_NONE1;
++     }
++   }
++   break;
+ 	case MENU_DOC_FILE_SELECTED:
+ 		if (cfg.fb_terminal)
+ 		{
+@@ -7612,3 +7680,16 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
+ 		InfoMessage(progress_buf, 2000, title);
+ 	}
+ }
++
++
++void menu_open_savestate_osd()
++{
++  printf("MENU OPEN SAVESTATE\n");
++  if (!user_io_osd_is_visible())
++  {
++    menu_open_savestate = true;
++  } else if (menustate == MENU_SAVE_STATE1 || menustate == MENU_SAVE_STATE2) {
++    menu_open_savestate = false;
++    menustate = MENU_NONE1;
++  }
++}
+diff --git a/menu.h b/menu.h
+index 5f6cb4f..ba6e002 100644
+--- a/menu.h
++++ b/menu.h
+@@ -22,5 +22,6 @@ int menu_lightgun_cb(int idx, uint16_t type, uint16_t code, int value);
+ int menu_allow_cfg_switch();
+ void StoreIdx_F(int idx, const char *path);
+ void StoreIdx_S(int idx, const char *path);
++void menu_open_savestate_osd();
+ 
+ #endif
+diff --git a/user_io.cpp b/user_io.cpp
+index d98d282..5807402 100644
+--- a/user_io.cpp
++++ b/user_io.cpp
+@@ -38,6 +38,10 @@
+ 
+ #include "support.h"
+ 
++static char ss_rom_name[1024] = {};
++static uint8_t ss_save_slot = 0;
++static bool ss_save_pending = false;
++
+ static char core_path[1024] = {};
+ static char rbf_path[1024] = {};
+ 
+@@ -1784,6 +1788,7 @@ int process_ss(const char *rom_name, int enable)
+ 
+ 		FileGenerateSavestatePath(rom_name, ss_name, 1);
+ 		ss_sufx = ss_name + strlen(ss_name) - 4;
++    strcpy(ss_rom_name, rom_name);
+ 		return 1;
+ 	}
+ 
+@@ -1810,8 +1815,15 @@ int process_ss(const char *rom_name, int enable)
+ 					MenuHide();
+ 					Info("Saving the state", 500);
+ 
+-					*ss_sufx = i + '1';
+-					if (FileOpenEx(&f, ss_name, O_CREAT | O_TRUNC | O_RDWR | O_SYNC))
++          char save_name[1024];
++          if (ss_save_pending)
++          {
++            FileGenerateSavestatePath(ss_rom_name, save_name, ss_save_slot);  
++          } else {
++					  *ss_sufx = i + '1';
++            strcpy(save_name, ss_name);
++          }
++					if (FileOpenEx(&f, save_name, O_CREAT | O_TRUNC | O_RDWR | O_SYNC))
+ 					{
+ 						int ret = FileWriteAdv(&f, base[i], size);
+ 						FileClose(&f);
+@@ -4032,3 +4044,63 @@ void user_io_screenshot_cmd(const char *cmd)
+ 
+ 	user_io_screenshot(cmd,0);
+ }
++
++
++
++static int current_core_save_slot()
++{
++  if (cfg.ss_current_slot[0])
++  {
++      return user_io_status_get(cfg.ss_current_slot, 0);
++  }
++
++  return -1;
++}
++
++
++void ss_menu_load()
++{
++  char ss_name[1024] = {};
++  fileTYPE ss_file;
++  uint32_t map_addr = 0;
++  int current_core_slot = current_core_save_slot(); 
++  if (!cfg.ss_save_bit[0]) return;
++  if (!ss_base || current_core_slot == -1) return;
++
++  FileGenerateSavestatePath(ss_rom_name, ss_name, ss_save_slot);
++  if (!FileExists(ss_name)) return;
++  if (!FileOpen(&ss_file, ss_name)) return;
++  map_addr = ss_base + (ss_size * current_core_slot);
++  if (!map_addr) return;
++  void *ssmap = shmem_map(map_addr, ss_size);
++  if (!ssmap) return;
++  FileReadAdv(&ss_file, ssmap, ss_size);
++  FileClose(&ss_file);
++	*(uint32_t*)(ssmap) = 0xFFFFFFFF;
++  shmem_unmap(ssmap, ss_size);
++  user_io_status_set(cfg.ss_load_bit, 1);
++  user_io_status_set(cfg.ss_load_bit, 0);
++}
++
++void ss_menu_set_slot(uint8_t slot)
++{
++  ss_save_slot = slot;
++}
++
++uint8_t ss_menu_get_slot()
++{
++  return ss_save_slot;
++}
++
++
++void ss_menu_save()
++{
++
++  if (!cfg.ss_save_bit[0]) return;
++
++  ss_save_pending = true;
++  user_io_status_set(cfg.ss_save_bit, 1);
++  user_io_status_set(cfg.ss_save_bit, 0);
++}
++
++
+diff --git a/user_io.h b/user_io.h
+index 802348f..4c94748 100644
+--- a/user_io.h
++++ b/user_io.h
+@@ -277,6 +277,14 @@ char is_arcade();
+ char is_saturn();
+ char is_pcxt();
+ 
++
++void ss_menu_load();
++void ss_menu_save();
++void ss_menu_set_slot(uint8_t slot);
++uint8_t ss_menu_get_slot();
++
++
++
+ #define HomeDir(x) user_io_get_core_path(x)
+ #define CoreName user_io_get_core_name()
+ 
+-- 
+2.39.1
+
