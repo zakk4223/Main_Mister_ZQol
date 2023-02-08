@@ -1,7 +1,7 @@
-From cbaafffe421b6e8f1f2117809064c94172dcf649 Mon Sep 17 00:00:00 2001
+From dcb85e5b14c31478706cd955d1af4ae191412c15 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sun, 29 Jan 2023 22:20:01 -0500
-Subject: [PATCH 4/5] 0004
+Date: Wed, 8 Feb 2023 12:19:35 -0500
+Subject: [PATCH 4/6] 0004
 
 ---
  gamecontroller_db.cpp |  15 +-
@@ -850,7 +850,7 @@ index f7215fb..370b1f0 100644
  
  #endif
 diff --git a/menu.cpp b/menu.cpp
-index d284f0c..8c7dad0 100644
+index b2ab61d..703ef24 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -192,6 +192,13 @@ enum MENU
@@ -1058,7 +1058,7 @@ index d284f0c..8c7dad0 100644
  				audio_set_filter_en(audio_filter_en() ? 0 : 1);
  				menustate = MENU_COMMON1;
  				break;
-@@ -2861,6 +2957,305 @@ void HandleUI(void)
+@@ -2869,6 +2965,305 @@ void HandleUI(void)
  		}
  		break;
  
@@ -1364,7 +1364,7 @@ index d284f0c..8c7dad0 100644
  	case MENU_DOC_FILE_SELECTED:
  		if (cfg.fb_terminal)
  		{
-@@ -6240,7 +6635,7 @@ void HandleUI(void)
+@@ -6248,7 +6643,7 @@ void HandleUI(void)
  
  		m = 0;
  		OsdSetTitle("System Settings", OSD_ARROW_LEFT);
@@ -1373,7 +1373,7 @@ index d284f0c..8c7dad0 100644
  
  		OsdWrite(m++);
  		sprintf(s, "       MiSTer v%s", version + 5);
-@@ -6291,17 +6686,18 @@ void HandleUI(void)
+@@ -6299,17 +6694,18 @@ void HandleUI(void)
  		OsdWrite(m++, "");
  		OsdWrite(m++, " Remap keyboard            \x16", menusub == 1);
  		OsdWrite(m++, " Define joystick buttons   \x16", menusub == 2);
@@ -1396,7 +1396,7 @@ index d284f0c..8c7dad0 100644
  		menustate = MENU_SYSTEM2;
  		break;
  
-@@ -6330,6 +6726,10 @@ void HandleUI(void)
+@@ -6338,6 +6734,10 @@ void HandleUI(void)
  				break;
  
  			case 3:
@@ -1407,7 +1407,7 @@ index d284f0c..8c7dad0 100644
  				{
  					uint8_t confirm[32] = {};
  					int match = 0;
-@@ -6356,13 +6756,13 @@ void HandleUI(void)
+@@ -6364,13 +6764,13 @@ void HandleUI(void)
  				}
  				break;
  
@@ -1423,7 +1423,7 @@ index d284f0c..8c7dad0 100644
  				{
  					reboot_req = 1;
  
-@@ -6375,7 +6775,7 @@ void HandleUI(void)
+@@ -6383,7 +6783,7 @@ void HandleUI(void)
  				}
  				break;
  
@@ -1467,7 +1467,7 @@ index 3eb4084..2d9dcb0 100644
  
  #endif
 diff --git a/user_io.cpp b/user_io.cpp
-index 0a67451..d98d282 100644
+index 4c24b54..aa40cb1 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -3811,7 +3811,7 @@ void user_io_kbd(uint16_t key, int press)

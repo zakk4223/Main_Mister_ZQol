@@ -1,7 +1,7 @@
-From b5ad66b2ae075b46b2618ae47d5c3fb310e5fa08 Mon Sep 17 00:00:00 2001
+From bef2e40e0d7cd8e35a27fe59e752b021d1e8aaf7 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 8 Feb 2023 12:13:54 -0500
-Subject: [PATCH 6/6] Expanded Savestates
+Date: Wed, 8 Feb 2023 12:21:35 -0500
+Subject: [PATCH 6/6] 0006
 
 ---
  cfg.cpp     |  3 ++
@@ -15,30 +15,30 @@ Subject: [PATCH 6/6] Expanded Savestates
  8 files changed, 181 insertions(+), 3 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 7542a95..fe66d8d 100644
+index b3492ee..b875bf7 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -115,6 +115,9 @@ static const ini_var_t ini_vars[] =
- 	{ "VIDEO_HUE", (void *)(&(cfg.video_hue)), UINT16, 0, 360},
- 	{ "VIDEO_GAIN_OFFSET", (void *)(&(cfg.video_gain_offset)), STRING, 0, sizeof(cfg.video_gain_offset)},
+@@ -118,6 +118,9 @@ static const ini_var_t ini_vars[] =
  	{ "HDR", (void*)(&cfg.hdr), UINT8, 0, 2 },
-+  { "SS_LOAD_BIT", (void *)(&(cfg.ss_load_bit)), STRING, 0, sizeof(cfg.ss_load_bit) - 1},
-+  { "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
-+  { "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
+ 	{ "VGA_MODE", (void*)(&(cfg.vga_mode)), STRING, 0, sizeof(cfg.vga_mode) - 1 },
+ 	{ "NTSC_MODE", (void *)(&(cfg.ntsc_mode)), UINT8, 0, 2},
++	{ "SS_LOAD_BIT", (void *)(&(cfg.ss_load_bit)), STRING, 0, sizeof(cfg.ss_load_bit) - 1},
++  	{ "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
++  	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
  };
  
  static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
 diff --git a/cfg.h b/cfg.h
-index b6b54d8..48cd32e 100644
+index 0a11115..c3bbee8 100644
 --- a/cfg.h
 +++ b/cfg.h
-@@ -87,6 +87,9 @@ typedef struct {
- 	uint16_t video_hue;
- 	char video_gain_offset[256];
- 	uint8_t hdr;
-+  char ss_load_bit[8];
-+  char ss_save_bit[8];
-+  char ss_current_slot[15];
+@@ -90,6 +90,9 @@ typedef struct {
+ 	char vga_mode[16];
+ 	char vga_mode_int;
+ 	char ntsc_mode;
++	char ss_load_bit[8];
++  	char ss_save_bit[8];
++  	char ss_current_slot[15];
  } cfg_t;
  
  extern cfg_t cfg;
@@ -93,7 +93,7 @@ index 370b1f0..75b50db 100644
  } advancedButtonMap;
  
 diff --git a/menu.cpp b/menu.cpp
-index 8c7dad0..4f4d004 100644
+index 703ef24..89b8467 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -199,8 +199,13 @@ enum MENU
@@ -126,7 +126,7 @@ index 8c7dad0..4f4d004 100644
  			else {
  				if (is_menu())
  				{
-@@ -3256,6 +3263,67 @@ void HandleUI(void)
+@@ -3264,6 +3271,67 @@ void HandleUI(void)
  					}
  					break;
  				}
@@ -194,7 +194,7 @@ index 8c7dad0..4f4d004 100644
  	case MENU_DOC_FILE_SELECTED:
  		if (cfg.fb_terminal)
  		{
-@@ -7612,3 +7680,16 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
+@@ -7620,3 +7688,16 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
  		InfoMessage(progress_buf, 2000, title);
  	}
  }
@@ -223,7 +223,7 @@ index 5f6cb4f..ba6e002 100644
  
  #endif
 diff --git a/user_io.cpp b/user_io.cpp
-index d98d282..5807402 100644
+index aa40cb1..b536a82 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -38,6 +38,10 @@
@@ -328,10 +328,10 @@ index d98d282..5807402 100644
 +
 +
 diff --git a/user_io.h b/user_io.h
-index 802348f..4c94748 100644
+index eb6f971..7813f35 100644
 --- a/user_io.h
 +++ b/user_io.h
-@@ -277,6 +277,14 @@ char is_arcade();
+@@ -278,6 +278,14 @@ char is_arcade();
  char is_saturn();
  char is_pcxt();
  

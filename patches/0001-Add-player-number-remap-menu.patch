@@ -1,7 +1,7 @@
-From 69f9a85e54c6d36486fd350eb7380e7308fd0ecc Mon Sep 17 00:00:00 2001
+From 2f49916cc33d063034f83a2c3335d3701d377487 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 20 Jan 2023 05:01:32 -0500
-Subject: [PATCH 1/5] 0001
+Date: Wed, 8 Feb 2023 12:17:48 -0500
+Subject: [PATCH 1/6] 0001
 
 ---
  input.cpp | 142 ++++++++++++++++++++++++++++++++++++++++++++
@@ -246,7 +246,7 @@ index b063712..f7215fb 100644
  uint32_t get_key_mod();
  uint32_t get_ps2_code(uint16_t key);
 diff --git a/menu.cpp b/menu.cpp
-index efcc7aa..38dc38c 100644
+index e8b1b90..8d13dc8 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -103,6 +103,7 @@ enum MENU
@@ -278,7 +278,7 @@ index efcc7aa..38dc38c 100644
  				break;
  
  			case 4:
-@@ -3823,6 +3825,171 @@ void HandleUI(void)
+@@ -3831,6 +3833,171 @@ void HandleUI(void)
  		}
  		break;
  
