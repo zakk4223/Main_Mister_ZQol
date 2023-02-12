@@ -7,7 +7,7 @@ MISTER_SRC=$1
 
 for f in $MYDIR/../patches/*.patch; do
 	PATCH_NAME="$(basename "$f")"
-	git -C $MISTER_SRC apply -C --verbose $f	
+	git -C $MISTER_SRC apply -C 2 --verbose $f	
 	if [ $? -eq 0 ]
 	then
 		echo "Applied $f"
