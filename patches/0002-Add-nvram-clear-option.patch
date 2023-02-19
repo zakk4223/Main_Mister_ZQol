@@ -1,6 +1,6 @@
-From 2600dd5d9285f0c05c752e703f9b95bd574aa9e1 Mon Sep 17 00:00:00 2001
+From b978088f571a1b06c2076aba3142cb67b4a7b6eb Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 8 Feb 2023 12:17:55 -0500
+Date: Tue, 14 Feb 2023 13:19:36 -0500
 Subject: [PATCH 2/6] 0002
 
 ---
@@ -104,5 +104,5 @@ index f4c56a0..38bdb4a 100644
  mgl_struct* mgl_parse(const char *xml);
  mgl_struct* mgl_get();
 -- 
-2.39.1
+2.39.2
 
