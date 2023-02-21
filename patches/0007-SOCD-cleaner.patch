@@ -1,0 +1,154 @@
+From befebd1654c7660a1be10206c7d9061f177fa71d Mon Sep 17 00:00:00 2001
+From: Zakk <zakk@rsdio.com>
+Date: Tue, 21 Feb 2023 02:34:02 -0500
+Subject: [PATCH] SOCD cleaner
+
+---
+ cfg.cpp   | 19 +++++++++++++++++++
+ cfg.h     | 13 +++++++++++++
+ input.cpp | 45 ++++++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 76 insertions(+), 1 deletion(-)
+
+diff --git a/cfg.cpp b/cfg.cpp
+index 454ead4..ae18214 100644
+--- a/cfg.cpp
++++ b/cfg.cpp
+@@ -123,6 +123,8 @@ static const ini_var_t ini_vars[] =
+ 	{ "SS_LOAD_BIT", (void *)(&(cfg.ss_load_bit)), STRING, 0, sizeof(cfg.ss_load_bit) - 1},
+   	{ "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
+   	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
++	{ "SOCD_UD", (void*)(&(cfg.socd_ud)), STRING, 0, sizeof(cfg.socd_ud) - 1 },
++	{ "SOCD_LR", (void*)(&(cfg.socd_lr)), STRING, 0, sizeof(cfg.socd_lr) - 1 },
+ };
+ 
+ static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
+@@ -480,6 +482,23 @@ void cfg_parse()
+ 		if (!strcasecmp(cfg.vga_mode, "svideo")) cfg.vga_mode_int = 2;
+ 		if (!strcasecmp(cfg.vga_mode, "cvbs")) cfg.vga_mode_int = 3;
+ 	}
++
++  if (strlen(cfg.socd_ud))
++  {
++    if (!strcasecmp(cfg.socd_ud, "neutral")) cfg.socd_ud_int = SOCD_UD_NEUTRAL;
++    if (!strcasecmp(cfg.socd_ud, "last")) cfg.socd_ud_int = SOCD_UD_LAST;
++    if (!strcasecmp(cfg.socd_ud, "up")) cfg.socd_ud_int = SOCD_UD_UP;
++    if (!strcasecmp(cfg.socd_ud, "down")) cfg.socd_ud_int = SOCD_UD_DOWN;
++  }
++
++  if (strlen(cfg.socd_lr))
++  {
++    if (!strcasecmp(cfg.socd_lr, "neutral")) cfg.socd_lr_int = SOCD_LR_NEUTRAL;
++    if (!strcasecmp(cfg.socd_lr, "last")) cfg.socd_lr_int = SOCD_LR_LAST;
++    if (!strcasecmp(cfg.socd_lr, "left")) cfg.socd_lr_int = SOCD_LR_LEFT;
++    if (!strcasecmp(cfg.socd_lr, "right")) cfg.socd_lr_int = SOCD_LR_RIGHT;
++  }
++
+ }
+ 
+ bool cfg_has_video_sections()
+diff --git a/cfg.h b/cfg.h
+index 427a1bc..0dc4aeb 100644
+--- a/cfg.h
++++ b/cfg.h
+@@ -7,6 +7,15 @@
+ 
+ #include <inttypes.h>
+ 
++#define SOCD_UD_NEUTRAL 1
++#define SOCD_UD_LAST 2
++#define SOCD_UD_UP 3 
++#define SOCD_UD_DOWN 4 
++#define SOCD_LR_NEUTRAL 1 
++#define SOCD_LR_LAST 2 
++#define SOCD_LR_LEFT 3 
++#define SOCD_LR_RIGHT 4 
++
+ //// type definitions ////
+ typedef struct {
+ 	uint8_t  disable_nvram;
+@@ -95,6 +104,10 @@ typedef struct {
+ 	char ss_load_bit[8];
+   	char ss_save_bit[8];
+   	char ss_current_slot[15];
++  char socd_ud[16];
++  char socd_lr[16];
++  uint8_t socd_ud_int;
++  uint8_t socd_lr_int;
+ } cfg_t;
+ 
+ extern cfg_t cfg;
+diff --git a/input.cpp b/input.cpp
+index 7952866..ebd7b28 100644
+--- a/input.cpp
++++ b/input.cpp
+@@ -5996,8 +5996,10 @@ int input_poll(int getchar)
+ 
+ 		for (int i = 0; i < NUMPLAYERS; i++)
+ 		{
++      uint8_t new_dir_mask = 0;
+ 			if (af_delay[i] < AF_MIN) af_delay[i] = AF_MIN;
+ 
++
+ 			if (!time[i]) time[i] = GetTimer(af_delay[i]);
+ 			int send = 0;
+ 
+@@ -6013,6 +6015,8 @@ int input_poll(int getchar)
+ 
+ 			if (autofire_new[i] != joy_prev[i])
+ 			{
++        new_dir_mask = (joy_prev[i] & 0xF) ^ (autofire_new[i] & 0xF);
++
+ 				send = 1;
+ 				if ((autofire_new[i] ^ joy_prev[i]) & autofire[i])
+ 				{
+@@ -6024,7 +6028,46 @@ int input_poll(int getchar)
+ 
+ 			if (send)
+ 			{
+-				user_io_digital_joystick(i, af[i] ? autofire_new[i] & ~autofire[i] : autofire_new[i], newdir);
++        uint32_t to_send = af[i] ? autofire_new[i] & ~autofire[i] : autofire_new[i];
++
++        if ((to_send & 0x3) == 0x3) //l+r socd
++        {
++          switch(cfg.socd_lr_int)
++          {
++            case SOCD_LR_NEUTRAL:
++              to_send &= ~0x3;
++              break;
++            case SOCD_LR_LAST:
++              to_send &= ~(~new_dir_mask & 0x3);
++              break;
++            case SOCD_LR_LEFT:
++              to_send &= ~(~0x2);
++              break;
++            case SOCD_LR_RIGHT:
++              to_send &= ~(~0x1);
++          }
++        }
++
++
++        if ((to_send & 0xC) == 0xC) //u+d socd
++        {
++          switch(cfg.socd_ud_int)
++          {
++            case SOCD_UD_NEUTRAL:
++              to_send &= ~0xC;
++              break;
++            case SOCD_UD_LAST:
++              to_send &= ~(~new_dir_mask & 0xC);
++              break;
++            case SOCD_UD_UP:
++              to_send &= ~(~0x8);
++              break;
++            case SOCD_UD_DOWN:
++              to_send &= ~(~0x4);
++          }
++        }
++
++				user_io_digital_joystick(i, to_send, newdir);
+ 			}
+ 		}
+ 	}
+-- 
+2.39.2
+
