@@ -1,6 +1,6 @@
-From 0c262350619c7d8baa59a0b1a5337d48497f9cf8 Mon Sep 17 00:00:00 2001
+From 78c0223ced115ea4093f1bcfed22995372191b0d Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 22 May 2023 02:39:46 -0400
+Date: Mon, 22 May 2023 12:05:58 -0400
 Subject: [PATCH 6/7] 0006
 
 ---
@@ -15,13 +15,13 @@ Subject: [PATCH 6/7] 0006
  8 files changed, 238 insertions(+), 7 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index ba91005..6b5f902 100644
+index eeb202c..05279a1 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
 @@ -121,6 +121,9 @@ static const ini_var_t ini_vars[] =
  	{ "VGA_MODE", (void*)(&(cfg.vga_mode)), STRING, 0, sizeof(cfg.vga_mode) - 1 },
  	{ "NTSC_MODE", (void *)(&(cfg.ntsc_mode)), UINT8, 0, 2},
- 	{ "CONTROLLER_UNIQUE_MAPPING", (void *)(&(cfg.controller_unique_mapping)), UINT8, 0, 1},
+ 	{ "CONTROLLER_UNIQUE_MAPPING", (void *)(cfg.controller_unique_mapping), UINT32ARR, 0, 0xFFFFFFFF },
 +	{ "SS_LOAD_BIT", (void *)(&(cfg.ss_load_bit)), STRING, 0, sizeof(cfg.ss_load_bit) - 1},
 +  	{ "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
 +  	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
@@ -29,13 +29,13 @@ index ba91005..6b5f902 100644
  
  static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
 diff --git a/cfg.h b/cfg.h
-index b474b6f..c984b16 100644
+index 3ba9fdc..a16748c 100644
 --- a/cfg.h
 +++ b/cfg.h
 @@ -93,6 +93,9 @@ typedef struct {
  	char vga_mode_int;
  	char ntsc_mode;
- 	uint8_t controller_unique_mapping;
+ 	uint32_t controller_unique_mapping[256];
 +	char ss_load_bit[8];
 +  	char ss_save_bit[8];
 +  	char ss_current_slot[15];
@@ -43,10 +43,10 @@ index b474b6f..c984b16 100644
  
  extern cfg_t cfg;
 diff --git a/input.cpp b/input.cpp
-index af2220a..ddc26f3 100644
+index 549b9f8..7a8f463 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -3305,6 +3305,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3315,6 +3315,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  						//if (is_pressed)
  						//{
@@ -54,7 +54,7 @@ index af2220a..ddc26f3 100644
  							abm->pressed = is_pressed; 
  							abm->cur_state_frames = 0;
  							abm->last_frame = -1;
-@@ -5835,9 +5836,35 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
+@@ -5845,9 +5846,35 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
  {
  
  	int sys_btn = abm->bnum;
@@ -90,7 +90,7 @@ index af2220a..ddc26f3 100644
  			case SYS_BTN_SCREENSHOT:
          if (abm->pressed && abm->cur_state_frames == 1)
  				  user_io_screenshot(nullptr, 1);
-@@ -5865,15 +5892,18 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
+@@ -5875,15 +5902,18 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
  	}
  }
  
@@ -111,7 +111,7 @@ index af2220a..ddc26f3 100644
  			
  			bool has_autofire = abm->on_frames && abm->off_frames;
  			if (abm->pressed)
-@@ -5931,8 +5961,9 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
+@@ -5941,8 +5971,9 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
  				}
  			} else {
  				//Also execute on button release
@@ -122,7 +122,7 @@ index af2220a..ddc26f3 100644
  					execute_advanced_sys_button(pnum, abm);
  					abm->cur_state_frames = 1;
  					continue;
-@@ -5999,7 +6030,7 @@ int input_poll(int getchar)
+@@ -6009,7 +6040,7 @@ int input_poll(int getchar)
  				if (joy[i] & autofire[i]) send = 1;
  			}
  

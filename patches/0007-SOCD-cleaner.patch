@@ -1,6 +1,6 @@
-From 0811c1f781ddaa4a69ded976de20369c03719522 Mon Sep 17 00:00:00 2001
+From 27a44a1a7c64120c1d960f5f4a9651065e376d11 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 22 May 2023 02:40:06 -0400
+Date: Mon, 22 May 2023 12:06:07 -0400
 Subject: [PATCH 7/7] 0007
 
 ---
@@ -10,7 +10,7 @@ Subject: [PATCH 7/7] 0007
  3 files changed, 76 insertions(+), 1 deletion(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 6b5f902..d49e648 100644
+index 05279a1..d5af507 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
 @@ -124,6 +124,8 @@ static const ini_var_t ini_vars[] =
@@ -47,7 +47,7 @@ index 6b5f902..d49e648 100644
  
  bool cfg_has_video_sections()
 diff --git a/cfg.h b/cfg.h
-index c984b16..b200fe6 100644
+index a16748c..6765131 100644
 --- a/cfg.h
 +++ b/cfg.h
 @@ -7,6 +7,15 @@
@@ -78,10 +78,10 @@ index c984b16..b200fe6 100644
  
  extern cfg_t cfg;
 diff --git a/input.cpp b/input.cpp
-index ddc26f3..98f455e 100644
+index 7a8f463..6ecf4fe 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -6018,8 +6018,10 @@ int input_poll(int getchar)
+@@ -6028,8 +6028,10 @@ int input_poll(int getchar)
  
  		for (int i = 0; i < NUMPLAYERS; i++)
  		{
@@ -92,7 +92,7 @@ index ddc26f3..98f455e 100644
  			if (!time[i]) time[i] = GetTimer(af_delay[i]);
  			int send = 0;
  
-@@ -6035,6 +6037,8 @@ int input_poll(int getchar)
+@@ -6045,6 +6047,8 @@ int input_poll(int getchar)
  
  			if (autofire_new[i] != joy_prev[i])
  			{
@@ -101,7 +101,7 @@ index ddc26f3..98f455e 100644
  				send = 1;
  				if ((autofire_new[i] ^ joy_prev[i]) & autofire[i])
  				{
-@@ -6046,7 +6050,46 @@ int input_poll(int getchar)
+@@ -6056,7 +6060,46 @@ int input_poll(int getchar)
  
  			if (send)
  			{
