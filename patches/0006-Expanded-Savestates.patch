@@ -1,29 +1,27 @@
-From 316016ed3c594b0aedf10201e2cd26196fe880ec Mon Sep 17 00:00:00 2001
+From 0c262350619c7d8baa59a0b1a5337d48497f9cf8 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sun, 19 Feb 2023 07:14:11 -0500
-Subject: [PATCH 6/6] 0006
+Date: Mon, 22 May 2023 02:39:46 -0400
+Subject: [PATCH 6/7] 0006
 
 ---
- cfg.cpp     |   3 ++
- cfg.h       |   3 ++
- cfg.h.orig  | 116 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- input.cpp   |  39 ++++++++++++++++--
- input.h     |   1 +
- menu.cpp    |  92 +++++++++++++++++++++++++++++++++++++++++
- menu.h      |   1 +
- user_io.cpp |  96 +++++++++++++++++++++++++++++++++++++++++--
- user_io.h   |  10 +++++
- 9 files changed, 354 insertions(+), 7 deletions(-)
- create mode 100644 cfg.h.orig
+ cfg.cpp     |  3 ++
+ cfg.h       |  3 ++
+ input.cpp   | 39 +++++++++++++++++++---
+ input.h     |  1 +
+ menu.cpp    | 92 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ menu.h      |  1 +
+ user_io.cpp | 96 +++++++++++++++++++++++++++++++++++++++++++++++++++--
+ user_io.h   | 10 ++++++
+ 8 files changed, 238 insertions(+), 7 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 08e9ab0..454ead4 100644
+index ba91005..6b5f902 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -120,6 +120,9 @@ static const ini_var_t ini_vars[] =
- 	{ "HDR_AVG_NITS", (void*)(&(cfg.hdr_avg_nits)), UINT16, 100, 10000},
+@@ -121,6 +121,9 @@ static const ini_var_t ini_vars[] =
  	{ "VGA_MODE", (void*)(&(cfg.vga_mode)), STRING, 0, sizeof(cfg.vga_mode) - 1 },
  	{ "NTSC_MODE", (void *)(&(cfg.ntsc_mode)), UINT8, 0, 2},
+ 	{ "CONTROLLER_UNIQUE_MAPPING", (void *)(&(cfg.controller_unique_mapping)), UINT8, 0, 1},
 +	{ "SS_LOAD_BIT", (void *)(&(cfg.ss_load_bit)), STRING, 0, sizeof(cfg.ss_load_bit) - 1},
 +  	{ "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
 +  	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
@@ -31,146 +29,24 @@ index 08e9ab0..454ead4 100644
  
  static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
 diff --git a/cfg.h b/cfg.h
-index 689cfb6..427a1bc 100644
+index b474b6f..c984b16 100644
 --- a/cfg.h
 +++ b/cfg.h
-@@ -92,6 +92,9 @@ typedef struct {
- 	char vga_mode[16];
+@@ -93,6 +93,9 @@ typedef struct {
  	char vga_mode_int;
  	char ntsc_mode;
+ 	uint8_t controller_unique_mapping;
 +	char ss_load_bit[8];
 +  	char ss_save_bit[8];
 +  	char ss_current_slot[15];
  } cfg_t;
  
  extern cfg_t cfg;
-diff --git a/cfg.h.orig b/cfg.h.orig
-new file mode 100644
-index 0000000..689cfb6
---- /dev/null
-+++ b/cfg.h.orig
-@@ -0,0 +1,116 @@
-+// cfg.h
-+// 2015, rok.krajnc@gmail.com
-+// 2017+, Sorgelig
-+
-+#ifndef __CFG_H__
-+#define __CFG_H__
-+
-+#include <inttypes.h>
-+
-+//// type definitions ////
-+typedef struct {
-+	uint8_t  disable_nvram;
-+	uint32_t keyrah_mode;
-+	uint8_t forced_scandoubler;
-+	uint8_t key_menu_as_rgui;
-+	uint8_t reset_combo;
-+	uint8_t csync;
-+	uint8_t vga_scaler;
-+	uint8_t vga_sog;
-+	uint8_t hdmi_audio_96k;
-+	uint8_t dvi_mode;
-+	uint8_t hdmi_limited;
-+	uint8_t direct_video;
-+	uint8_t video_info;
-+	float refresh_min;
-+	float refresh_max;
-+	uint8_t controller_info;
-+	uint8_t vsync_adjust;
-+	uint8_t kbd_nomouse;
-+	uint8_t mouse_throttle;
-+	uint8_t bootscreen;
-+	uint8_t vscale_mode;
-+	uint16_t vscale_border;
-+	uint8_t rbf_hide_datecode;
-+	uint8_t menu_pal;
-+	int16_t bootcore_timeout;
-+	uint8_t fb_size;
-+	uint8_t fb_terminal;
-+	uint8_t osd_rotate;
-+	uint16_t osd_timeout;
-+	uint8_t gamepad_defaults;
-+	uint8_t recents;
-+	uint16_t jamma_vid;
-+	uint16_t jamma_pid;
-+	uint16_t no_merge_vid;
-+	uint16_t no_merge_pid;
-+	uint32_t no_merge_vidpid[256];
-+	uint16_t spinner_vid;
-+	uint16_t spinner_pid;
-+	int spinner_throttle;
-+	uint8_t spinner_axis;
-+	uint8_t sniper_mode;
-+	uint8_t browse_expand;
-+	uint8_t logo;
-+	uint8_t log_file_entry;
-+	uint8_t shmask_mode_default;
-+	int bt_auto_disconnect;
-+	int bt_reset_before_pair;
-+	char bootcore[256];
-+	char video_conf[1024];
-+	char video_conf_pal[1024];
-+	char video_conf_ntsc[1024];
-+	char font[1024];
-+	char shared_folder[1024];
-+	char waitmount[1024];
-+	char custom_aspect_ratio[2][16];
-+	char afilter_default[1023];
-+	char vfilter_default[1023];
-+	char vfilter_vertical_default[1023];
-+	char vfilter_scanlines_default[1023];
-+	char shmask_default[1023];
-+	char preset_default[1023];
-+	char player_controller[4][1024];
-+	uint8_t rumble;
-+	uint8_t wheel_force;
-+	uint16_t wheel_range;
-+	uint8_t hdmi_game_mode;
-+	uint8_t vrr_mode;
-+	uint8_t vrr_min_framerate;
-+	uint8_t vrr_max_framerate;
-+	uint8_t vrr_vesa_framerate;
-+	uint16_t video_off;
-+	uint8_t disable_autofire;
-+	uint8_t video_brightness;
-+	uint8_t video_contrast;
-+	uint8_t video_saturation;
-+	uint16_t video_hue;
-+	char video_gain_offset[256];
-+	uint8_t hdr;
-+	uint16_t hdr_max_nits;
-+	uint16_t hdr_avg_nits;
-+	char vga_mode[16];
-+	char vga_mode_int;
-+	char ntsc_mode;
-+} cfg_t;
-+
-+extern cfg_t cfg;
-+
-+//// functions ////
-+void cfg_parse();
-+void cfg_print();
-+const char* cfg_get_name(uint8_t alt);
-+bool cfg_has_video_sections();
-+
-+void cfg_error(const char *fmt, ...);
-+bool cfg_check_errors(char *msg, size_t max_len);
-+
-+struct yc_mode
-+{
-+	char key[64];
-+	int64_t phase_inc;
-+};
-+
-+void yc_parse(yc_mode *yc_table, int max);
-+
-+#endif // __CFG_H__
 diff --git a/input.cpp b/input.cpp
-index 8988663..7952866 100644
+index af2220a..ddc26f3 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -3295,6 +3295,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3305,6 +3305,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  						//if (is_pressed)
  						//{
@@ -178,7 +54,7 @@ index 8988663..7952866 100644
  							abm->pressed = is_pressed; 
  							abm->cur_state_frames = 0;
  							abm->last_frame = -1;
-@@ -5813,9 +5814,35 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
+@@ -5835,9 +5836,35 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
  {
  
  	int sys_btn = abm->bnum;
@@ -214,7 +90,7 @@ index 8988663..7952866 100644
  			case SYS_BTN_SCREENSHOT:
          if (abm->pressed && abm->cur_state_frames == 1)
  				  user_io_screenshot(nullptr, 1);
-@@ -5843,15 +5870,18 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
+@@ -5865,15 +5892,18 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
  	}
  }
  
@@ -235,7 +111,7 @@ index 8988663..7952866 100644
  			
  			bool has_autofire = abm->on_frames && abm->off_frames;
  			if (abm->pressed)
-@@ -5909,8 +5939,9 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
+@@ -5931,8 +5961,9 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
  				}
  			} else {
  				//Also execute on button release
@@ -246,7 +122,7 @@ index 8988663..7952866 100644
  					execute_advanced_sys_button(pnum, abm);
  					abm->cur_state_frames = 1;
  					continue;
-@@ -5977,7 +6008,7 @@ int input_poll(int getchar)
+@@ -5999,7 +6030,7 @@ int input_poll(int getchar)
  				if (joy[i] & autofire[i]) send = 1;
  			}
  
@@ -268,7 +144,7 @@ index 370b1f0..75b50db 100644
  } advancedButtonMap;
  
 diff --git a/menu.cpp b/menu.cpp
-index 703ef24..f6d4926 100644
+index d306e42..27aeab7 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -199,8 +199,13 @@ enum MENU
@@ -293,7 +169,7 @@ index 703ef24..f6d4926 100644
  	OsdDisable();
  	EnableOsd_on(OSD_ALL);
  }
-@@ -1127,6 +1133,7 @@ void HandleUI(void)
+@@ -1128,6 +1134,7 @@ void HandleUI(void)
  	minus = false;
  	recent = false;
  
@@ -301,7 +177,7 @@ index 703ef24..f6d4926 100644
  	if (c && cfg.bootcore[0] != '\0') cfg.bootcore[0] = '\0';
  
  	if (is_menu() && cfg.osd_timeout >= 5)
-@@ -1403,6 +1410,7 @@ void HandleUI(void)
+@@ -1413,6 +1420,7 @@ void HandleUI(void)
  			{
  				SelectFile("", 0, SCANO_CORES, MENU_CORE_FILE_SELECTED1, MENU_NONE1);
  			}
@@ -309,7 +185,7 @@ index 703ef24..f6d4926 100644
  			else if (saved_menustate)
  			{
  				menustate = saved_menustate;
-@@ -3264,6 +3272,78 @@ void HandleUI(void)
+@@ -3280,6 +3288,78 @@ void HandleUI(void)
  					}
  					break;
  				}
@@ -388,7 +264,7 @@ index 703ef24..f6d4926 100644
  	case MENU_DOC_FILE_SELECTED:
  		if (cfg.fb_terminal)
  		{
-@@ -7620,3 +7700,15 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
+@@ -7645,3 +7725,15 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
  		InfoMessage(progress_buf, 2000, title);
  	}
  }
@@ -416,7 +292,7 @@ index 5f6cb4f..ba6e002 100644
  
  #endif
 diff --git a/user_io.cpp b/user_io.cpp
-index aa40cb1..d88e281 100644
+index 8d19108..f408a48 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -38,6 +38,10 @@
@@ -430,7 +306,7 @@ index aa40cb1..d88e281 100644
  static char core_path[1024] = {};
  static char rbf_path[1024] = {};
  
-@@ -1784,6 +1788,7 @@ int process_ss(const char *rom_name, int enable)
+@@ -1810,6 +1814,7 @@ int process_ss(const char *rom_name, int enable)
  
  		FileGenerateSavestatePath(rom_name, ss_name, 1);
  		ss_sufx = ss_name + strlen(ss_name) - 4;
@@ -438,7 +314,7 @@ index aa40cb1..d88e281 100644
  		return 1;
  	}
  
-@@ -1801,6 +1806,7 @@ int process_ss(const char *rom_name, int enable)
+@@ -1827,6 +1832,7 @@ int process_ss(const char *rom_name, int enable)
  			uint32_t curcnt = ((uint32_t*)(base[i]))[0];
  			uint32_t size = ((uint32_t*)(base[i]))[1];
  
@@ -446,7 +322,7 @@ index aa40cb1..d88e281 100644
  			if (curcnt != ss_cnt[i])
  			{
  				ss_cnt[i] = curcnt;
-@@ -1810,12 +1816,19 @@ int process_ss(const char *rom_name, int enable)
+@@ -1836,12 +1842,19 @@ int process_ss(const char *rom_name, int enable)
  					MenuHide();
  					Info("Saving the state", 500);
  
@@ -469,7 +345,7 @@ index aa40cb1..d88e281 100644
  					}
  					else
  					{
-@@ -4032,3 +4045,80 @@ void user_io_screenshot_cmd(const char *cmd)
+@@ -4084,3 +4097,80 @@ void user_io_screenshot_cmd(const char *cmd)
  
  	user_io_screenshot(cmd,0);
  }
@@ -551,10 +427,10 @@ index aa40cb1..d88e281 100644
 +
 +
 diff --git a/user_io.h b/user_io.h
-index eb6f971..33833e4 100644
+index affffb3..1c3c97c 100644
 --- a/user_io.h
 +++ b/user_io.h
-@@ -278,6 +278,16 @@ char is_arcade();
+@@ -280,6 +280,16 @@ char is_arcade();
  char is_saturn();
  char is_pcxt();
  
@@ -572,5 +448,5 @@ index eb6f971..33833e4 100644
  #define CoreName user_io_get_core_name()
  
 -- 
-2.39.2
+2.40.1
 

@@ -1,7 +1,7 @@
-From befebd1654c7660a1be10206c7d9061f177fa71d Mon Sep 17 00:00:00 2001
+From 0811c1f781ddaa4a69ded976de20369c03719522 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 21 Feb 2023 02:34:02 -0500
-Subject: [PATCH] SOCD cleaner
+Date: Mon, 22 May 2023 02:40:06 -0400
+Subject: [PATCH 7/7] 0007
 
 ---
  cfg.cpp   | 19 +++++++++++++++++++
@@ -10,10 +10,10 @@ Subject: [PATCH] SOCD cleaner
  3 files changed, 76 insertions(+), 1 deletion(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 454ead4..ae18214 100644
+index 6b5f902..d49e648 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -123,6 +123,8 @@ static const ini_var_t ini_vars[] =
+@@ -124,6 +124,8 @@ static const ini_var_t ini_vars[] =
  	{ "SS_LOAD_BIT", (void *)(&(cfg.ss_load_bit)), STRING, 0, sizeof(cfg.ss_load_bit) - 1},
    	{ "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
    	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
@@ -22,7 +22,7 @@ index 454ead4..ae18214 100644
  };
  
  static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
-@@ -480,6 +482,23 @@ void cfg_parse()
+@@ -535,6 +537,23 @@ void cfg_parse()
  		if (!strcasecmp(cfg.vga_mode, "svideo")) cfg.vga_mode_int = 2;
  		if (!strcasecmp(cfg.vga_mode, "cvbs")) cfg.vga_mode_int = 3;
  	}
@@ -47,7 +47,7 @@ index 454ead4..ae18214 100644
  
  bool cfg_has_video_sections()
 diff --git a/cfg.h b/cfg.h
-index 427a1bc..0dc4aeb 100644
+index c984b16..b200fe6 100644
 --- a/cfg.h
 +++ b/cfg.h
 @@ -7,6 +7,15 @@
@@ -66,7 +66,7 @@ index 427a1bc..0dc4aeb 100644
  //// type definitions ////
  typedef struct {
  	uint8_t  disable_nvram;
-@@ -95,6 +104,10 @@ typedef struct {
+@@ -96,6 +105,10 @@ typedef struct {
  	char ss_load_bit[8];
    	char ss_save_bit[8];
    	char ss_current_slot[15];
@@ -78,10 +78,10 @@ index 427a1bc..0dc4aeb 100644
  
  extern cfg_t cfg;
 diff --git a/input.cpp b/input.cpp
-index 7952866..ebd7b28 100644
+index ddc26f3..98f455e 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -5996,8 +5996,10 @@ int input_poll(int getchar)
+@@ -6018,8 +6018,10 @@ int input_poll(int getchar)
  
  		for (int i = 0; i < NUMPLAYERS; i++)
  		{
@@ -92,7 +92,7 @@ index 7952866..ebd7b28 100644
  			if (!time[i]) time[i] = GetTimer(af_delay[i]);
  			int send = 0;
  
-@@ -6013,6 +6015,8 @@ int input_poll(int getchar)
+@@ -6035,6 +6037,8 @@ int input_poll(int getchar)
  
  			if (autofire_new[i] != joy_prev[i])
  			{
@@ -101,7 +101,7 @@ index 7952866..ebd7b28 100644
  				send = 1;
  				if ((autofire_new[i] ^ joy_prev[i]) & autofire[i])
  				{
-@@ -6024,7 +6028,46 @@ int input_poll(int getchar)
+@@ -6046,7 +6050,46 @@ int input_poll(int getchar)
  
  			if (send)
  			{
@@ -150,5 +150,5 @@ index 7952866..ebd7b28 100644
  		}
  	}
 -- 
-2.39.2
+2.40.1
 
