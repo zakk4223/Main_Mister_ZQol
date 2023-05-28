@@ -1,6 +1,6 @@
-From e81830f260a078992a48fb48ca77353bcb7eb67c Mon Sep 17 00:00:00 2001
+From 6b0d08ae6dacfc9ac0bec9d6631d161691b47a32 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 22 May 2023 11:56:00 -0400
+Date: Sun, 28 May 2023 18:29:06 -0400
 Subject: [PATCH 1/7] 0001
 
 ---
@@ -10,7 +10,7 @@ Subject: [PATCH 1/7] 0001
  3 files changed, 322 insertions(+), 3 deletions(-)
 
 diff --git a/input.cpp b/input.cpp
-index 81bac81..9a64e0f 100644
+index f919f7b..98f6c9f 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -1386,12 +1386,80 @@ static int mapping_type;
@@ -94,7 +94,7 @@ index 81bac81..9a64e0f 100644
  void start_map_setting(int cnt, int set)
  {
  	mapping_button = 0;
-@@ -2199,6 +2267,7 @@ void reset_players()
+@@ -2204,6 +2272,7 @@ void reset_players()
  	}
  	memset(player_pad, 0, sizeof(player_pad));
  	memset(player_pdsp, 0, sizeof(player_pdsp));
@@ -102,7 +102,7 @@ index 81bac81..9a64e0f 100644
  }
  
  static void store_player(int num, int dev)
-@@ -2241,6 +2310,51 @@ static void restore_player(int dev)
+@@ -2246,6 +2315,51 @@ static void restore_player(int dev)
  	update_num_hw(dev, input[dev].num);
  }
  
@@ -154,7 +154,7 @@ index 81bac81..9a64e0f 100644
  void unflag_players()
  {
  	for (int k = 1; k < NUMPLAYERS; k++)
-@@ -2841,6 +2955,13 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2857,6 +2971,13 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  			if (ev->code < 1024 && input[dev].jkmap[ev->code] && !user_io_osd_is_visible()) ev->code = input[dev].jkmap[ev->code];
  
  			//joystick buttons, digital directions
@@ -168,7 +168,7 @@ index 81bac81..9a64e0f 100644
  			if (ev->code >= 256)
  			{
  				if (input[dev].lightgun_req && !user_io_osd_is_visible())
-@@ -2859,6 +2980,11 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2875,6 +2996,11 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  				if (user_io_osd_is_visible() || video_fb_state())
  				{
@@ -180,7 +180,7 @@ index 81bac81..9a64e0f 100644
  					if (ev->value <= 1)
  					{
  						if ((input[dev].mmap[SYS_BTN_MENU_FUNC] & 0xFFFF) ?
-@@ -3145,6 +3271,10 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3161,6 +3287,10 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  		//analog joystick
  		case EV_ABS:
@@ -191,7 +191,7 @@ index 81bac81..9a64e0f 100644
  			if (!user_io_osd_is_visible())
  			{
  				int value = ev->value;
-@@ -3276,6 +3406,12 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3292,6 +3422,12 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  		// spinner
  		case EV_REL:
@@ -204,7 +204,7 @@ index 81bac81..9a64e0f 100644
  			if (!user_io_osd_is_visible() && ev->code == 7)
  			{
  				if (input[dev].num && input[dev].num <= NUMPLAYERS)
-@@ -4236,6 +4372,11 @@ int input_test(int getchar)
+@@ -4252,6 +4388,11 @@ int input_test(int getchar)
  	struct input_event ev;
  	static uint32_t timeout = 0;
  
@@ -216,7 +216,7 @@ index 81bac81..9a64e0f 100644
  	if (touch_rel && CheckTimer(touch_rel))
  	{
  		touch_rel = 0;
-@@ -4863,6 +5004,7 @@ int input_test(int getchar)
+@@ -4879,6 +5020,7 @@ int input_test(int getchar)
  								if (is_menu() && !video_fb_state())
  								{
  									/*
