@@ -1,6 +1,6 @@
-From 1337588a680eafd127ef1fbc083de7c2db3c0f0f Mon Sep 17 00:00:00 2001
+From a873b6ea3fa12449b3b572491e6e26eb36ffd99c Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sat, 1 Jul 2023 10:51:15 -0400
+Date: Thu, 3 Aug 2023 11:44:02 -0400
 Subject: [PATCH 4/7] 0004
 
 ---
@@ -852,10 +852,10 @@ index f7215fb..370b1f0 100644
  
  #endif
 diff --git a/menu.cpp b/menu.cpp
-index 59ba05e..bc2ebb1 100644
+index bb8d36b..92c11a9 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -192,6 +192,13 @@ enum MENU
+@@ -197,6 +197,13 @@ enum MENU
  	// MT32-pi
  	MENU_MT32PI_MAIN1,
  	MENU_MT32PI_MAIN2,
@@ -869,7 +869,7 @@ index 59ba05e..bc2ebb1 100644
  };
  
  static uint32_t menustate = MENU_NONE1;
-@@ -280,6 +287,10 @@ static uint32_t fs_Options;
+@@ -290,6 +297,10 @@ static uint32_t fs_Options;
  static uint32_t fs_MenuSelect;
  static uint32_t fs_MenuCancel;
  
@@ -880,8 +880,8 @@ index 59ba05e..bc2ebb1 100644
  static char* GetExt(char *ext)
  {
  	static char extlist[32];
-@@ -447,6 +458,24 @@ static uint8_t GetASCIIKey(uint32_t keycode)
- 	return keycode_table[get_amiga_code(keycode & 0xFFFF) & 0x7F];
+@@ -466,6 +477,24 @@ void SelectINI()
+ 	select_ini = 1;
  }
  
 +
@@ -905,7 +905,7 @@ index 59ba05e..bc2ebb1 100644
  /* the Atari core handles OSD keys competely inside the core */
  static uint32_t menu_key = 0;
  
-@@ -899,6 +928,63 @@ static int gun_idx = 0;
+@@ -922,6 +951,63 @@ static int gun_idx = 0;
  static int32_t gun_pos[4] = {};
  static int page = 0;
  
@@ -969,7 +969,7 @@ index 59ba05e..bc2ebb1 100644
  void HandleUI(void)
  {
  	PROFILE_FUNCTION();
-@@ -968,6 +1054,8 @@ void HandleUI(void)
+@@ -991,6 +1077,8 @@ void HandleUI(void)
  
  	mgl_struct *mgl = mgl_get();
  
@@ -978,7 +978,7 @@ index 59ba05e..bc2ebb1 100644
  	/*
  	static int old_state = -1;
  	static int old_current = -1;
-@@ -1101,9 +1189,9 @@ void HandleUI(void)
+@@ -1124,9 +1212,9 @@ void HandleUI(void)
  	{
  		switch (c)
  		{
@@ -990,7 +990,7 @@ index 59ba05e..bc2ebb1 100644
  			if(video_fb_state()) video_menu_bg(user_io_status_get("[3:1]"));
  			video_fb_enable(0);
  			break;
-@@ -2383,7 +2471,7 @@ void HandleUI(void)
+@@ -2515,7 +2603,7 @@ void HandleUI(void)
  			while(1)
  			{
  				n = 0;
@@ -999,7 +999,7 @@ index 59ba05e..bc2ebb1 100644
  
  				if (!menusub) firstmenu = 0;
  				adjvisible = 0;
-@@ -2396,6 +2484,7 @@ void HandleUI(void)
+@@ -2528,6 +2616,7 @@ void HandleUI(void)
  				MenuWrite(n++, s, menusub == 1, 0);
  				MenuWrite(n++, " Button/Key remap for game \x16", menusub == 2, 0);
  				MenuWrite(n++, " Change player assignment  \x16", menusub == 3, 0);
@@ -1007,7 +1007,7 @@ index 59ba05e..bc2ebb1 100644
  
  				if (user_io_get_uart_mode())
  				{
-@@ -2407,18 +2496,18 @@ void HandleUI(void)
+@@ -2539,18 +2628,18 @@ void HandleUI(void)
  					sprintf(s, " UART mode (%s)            ",p);
  					s[27] = '\x16';
  					s[28] = 0;
@@ -1030,7 +1030,7 @@ index 59ba05e..bc2ebb1 100644
  
  					memset(s, 0, sizeof(s));
  					s[0] = ' ';
-@@ -2527,20 +2616,27 @@ void HandleUI(void)
+@@ -2659,20 +2748,27 @@ void HandleUI(void)
  				break;
  
  			case 4:
@@ -1060,7 +1060,7 @@ index 59ba05e..bc2ebb1 100644
  				audio_set_filter_en(audio_filter_en() ? 0 : 1);
  				menustate = MENU_COMMON1;
  				break;
-@@ -2885,6 +2981,305 @@ void HandleUI(void)
+@@ -3017,6 +3113,305 @@ void HandleUI(void)
  		}
  		break;
  
@@ -1366,7 +1366,7 @@ index 59ba05e..bc2ebb1 100644
  	case MENU_DOC_FILE_SELECTED:
  		if (cfg.fb_terminal)
  		{
-@@ -6268,7 +6663,7 @@ void HandleUI(void)
+@@ -6459,7 +6854,7 @@ void HandleUI(void)
  
  		m = 0;
  		OsdSetTitle("System Settings", OSD_ARROW_LEFT);
@@ -1375,7 +1375,7 @@ index 59ba05e..bc2ebb1 100644
  
  		OsdWrite(m++);
  		sprintf(s, "       MiSTer v%s", version + 5);
-@@ -6319,17 +6714,18 @@ void HandleUI(void)
+@@ -6510,17 +6905,18 @@ void HandleUI(void)
  		OsdWrite(m++, "");
  		OsdWrite(m++, " Remap keyboard            \x16", menusub == 1);
  		OsdWrite(m++, " Define joystick buttons   \x16", menusub == 2);
@@ -1398,7 +1398,7 @@ index 59ba05e..bc2ebb1 100644
  		menustate = MENU_SYSTEM2;
  		break;
  
-@@ -6358,6 +6754,10 @@ void HandleUI(void)
+@@ -6549,6 +6945,10 @@ void HandleUI(void)
  				break;
  
  			case 3:
@@ -1409,7 +1409,7 @@ index 59ba05e..bc2ebb1 100644
  				{
  					uint8_t confirm[32] = {};
  					int match = 0;
-@@ -6384,13 +6784,13 @@ void HandleUI(void)
+@@ -6575,13 +6975,13 @@ void HandleUI(void)
  				}
  				break;
  
@@ -1425,7 +1425,7 @@ index 59ba05e..bc2ebb1 100644
  				{
  					reboot_req = 1;
  
-@@ -6403,7 +6803,7 @@ void HandleUI(void)
+@@ -6594,7 +6994,7 @@ void HandleUI(void)
  				}
  				break;
  
@@ -1469,10 +1469,10 @@ index 3eb4084..2d9dcb0 100644
  
  #endif
 diff --git a/user_io.cpp b/user_io.cpp
-index 0756d3b..8d19108 100644
+index d906205..134c542 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
-@@ -3863,7 +3863,7 @@ void user_io_kbd(uint16_t key, int press)
+@@ -3869,7 +3869,7 @@ void user_io_kbd(uint16_t key, int press)
  				if (key == KEY_MENU) key = KEY_F12;
  				if (key != KEY_F12 || !block_F12)
  				{
@@ -1481,7 +1481,7 @@ index 0756d3b..8d19108 100644
  
  					// these modifiers should be passed to core even if OSD is open or they will get stuck!
  					if (!osd_is_visible || key == KEY_LEFTALT || key == KEY_RIGHTALT || key == KEY_LEFTMETA || key == KEY_RIGHTMETA) send_keycode(key, press);
-@@ -3876,14 +3876,14 @@ void user_io_kbd(uint16_t key, int press)
+@@ -3882,14 +3882,14 @@ void user_io_kbd(uint16_t key, int press)
  				if (!osd_is_visible && !is_menu() && key == KEY_MENU && press == 3) open_joystick_setup();
  				else if ((has_menu() || osd_is_visible || (get_key_mod() & (LALT | RALT | RGUI | LGUI))) && (((key == KEY_F12) && ((!is_x86() && !is_pcxt() && !is_archie()) || (get_key_mod() & (RGUI | LGUI)))) || key == KEY_MENU))
  				{

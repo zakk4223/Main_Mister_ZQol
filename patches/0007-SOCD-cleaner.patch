@@ -1,6 +1,6 @@
-From 612bf849421574e392e36b11b47d9fb7ddc5fa47 Mon Sep 17 00:00:00 2001
+From f547dd4709dd6041564235b36985f5fe0c978d8e Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sat, 1 Jul 2023 11:11:13 -0400
+Date: Thu, 3 Aug 2023 11:47:41 -0400
 Subject: [PATCH 7/7] 0007
 
 ---
@@ -10,19 +10,19 @@ Subject: [PATCH 7/7] 0007
  3 files changed, 76 insertions(+), 1 deletion(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index cc6db9e..469e097 100644
+index 7eee297..1f7e38f 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -126,6 +126,8 @@ static const ini_var_t ini_vars[] =
+@@ -128,6 +128,8 @@ static const ini_var_t ini_vars[] =
  	{ "SS_LOAD_BIT", (void *)(&(cfg.ss_load_bit)), STRING, 0, sizeof(cfg.ss_load_bit) - 1},
-   	{ "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
-   	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
+  	{ "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
+  	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
 +	{ "SOCD_UD", (void*)(&(cfg.socd_ud)), STRING, 0, sizeof(cfg.socd_ud) - 1 },
 +	{ "SOCD_LR", (void*)(&(cfg.socd_lr)), STRING, 0, sizeof(cfg.socd_lr) - 1 },
  };
  
  static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
-@@ -552,6 +554,23 @@ void cfg_parse()
+@@ -554,6 +556,23 @@ void cfg_parse()
  		if (!strcasecmp(cfg.vga_mode, "svideo")) cfg.vga_mode_int = 2;
  		if (!strcasecmp(cfg.vga_mode, "cvbs")) cfg.vga_mode_int = 3;
  	}
@@ -47,7 +47,7 @@ index cc6db9e..469e097 100644
  
  bool cfg_has_video_sections()
 diff --git a/cfg.h b/cfg.h
-index 1a9d789..c994edd 100644
+index c13a090..39bacaa 100644
 --- a/cfg.h
 +++ b/cfg.h
 @@ -7,6 +7,15 @@
@@ -66,10 +66,10 @@ index 1a9d789..c994edd 100644
  //// type definitions ////
  typedef struct {
  	uint8_t  disable_nvram;
-@@ -96,6 +105,10 @@ typedef struct {
+@@ -98,6 +107,10 @@ typedef struct {
  	char ss_load_bit[8];
-   	char ss_save_bit[8];
-   	char ss_current_slot[15];
+  	char ss_save_bit[8];
+  	char ss_current_slot[15];
 +  char socd_ud[16];
 +  char socd_lr[16];
 +  uint8_t socd_ud_int;

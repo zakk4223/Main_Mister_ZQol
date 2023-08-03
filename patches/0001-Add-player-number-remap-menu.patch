@@ -1,6 +1,6 @@
-From fa7d79c56e3ead3e98785d0f75fd1577e757ce7b Mon Sep 17 00:00:00 2001
+From 992ee071752ea7e60efd26576c334718d752edc8 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sat, 1 Jul 2023 10:50:12 -0400
+Date: Thu, 3 Aug 2023 11:43:23 -0400
 Subject: [PATCH 1/7] 0001
 
 ---
@@ -246,10 +246,10 @@ index b063712..f7215fb 100644
  uint32_t get_key_mod();
  uint32_t get_ps2_code(uint16_t key);
 diff --git a/menu.cpp b/menu.cpp
-index c6d506d..5108c75 100644
+index f38a230..e72ab08 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -103,6 +103,7 @@ enum MENU
+@@ -108,6 +108,7 @@ enum MENU
  	MENU_JOYRESET1,
  	MENU_JOYKBDMAP,
  	MENU_JOYKBDMAP1,
@@ -257,7 +257,7 @@ index c6d506d..5108c75 100644
  	MENU_KBDMAP,
  	MENU_KBDMAP1,
  	MENU_BTPAIR,
-@@ -2377,7 +2378,7 @@ void HandleUI(void)
+@@ -2509,7 +2510,7 @@ void HandleUI(void)
  				s[28] = 0;
  				MenuWrite(n++, s, menusub == 1, 0);
  				MenuWrite(n++, " Button/Key remap for game \x16", menusub == 2, 0);
@@ -266,7 +266,7 @@ index c6d506d..5108c75 100644
  
  				if (user_io_get_uart_mode())
  				{
-@@ -2503,8 +2504,9 @@ void HandleUI(void)
+@@ -2635,8 +2636,9 @@ void HandleUI(void)
  				break;
  
  			case 3:
@@ -278,7 +278,7 @@ index c6d506d..5108c75 100644
  				break;
  
  			case 4:
-@@ -3854,6 +3856,171 @@ void HandleUI(void)
+@@ -3986,6 +3988,171 @@ void HandleUI(void)
  		}
  		break;
  

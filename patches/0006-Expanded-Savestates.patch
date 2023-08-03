@@ -1,6 +1,6 @@
-From cbac0510686e7fcf16d0e1de20c836e72166f67d Mon Sep 17 00:00:00 2001
+From e4b2bb68cb38fe2bb6575b67141e8568c120e1cf Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sat, 1 Jul 2023 11:11:04 -0400
+Date: Thu, 3 Aug 2023 11:46:18 -0400
 Subject: [PATCH 6/7] 0006
 
 ---
@@ -15,30 +15,30 @@ Subject: [PATCH 6/7] 0006
  8 files changed, 238 insertions(+), 7 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 255c24f..cc6db9e 100644
+index f7d0a97..7eee297 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -123,6 +123,9 @@ static const ini_var_t ini_vars[] =
- 	{ "VGA_MODE", (void*)(&(cfg.vga_mode)), STRING, 0, sizeof(cfg.vga_mode) - 1 },
- 	{ "NTSC_MODE", (void *)(&(cfg.ntsc_mode)), UINT8, 0, 2},
+@@ -125,6 +125,9 @@ static const ini_var_t ini_vars[] =
  	{ "CONTROLLER_UNIQUE_MAPPING", (void *)(cfg.controller_unique_mapping), UINT32ARR, 0, 0xFFFFFFFF },
+ 	{ "OSD_LOCK", (void*)(&(cfg.osd_lock)), STRING, 0, sizeof(cfg.osd_lock) - 1 },
+ 	{ "OSD_LOCK_TIME", (void*)(&(cfg.osd_lock_time)), UINT16, 0, 60},
 +	{ "SS_LOAD_BIT", (void *)(&(cfg.ss_load_bit)), STRING, 0, sizeof(cfg.ss_load_bit) - 1},
-+  	{ "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
-+  	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
++ 	{ "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
++ 	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
  };
  
  static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
 diff --git a/cfg.h b/cfg.h
-index 62d88ce..1a9d789 100644
+index ff52eef..c13a090 100644
 --- a/cfg.h
 +++ b/cfg.h
-@@ -93,6 +93,9 @@ typedef struct {
- 	char vga_mode_int;
- 	char ntsc_mode;
+@@ -95,6 +95,9 @@ typedef struct {
  	uint32_t controller_unique_mapping[256];
+ 	char osd_lock[25];
+ 	uint16_t osd_lock_time;
 +	char ss_load_bit[8];
-+  	char ss_save_bit[8];
-+  	char ss_current_slot[15];
++ 	char ss_save_bit[8];
++ 	char ss_current_slot[15];
  } cfg_t;
  
  extern cfg_t cfg;
@@ -144,10 +144,10 @@ index 370b1f0..75b50db 100644
  } advancedButtonMap;
  
 diff --git a/menu.cpp b/menu.cpp
-index bc2ebb1..4d4afe9 100644
+index 92c11a9..bec655d 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -199,8 +199,13 @@ enum MENU
+@@ -204,8 +204,13 @@ enum MENU
  	MENU_ADVANCED_MAP_EDIT1,
  	MENU_ADVANCED_MAP_EDIT2,
  	MENU_ADVANCED_MAP_CAPTURE1,
@@ -161,7 +161,7 @@ index bc2ebb1..4d4afe9 100644
  static uint32_t menustate = MENU_NONE1;
  static uint32_t parentstate;
  static uint32_t menusub = 0;
-@@ -797,6 +802,7 @@ static void vga_nag()
+@@ -820,6 +825,7 @@ static void vga_nag()
  		EnableOsd_on(OSD_HDMI);
  	}
  
@@ -169,15 +169,15 @@ index bc2ebb1..4d4afe9 100644
  	OsdDisable();
  	EnableOsd_on(OSD_ALL);
  }
-@@ -1128,6 +1134,7 @@ void HandleUI(void)
+@@ -1151,6 +1157,7 @@ void HandleUI(void)
  	minus = false;
  	recent = false;
  
 +  if (menu_open_savestate) {menu = true;}
  	if (c && cfg.bootcore[0] != '\0') cfg.bootcore[0] = '\0';
  
- 	if (is_menu() && cfg.osd_timeout >= 5)
-@@ -1413,6 +1420,7 @@ void HandleUI(void)
+ 	if (!select_ini && is_menu() && cfg.osd_timeout >= 5)
+@@ -1485,6 +1492,7 @@ void HandleUI(void)
  			{
  				SelectFile("", 0, SCANO_CORES, MENU_CORE_FILE_SELECTED1, MENU_NONE1);
  			}
@@ -185,7 +185,7 @@ index bc2ebb1..4d4afe9 100644
  			else if (saved_menustate)
  			{
  				menustate = saved_menustate;
-@@ -3280,6 +3288,78 @@ void HandleUI(void)
+@@ -3412,6 +3420,78 @@ void HandleUI(void)
  					}
  					break;
  				}
@@ -264,7 +264,7 @@ index bc2ebb1..4d4afe9 100644
  	case MENU_DOC_FILE_SELECTED:
  		if (cfg.fb_terminal)
  		{
-@@ -7645,3 +7725,15 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
+@@ -7836,3 +7916,15 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
  		InfoMessage(progress_buf, 2000, title);
  	}
  }
@@ -281,10 +281,10 @@ index bc2ebb1..4d4afe9 100644
 +  }
 +}
 diff --git a/menu.h b/menu.h
-index 5f6cb4f..ba6e002 100644
+index 00dc75c..95ecf29 100644
 --- a/menu.h
 +++ b/menu.h
-@@ -22,5 +22,6 @@ int menu_lightgun_cb(int idx, uint16_t type, uint16_t code, int value);
+@@ -23,5 +23,6 @@ int menu_lightgun_cb(int idx, uint16_t type, uint16_t code, int value);
  int menu_allow_cfg_switch();
  void StoreIdx_F(int idx, const char *path);
  void StoreIdx_S(int idx, const char *path);
@@ -292,7 +292,7 @@ index 5f6cb4f..ba6e002 100644
  
  #endif
 diff --git a/user_io.cpp b/user_io.cpp
-index 8d19108..f408a48 100644
+index 134c542..4bf9635 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -38,6 +38,10 @@
@@ -306,7 +306,7 @@ index 8d19108..f408a48 100644
  static char core_path[1024] = {};
  static char rbf_path[1024] = {};
  
-@@ -1810,6 +1814,7 @@ int process_ss(const char *rom_name, int enable)
+@@ -1816,6 +1820,7 @@ int process_ss(const char *rom_name, int enable)
  
  		FileGenerateSavestatePath(rom_name, ss_name, 1);
  		ss_sufx = ss_name + strlen(ss_name) - 4;
@@ -314,7 +314,7 @@ index 8d19108..f408a48 100644
  		return 1;
  	}
  
-@@ -1827,6 +1832,7 @@ int process_ss(const char *rom_name, int enable)
+@@ -1833,6 +1838,7 @@ int process_ss(const char *rom_name, int enable)
  			uint32_t curcnt = ((uint32_t*)(base[i]))[0];
  			uint32_t size = ((uint32_t*)(base[i]))[1];
  
@@ -322,7 +322,7 @@ index 8d19108..f408a48 100644
  			if (curcnt != ss_cnt[i])
  			{
  				ss_cnt[i] = curcnt;
-@@ -1836,12 +1842,19 @@ int process_ss(const char *rom_name, int enable)
+@@ -1842,12 +1848,19 @@ int process_ss(const char *rom_name, int enable)
  					MenuHide();
  					Info("Saving the state", 500);
  
@@ -345,7 +345,7 @@ index 8d19108..f408a48 100644
  					}
  					else
  					{
-@@ -4084,3 +4097,80 @@ void user_io_screenshot_cmd(const char *cmd)
+@@ -4090,3 +4103,80 @@ void user_io_screenshot_cmd(const char *cmd)
  
  	user_io_screenshot(cmd,0);
  }
