@@ -1,6 +1,6 @@
-From e4b2bb68cb38fe2bb6575b67141e8568c120e1cf Mon Sep 17 00:00:00 2001
+From ddf182f8778dbe0d1a455ccc915c1da0a634fbd7 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 3 Aug 2023 11:46:18 -0400
+Date: Fri, 4 Aug 2023 02:20:59 -0400
 Subject: [PATCH 6/7] 0006
 
 ---
@@ -144,10 +144,10 @@ index 370b1f0..75b50db 100644
  } advancedButtonMap;
  
 diff --git a/menu.cpp b/menu.cpp
-index 92c11a9..bec655d 100644
+index 553977c..7ccfb89 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -204,8 +204,13 @@ enum MENU
+@@ -205,8 +205,13 @@ enum MENU
  	MENU_ADVANCED_MAP_EDIT1,
  	MENU_ADVANCED_MAP_EDIT2,
  	MENU_ADVANCED_MAP_CAPTURE1,
@@ -161,7 +161,7 @@ index 92c11a9..bec655d 100644
  static uint32_t menustate = MENU_NONE1;
  static uint32_t parentstate;
  static uint32_t menusub = 0;
-@@ -820,6 +825,7 @@ static void vga_nag()
+@@ -821,6 +826,7 @@ static void vga_nag()
  		EnableOsd_on(OSD_HDMI);
  	}
  
@@ -169,7 +169,7 @@ index 92c11a9..bec655d 100644
  	OsdDisable();
  	EnableOsd_on(OSD_ALL);
  }
-@@ -1151,6 +1157,7 @@ void HandleUI(void)
+@@ -1153,6 +1159,7 @@ void HandleUI(void)
  	minus = false;
  	recent = false;
  
@@ -177,7 +177,7 @@ index 92c11a9..bec655d 100644
  	if (c && cfg.bootcore[0] != '\0') cfg.bootcore[0] = '\0';
  
  	if (!select_ini && is_menu() && cfg.osd_timeout >= 5)
-@@ -1485,6 +1492,7 @@ void HandleUI(void)
+@@ -1489,6 +1496,7 @@ void HandleUI(void)
  			{
  				SelectFile("", 0, SCANO_CORES, MENU_CORE_FILE_SELECTED1, MENU_NONE1);
  			}
@@ -185,7 +185,7 @@ index 92c11a9..bec655d 100644
  			else if (saved_menustate)
  			{
  				menustate = saved_menustate;
-@@ -3412,6 +3420,78 @@ void HandleUI(void)
+@@ -3429,6 +3437,78 @@ void HandleUI(void)
  					}
  					break;
  				}
@@ -264,7 +264,7 @@ index 92c11a9..bec655d 100644
  	case MENU_DOC_FILE_SELECTED:
  		if (cfg.fb_terminal)
  		{
-@@ -7836,3 +7916,15 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
+@@ -7864,3 +7944,15 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
  		InfoMessage(progress_buf, 2000, title);
  	}
  }
