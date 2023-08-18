@@ -1,6 +1,6 @@
-From ddf182f8778dbe0d1a455ccc915c1da0a634fbd7 Mon Sep 17 00:00:00 2001
+From 70afbb435c2fd5e047ef0b698ab636a83fae81cd Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 4 Aug 2023 02:20:59 -0400
+Date: Fri, 18 Aug 2023 12:17:27 -0400
 Subject: [PATCH 6/7] 0006
 
 ---
@@ -43,10 +43,10 @@ index ff52eef..c13a090 100644
  
  extern cfg_t cfg;
 diff --git a/input.cpp b/input.cpp
-index c08c3df..64b07f1 100644
+index 8a1f3f9..cc83bb0 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -3331,6 +3331,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3332,6 +3332,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  						//if (is_pressed)
  						//{
@@ -54,7 +54,7 @@ index c08c3df..64b07f1 100644
  							abm->pressed = is_pressed; 
  							abm->cur_state_frames = 0;
  							abm->last_frame = -1;
-@@ -5861,9 +5862,35 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
+@@ -5905,9 +5906,35 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
  {
  
  	int sys_btn = abm->bnum;
@@ -90,7 +90,7 @@ index c08c3df..64b07f1 100644
  			case SYS_BTN_SCREENSHOT:
          if (abm->pressed && abm->cur_state_frames == 1)
  				  user_io_screenshot(nullptr, 1);
-@@ -5891,15 +5918,18 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
+@@ -5935,15 +5962,18 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
  	}
  }
  
@@ -111,7 +111,7 @@ index c08c3df..64b07f1 100644
  			
  			bool has_autofire = abm->on_frames && abm->off_frames;
  			if (abm->pressed)
-@@ -5957,8 +5987,9 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
+@@ -6001,8 +6031,9 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
  				}
  			} else {
  				//Also execute on button release
@@ -122,7 +122,7 @@ index c08c3df..64b07f1 100644
  					execute_advanced_sys_button(pnum, abm);
  					abm->cur_state_frames = 1;
  					continue;
-@@ -6025,7 +6056,7 @@ int input_poll(int getchar)
+@@ -6069,7 +6100,7 @@ int input_poll(int getchar)
  				if (joy[i] & autofire[i]) send = 1;
  			}
  
@@ -144,7 +144,7 @@ index 370b1f0..75b50db 100644
  } advancedButtonMap;
  
 diff --git a/menu.cpp b/menu.cpp
-index 553977c..7ccfb89 100644
+index 9db8c0b..889a7bc 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -205,8 +205,13 @@ enum MENU
@@ -185,7 +185,7 @@ index 553977c..7ccfb89 100644
  			else if (saved_menustate)
  			{
  				menustate = saved_menustate;
-@@ -3429,6 +3437,78 @@ void HandleUI(void)
+@@ -3433,6 +3441,78 @@ void HandleUI(void)
  					}
  					break;
  				}
@@ -264,7 +264,7 @@ index 553977c..7ccfb89 100644
  	case MENU_DOC_FILE_SELECTED:
  		if (cfg.fb_terminal)
  		{
-@@ -7864,3 +7944,15 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
+@@ -7867,3 +7947,15 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
  		InfoMessage(progress_buf, 2000, title);
  	}
  }
@@ -292,10 +292,10 @@ index 00dc75c..95ecf29 100644
  
  #endif
 diff --git a/user_io.cpp b/user_io.cpp
-index 134c542..4bf9635 100644
+index e040b10..f644f47 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
-@@ -38,6 +38,10 @@
+@@ -39,6 +39,10 @@
  
  #include "support.h"
  
@@ -306,7 +306,7 @@ index 134c542..4bf9635 100644
  static char core_path[1024] = {};
  static char rbf_path[1024] = {};
  
-@@ -1816,6 +1820,7 @@ int process_ss(const char *rom_name, int enable)
+@@ -1824,6 +1828,7 @@ int process_ss(const char *rom_name, int enable)
  
  		FileGenerateSavestatePath(rom_name, ss_name, 1);
  		ss_sufx = ss_name + strlen(ss_name) - 4;
@@ -314,7 +314,7 @@ index 134c542..4bf9635 100644
  		return 1;
  	}
  
-@@ -1833,6 +1838,7 @@ int process_ss(const char *rom_name, int enable)
+@@ -1841,6 +1846,7 @@ int process_ss(const char *rom_name, int enable)
  			uint32_t curcnt = ((uint32_t*)(base[i]))[0];
  			uint32_t size = ((uint32_t*)(base[i]))[1];
  
@@ -322,7 +322,7 @@ index 134c542..4bf9635 100644
  			if (curcnt != ss_cnt[i])
  			{
  				ss_cnt[i] = curcnt;
-@@ -1842,12 +1848,19 @@ int process_ss(const char *rom_name, int enable)
+@@ -1850,12 +1856,19 @@ int process_ss(const char *rom_name, int enable)
  					MenuHide();
  					Info("Saving the state", 500);
  
@@ -345,7 +345,7 @@ index 134c542..4bf9635 100644
  					}
  					else
  					{
-@@ -4090,3 +4103,80 @@ void user_io_screenshot_cmd(const char *cmd)
+@@ -4092,3 +4105,80 @@ void user_io_screenshot_cmd(const char *cmd)
  
  	user_io_screenshot(cmd,0);
  }
@@ -427,12 +427,12 @@ index 134c542..4bf9635 100644
 +
 +
 diff --git a/user_io.h b/user_io.h
-index affffb3..1c3c97c 100644
+index 4fc2ec9..78f8017 100644
 --- a/user_io.h
 +++ b/user_io.h
-@@ -280,6 +280,16 @@ char is_arcade();
- char is_saturn();
+@@ -281,6 +281,16 @@ char is_saturn();
  char is_pcxt();
+ char is_n64();
  
 +
 +void ss_menu_load();
