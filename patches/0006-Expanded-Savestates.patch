@@ -1,18 +1,18 @@
-From 70afbb435c2fd5e047ef0b698ab636a83fae81cd Mon Sep 17 00:00:00 2001
+From a8a223554f1e619e4f51c728f3b40383cec9022c Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 18 Aug 2023 12:17:27 -0400
+Date: Mon, 21 Aug 2023 18:56:45 -0400
 Subject: [PATCH 6/7] 0006
 
 ---
  cfg.cpp     |  3 ++
  cfg.h       |  3 ++
- input.cpp   | 39 +++++++++++++++++++---
+ input.cpp   | 37 ++++++++++++++++++---
  input.h     |  1 +
  menu.cpp    | 92 ++++++++++++++++++++++++++++++++++++++++++++++++++
  menu.h      |  1 +
  user_io.cpp | 96 +++++++++++++++++++++++++++++++++++++++++++++++++++--
  user_io.h   | 10 ++++++
- 8 files changed, 238 insertions(+), 7 deletions(-)
+ 8 files changed, 236 insertions(+), 7 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
 index f7d0a97..7eee297 100644
@@ -43,7 +43,7 @@ index ff52eef..c13a090 100644
  
  extern cfg_t cfg;
 diff --git a/input.cpp b/input.cpp
-index 8a1f3f9..cc83bb0 100644
+index 4735b04..719db7e 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -3332,6 +3332,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
@@ -54,16 +54,14 @@ index 8a1f3f9..cc83bb0 100644
  							abm->pressed = is_pressed; 
  							abm->cur_state_frames = 0;
  							abm->last_frame = -1;
-@@ -5905,9 +5906,35 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
- {
+@@ -5909,9 +5910,34 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
+ 		if (abm->bnum[i] < 0) break;
+ 		int sys_btn = abm->bnum[i];
+ 		if (!(sys_btn & 0xF0)) continue;
++		static bool sstate_was_held = false;
  
- 	int sys_btn = abm->bnum;
-+  static bool sstate_was_held = false;
- 
-+  //The only button that is valid during OSD is the savestate button
-+  if (user_io_osd_is_visible() && sys_btn != SYS_BTN_SAVESTATE) return;
- 	switch(sys_btn)
- 	{
+ 		switch(sys_btn)
+ 		{
 +      case SYS_BTN_SAVESTATE:
 +
 +        if (core_has_save_states() && abm->pressed && (abm->cur_state_frames > 20) && (abm->cur_state_frames <= 80))
@@ -87,10 +85,11 @@ index 8a1f3f9..cc83bb0 100644
 +          sstate_was_held = false;
 +        }
 +        break;
- 			case SYS_BTN_SCREENSHOT:
-         if (abm->pressed && abm->cur_state_frames == 1)
- 				  user_io_screenshot(nullptr, 1);
-@@ -5935,15 +5962,18 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
++
+ 				case SYS_BTN_SCREENSHOT:
+ 	        if (abm->pressed && abm->cur_state_frames == 1)
+ 					  user_io_screenshot(nullptr, 1);
+@@ -5940,9 +5966,11 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
  	}
  }
  
@@ -104,25 +103,24 @@ index 8a1f3f9..cc83bb0 100644
  
  	for (uint i = 0; i < (sizeof(player_pad[pnum+1].advanced_map)/sizeof(advancedButtonMap)); i++)
  	{
- 			advancedButtonMap *abm = &player_pad[pnum+1].advanced_map[i];
- 
- 			if (!abm->codes[0]) continue;
-+      if (only_sys && !(abm->bnum & 0xF0)) continue;
- 			
- 			bool has_autofire = abm->on_frames && abm->off_frames;
- 			if (abm->pressed)
-@@ -6001,8 +6031,9 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
+@@ -6011,6 +6039,7 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
+ 				{
+ 					int bnum = abm->bnum[b];
+ 					if (bnum < 0) break;
++      		if (only_sys && !(bnum & 0xF0)) continue;
+ 					if (!(joy[pnum] & 1<<bnum))
+ 					{
+ 						if (abm->button_state == BUTTON_ON) autofire_new[pnum] |= 1<<bnum;
+@@ -6019,7 +6048,7 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
  				}
  			} else {
  				//Also execute on button release
--				if (abm->bnum & 0xF0 && abm->cur_state_frames == 0)
-+				if ((abm->bnum & 0xF0) && (abm->last_pressed != abm->pressed && abm->cur_state_frames == 0))
+-				if (has_sys_btn && abm->cur_state_frames == 0)
++				if (has_sys_btn && (abm->last_pressed != abm->pressed && abm->cur_state_frames == 0))
  				{
-+
  					execute_advanced_sys_button(pnum, abm);
  					abm->cur_state_frames = 1;
- 					continue;
-@@ -6069,7 +6100,7 @@ int input_poll(int getchar)
+@@ -6086,7 +6115,7 @@ int input_poll(int getchar)
  				if (joy[i] & autofire[i]) send = 1;
  			}
  
@@ -132,7 +130,7 @@ index 8a1f3f9..cc83bb0 100644
  
  			if (autofire_new[i] != joy_prev[i])
 diff --git a/input.h b/input.h
-index 370b1f0..75b50db 100644
+index 3e513ae..95f3cbf 100644
 --- a/input.h
 +++ b/input.h
 @@ -96,6 +96,7 @@ typedef struct {
@@ -144,12 +142,12 @@ index 370b1f0..75b50db 100644
  } advancedButtonMap;
  
 diff --git a/menu.cpp b/menu.cpp
-index 9db8c0b..889a7bc 100644
+index b3751a2..1f2bd56 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -205,8 +205,13 @@ enum MENU
- 	MENU_ADVANCED_MAP_EDIT1,
- 	MENU_ADVANCED_MAP_EDIT2,
+@@ -208,8 +208,13 @@ enum MENU
+ 	MENU_ADVANCED_MAP_EDIT3,
+ 	MENU_ADVANCED_MAP_EDIT4,
  	MENU_ADVANCED_MAP_CAPTURE1,
 +
 +  //System save state menu
@@ -161,7 +159,7 @@ index 9db8c0b..889a7bc 100644
  static uint32_t menustate = MENU_NONE1;
  static uint32_t parentstate;
  static uint32_t menusub = 0;
-@@ -821,6 +826,7 @@ static void vga_nag()
+@@ -825,6 +830,7 @@ static void vga_nag()
  		EnableOsd_on(OSD_HDMI);
  	}
  
@@ -169,7 +167,7 @@ index 9db8c0b..889a7bc 100644
  	OsdDisable();
  	EnableOsd_on(OSD_ALL);
  }
-@@ -1153,6 +1159,7 @@ void HandleUI(void)
+@@ -1160,6 +1166,7 @@ void HandleUI(void)
  	minus = false;
  	recent = false;
  
@@ -177,7 +175,7 @@ index 9db8c0b..889a7bc 100644
  	if (c && cfg.bootcore[0] != '\0') cfg.bootcore[0] = '\0';
  
  	if (!select_ini && is_menu() && cfg.osd_timeout >= 5)
-@@ -1489,6 +1496,7 @@ void HandleUI(void)
+@@ -1496,6 +1503,7 @@ void HandleUI(void)
  			{
  				SelectFile("", 0, SCANO_CORES, MENU_CORE_FILE_SELECTED1, MENU_NONE1);
  			}
@@ -185,7 +183,7 @@ index 9db8c0b..889a7bc 100644
  			else if (saved_menustate)
  			{
  				menustate = saved_menustate;
-@@ -3433,6 +3441,78 @@ void HandleUI(void)
+@@ -3567,6 +3575,78 @@ void HandleUI(void)
  					}
  					break;
  				}
@@ -264,7 +262,7 @@ index 9db8c0b..889a7bc 100644
  	case MENU_DOC_FILE_SELECTED:
  		if (cfg.fb_terminal)
  		{
-@@ -7867,3 +7947,15 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
+@@ -8001,3 +8081,15 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
  		InfoMessage(progress_buf, 2000, title);
  	}
  }
