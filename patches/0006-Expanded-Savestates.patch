@@ -1,6 +1,6 @@
-From a8a223554f1e619e4f51c728f3b40383cec9022c Mon Sep 17 00:00:00 2001
+From 8d7f9a639e321c7cb417c08e367db35f7ace34b1 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 21 Aug 2023 18:56:45 -0400
+Date: Tue, 22 Aug 2023 14:47:37 -0400
 Subject: [PATCH 6/7] 0006
 
 ---
@@ -43,10 +43,10 @@ index ff52eef..c13a090 100644
  
  extern cfg_t cfg;
 diff --git a/input.cpp b/input.cpp
-index 4735b04..719db7e 100644
+index 195ebaf..da43d73 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -3332,6 +3332,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3326,6 +3326,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  						//if (is_pressed)
  						//{
@@ -54,7 +54,7 @@ index 4735b04..719db7e 100644
  							abm->pressed = is_pressed; 
  							abm->cur_state_frames = 0;
  							abm->last_frame = -1;
-@@ -5909,9 +5910,34 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
+@@ -5903,9 +5904,34 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
  		if (abm->bnum[i] < 0) break;
  		int sys_btn = abm->bnum[i];
  		if (!(sys_btn & 0xF0)) continue;
@@ -89,7 +89,7 @@ index 4735b04..719db7e 100644
  				case SYS_BTN_SCREENSHOT:
  	        if (abm->pressed && abm->cur_state_frames == 1)
  					  user_io_screenshot(nullptr, 1);
-@@ -5940,9 +5966,11 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
+@@ -5934,9 +5960,11 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
  	}
  }
  
@@ -103,7 +103,7 @@ index 4735b04..719db7e 100644
  
  	for (uint i = 0; i < (sizeof(player_pad[pnum+1].advanced_map)/sizeof(advancedButtonMap)); i++)
  	{
-@@ -6011,6 +6039,7 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
+@@ -6005,6 +6033,7 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
  				{
  					int bnum = abm->bnum[b];
  					if (bnum < 0) break;
@@ -111,7 +111,7 @@ index 4735b04..719db7e 100644
  					if (!(joy[pnum] & 1<<bnum))
  					{
  						if (abm->button_state == BUTTON_ON) autofire_new[pnum] |= 1<<bnum;
-@@ -6019,7 +6048,7 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
+@@ -6013,7 +6042,7 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
  				}
  			} else {
  				//Also execute on button release
@@ -120,7 +120,7 @@ index 4735b04..719db7e 100644
  				{
  					execute_advanced_sys_button(pnum, abm);
  					abm->cur_state_frames = 1;
-@@ -6086,7 +6115,7 @@ int input_poll(int getchar)
+@@ -6080,7 +6109,7 @@ int input_poll(int getchar)
  				if (joy[i] & autofire[i]) send = 1;
  			}
  

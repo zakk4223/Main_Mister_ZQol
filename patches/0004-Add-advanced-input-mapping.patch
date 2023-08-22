@@ -1,18 +1,18 @@
-From 1bb403754b83bde5e62446e2088fec2621673a2d Mon Sep 17 00:00:00 2001
+From e7a6e25da6cd85be9df392c4b3984410373e889d Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 21 Aug 2023 18:49:26 -0400
+Date: Tue, 22 Aug 2023 14:45:31 -0400
 Subject: [PATCH 4/7] 0004
 
 ---
  gamecontroller_db.cpp |  15 +-
  gamecontroller_db.h   |   1 +
- input.cpp             | 574 ++++++++++++++++++++++++++++++++++++++++--
+ input.cpp             | 580 ++++++++++++++++++++++++++++++++++++++++--
  input.h               |  46 ++++
- menu.cpp              | 564 +++++++++++++++++++++++++++++++++++++++--
+ menu.cpp              | 564 ++++++++++++++++++++++++++++++++++++++--
  scaler.cpp            |  15 ++
  scaler.h              |   1 +
  user_io.cpp           |   8 +-
- 8 files changed, 1181 insertions(+), 43 deletions(-)
+ 8 files changed, 1181 insertions(+), 49 deletions(-)
 
 diff --git a/gamecontroller_db.cpp b/gamecontroller_db.cpp
 index b84a0e9..6e92e17 100644
@@ -76,7 +76,7 @@ index 0010c58..42540aa 100644
  
  
 diff --git a/input.cpp b/input.cpp
-index a704ce4..38ed8b0 100644
+index a704ce4..2e0757d 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -27,6 +27,7 @@
@@ -264,7 +264,20 @@ index a704ce4..38ed8b0 100644
  			input_cb(&ev, 0, 0);
  		}
  		else if (video_fb_state())
-@@ -2406,9 +2517,20 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2352,12 +2463,6 @@ void swap_player(int cur_dev, int new_num)
+ 	}
+         input[cur_dev].num = new_num;
+         store_player(new_num, cur_dev);
+-        //Swap if there was already one assigned there
+-        if (dest_dev > -1)
+-        {
+-                input[dest_dev].num = cur_num;
+-                store_player(cur_num, dest_dev);
+-        }
+ }
+ 
+ 
+@@ -2406,9 +2511,20 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  	int sub_dev = dev;
  
@@ -285,7 +298,7 @@ index a704ce4..38ed8b0 100644
  	if (ev->type == EV_KEY)
  	{
  		if (input[dev].timeout > 0) input[dev].timeout = cfg.bt_auto_disconnect * 10;
-@@ -2436,6 +2558,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2436,6 +2552,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  	int enter    = (ev->type == EV_KEY && ev->code == KEY_ENTER);
  	int origcode = ev->code;
  
@@ -293,7 +306,7 @@ index a704ce4..38ed8b0 100644
  	if (!input[dev].has_mmap)
  	{
  		if (input[dev].quirk == QUIRK_TOUCHGUN)
-@@ -2448,6 +2571,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2448,6 +2565,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  		}
  		else if (input[dev].quirk != QUIRK_PDSP && input[dev].quirk != QUIRK_MSSP)
  		{
@@ -301,7 +314,7 @@ index a704ce4..38ed8b0 100644
  			if (!load_map(get_map_name(dev, 1), &input[dev].mmap, sizeof(input[dev].mmap)))
  			{
  				if (!gcdb_map_for_controller(input[sub_dev].bustype, input[sub_dev].vid, input[sub_dev].pid, input[sub_dev].version, pool[sub_dev].fd, input[dev].mmap))
-@@ -2523,6 +2647,9 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2523,6 +2641,9 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  			}
  			input[dev].has_map++;
  		}
@@ -311,7 +324,7 @@ index a704ce4..38ed8b0 100644
  		input[dev].has_map++;
  	}
  
-@@ -2991,13 +3118,21 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2991,13 +3112,21 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  				}
  				else
  				{
@@ -336,7 +349,7 @@ index a704ce4..38ed8b0 100644
  					{
  						last_input_dev = dev;
  					}
-@@ -3134,6 +3269,15 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3134,6 +3263,15 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  						input[dev].has_map = 1;
  					}
  
@@ -352,7 +365,7 @@ index a704ce4..38ed8b0 100644
  					for (uint i = 0; i < BTN_NUM; i++)
  					{
  						if (ev->code == (input[dev].map[i] & 0xFFFF) || ev->code == (input[dev].map[i] >> 16))
-@@ -3144,6 +3288,66 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3144,6 +3282,66 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  							// support 2 simultaneous functions for 1 button if defined in 2 sets. No return.
  						}
  					}
@@ -419,7 +432,7 @@ index a704ce4..38ed8b0 100644
  
  					if (ev->code == input[dev].mmap[SYS_MS_BTN_EMU] && (ev->value <= 1) && ((!(mouse_emu & 1)) ^ (!ev->value)))
  					{
-@@ -4780,6 +4984,12 @@ int input_test(int getchar)
+@@ -4780,6 +4978,12 @@ int input_test(int getchar)
  			unflag_players();
  		}
  		cur_leds |= 0x80;
@@ -432,7 +445,7 @@ index a704ce4..38ed8b0 100644
  		state++;
  	}
  
-@@ -4828,6 +5038,7 @@ int input_test(int getchar)
+@@ -4828,6 +5032,7 @@ int input_test(int getchar)
  					if (input[i].bind >= 0) dev = input[i].bind;
  					if (!input[dev].num) continue;
  
@@ -440,7 +453,7 @@ index a704ce4..38ed8b0 100644
  					set_rumble(i, spi_uio_cmd(UIO_GET_RUMBLE | ((input[dev].num - 1) << 8)));
  				}
  			}
-@@ -5285,7 +5496,7 @@ int input_test(int getchar)
+@@ -5285,7 +5490,7 @@ int input_test(int getchar)
  										int treshold = range / 4;
  
  										int only_max = 1;
@@ -449,7 +462,7 @@ index a704ce4..38ed8b0 100644
  
  										if (ev.value < center - treshold && !only_max) axis_edge = 1;
  										if (ev.value > center + treshold) axis_edge = 2;
-@@ -5478,6 +5689,134 @@ int input_test(int getchar)
+@@ -5478,6 +5683,134 @@ int input_test(int getchar)
  	return 0;
  }
  
@@ -584,7 +597,7 @@ index a704ce4..38ed8b0 100644
  int input_poll(int getchar)
  {
  	PROFILE_FUNCTION();
-@@ -5520,6 +5859,8 @@ int input_poll(int getchar)
+@@ -5520,6 +5853,8 @@ int input_poll(int getchar)
  
  	if (grabbed)
  	{
@@ -593,7 +606,7 @@ index a704ce4..38ed8b0 100644
  		for (int i = 0; i < NUMPLAYERS; i++)
  		{
  			if (af_delay[i] < AF_MIN) af_delay[i] = AF_MIN;
-@@ -5527,29 +5868,30 @@ int input_poll(int getchar)
+@@ -5527,29 +5862,30 @@ int input_poll(int getchar)
  			if (!time[i]) time[i] = GetTimer(af_delay[i]);
  			int send = 0;
  
@@ -637,7 +650,7 @@ index a704ce4..38ed8b0 100644
  			}
  		}
  	}
-@@ -5709,3 +6051,197 @@ void parse_buttons()
+@@ -5709,3 +6045,197 @@ void parse_buttons()
  		joy_bcount++;
  	}
  }
