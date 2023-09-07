@@ -1,6 +1,6 @@
-From 4391cff30f187b3df962823d0c51a90a2ec1b8f8 Mon Sep 17 00:00:00 2001
+From d66d78e81ca585a1c00c05c7a91ddbaf1b4f5233 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 29 Aug 2023 19:26:37 -0400
+Date: Thu, 7 Sep 2023 11:23:27 -0400
 Subject: [PATCH 5/7] 0005
 
 ---
@@ -8,7 +8,7 @@ Subject: [PATCH 5/7] 0005
  1 file changed, 211 insertions(+)
 
 diff --git a/input.cpp b/input.cpp
-index 59fa1a4..5568313 100644
+index 763cda4..15e85f9 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -16,6 +16,7 @@
@@ -27,7 +27,7 @@ index 59fa1a4..5568313 100644
  
  #define NUMDEV 30
  #define NUMPLAYERS 6
-@@ -4175,6 +4177,213 @@ static void touchscreen_proc(int dev, input_event *ev)
+@@ -4299,6 +4301,213 @@ static void touchscreen_proc(int dev, input_event *ev)
  		}
  	}
  
@@ -241,7 +241,7 @@ index 59fa1a4..5568313 100644
  }
  
  static int vcs_proc(int dev, input_event *ev)
-@@ -5723,6 +5932,8 @@ int input_test(int getchar)
+@@ -5867,6 +6076,8 @@ int input_test(int getchar)
  					else if (!strncmp(cmd, "screenshot", 10))
  					{
  						user_io_screenshot_cmd(cmd);
@@ -251,5 +251,5 @@ index 59fa1a4..5568313 100644
  					else if (!strncmp(cmd, "volume ", 7))
  					{
 -- 
-2.41.0
+2.42.0
 

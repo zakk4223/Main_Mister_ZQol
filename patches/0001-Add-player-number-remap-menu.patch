@@ -1,33 +1,28 @@
-From e1b7750685598839b48eb71debb6be1731155210 Mon Sep 17 00:00:00 2001
+From ac32116e8f6d2aeaddb15b41da0454d0cc2fd3ba Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 29 Aug 2023 01:15:25 -0400
+Date: Thu, 7 Sep 2023 11:21:41 -0400
 Subject: [PATCH 1/7] 0001
 
 ---
- input.cpp | 142 ++++++++++++++++++++++++++++++++++++++++++++
+ input.cpp | 143 ++++++++++++++++++++++++++++++++++++++++++++
  input.h   |  10 ++++
  menu.cpp  | 173 +++++++++++++++++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 322 insertions(+), 3 deletions(-)
+ 3 files changed, 323 insertions(+), 3 deletions(-)
 
 diff --git a/input.cpp b/input.cpp
-index 078b692..a704ce4 100644
+index 23aff77..d48d9e8 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -1387,12 +1387,80 @@ static int mapping_type;
- static int mapping_count;
- static int mapping_clear;
- static int mapping_set;
-+static int last_input_dev = 1<<31;
-+static int last_pdsp_dev = 1<<31;
-+
-+static int player_num_remapping = 0;
-+static int remapping_spinner_input = 0;
- 
- static uint32_t tmp_axis[4];
- static int tmp_axis_n = 0;
+@@ -1399,6 +1399,75 @@ static int tmp_axis_n = 0;
  
  static int grabbed = 1;
  
++static int last_input_dev = 1<<31;
++static int last_pdsp_dev = 1<<31;
++static int player_num_remapping = 0;
++static int remapping_spinner_input = 0;
++
++
 +int get_dev_num(int dev)
 +{
 +	return input[dev].num;
@@ -93,8 +88,8 @@ index 078b692..a704ce4 100644
 +
  void start_map_setting(int cnt, int set)
  {
- 	mapping_button = 0;
-@@ -2205,6 +2273,7 @@ void reset_players()
+ 	mapping_current_key = 0;
+@@ -2229,6 +2298,7 @@ void reset_players()
  	}
  	memset(player_pad, 0, sizeof(player_pad));
  	memset(player_pdsp, 0, sizeof(player_pdsp));
@@ -102,7 +97,7 @@ index 078b692..a704ce4 100644
  }
  
  static void store_player(int num, int dev)
-@@ -2247,6 +2316,51 @@ static void restore_player(int dev)
+@@ -2271,6 +2341,51 @@ static void restore_player(int dev)
  	update_num_hw(dev, input[dev].num);
  }
  
@@ -154,7 +149,7 @@ index 078b692..a704ce4 100644
  void unflag_players()
  {
  	for (int k = 1; k < NUMPLAYERS; k++)
-@@ -2858,6 +2972,13 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2940,6 +3055,13 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  			if (ev->code < 1024 && input[dev].jkmap[ev->code] && !user_io_osd_is_visible()) ev->code = input[dev].jkmap[ev->code];
  
  			//joystick buttons, digital directions
@@ -168,7 +163,7 @@ index 078b692..a704ce4 100644
  			if (ev->code >= 256)
  			{
  				if (input[dev].lightgun_req && !user_io_osd_is_visible())
-@@ -2876,6 +2997,11 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2958,6 +3080,11 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  				if (user_io_osd_is_visible() || video_fb_state())
  				{
@@ -180,7 +175,7 @@ index 078b692..a704ce4 100644
  					if (ev->value <= 1)
  					{
  						if ((input[dev].mmap[SYS_BTN_MENU_FUNC] & 0xFFFF) ?
-@@ -3162,6 +3288,10 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3244,6 +3371,10 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  		//analog joystick
  		case EV_ABS:
@@ -191,7 +186,7 @@ index 078b692..a704ce4 100644
  			if (!user_io_osd_is_visible())
  			{
  				int value = ev->value;
-@@ -3299,6 +3429,12 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3381,6 +3512,12 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  		// spinner
  		case EV_REL:
@@ -204,7 +199,7 @@ index 078b692..a704ce4 100644
  			if (!user_io_osd_is_visible() && ev->code == 7)
  			{
  				if (input[dev].num && input[dev].num <= NUMPLAYERS)
-@@ -4294,6 +4430,11 @@ int input_test(int getchar)
+@@ -4417,6 +4554,11 @@ int input_test(int getchar)
  	struct input_event ev;
  	static uint32_t timeout = 0;
  
@@ -216,7 +211,7 @@ index 078b692..a704ce4 100644
  	if (touch_rel && CheckTimer(touch_rel))
  	{
  		touch_rel = 0;
-@@ -4923,6 +5064,7 @@ int input_test(int getchar)
+@@ -5066,6 +5208,7 @@ int input_test(int getchar)
  								if (is_menu() && !video_fb_state())
  								{
  									/*
@@ -225,10 +220,10 @@ index 078b692..a704ce4 100644
  									{
  										static char str[64], str2[64];
 diff --git a/input.h b/input.h
-index b063712..f7215fb 100644
+index 892cbf1..e89dc98 100644
 --- a/input.h
 +++ b/input.h
-@@ -92,6 +92,16 @@ uint16_t get_map_pid();
+@@ -93,6 +93,16 @@ uint16_t get_map_pid();
  int has_default_map();
  void send_map_cmd(int key);
  void reset_players();
@@ -246,27 +241,27 @@ index b063712..f7215fb 100644
  uint32_t get_key_mod();
  uint32_t get_ps2_code(uint16_t key);
 diff --git a/menu.cpp b/menu.cpp
-index 718e007..4328bb8 100644
+index b339bc1..5876574 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -109,6 +109,7 @@ enum MENU
- 	MENU_JOYRESET1,
+@@ -110,6 +110,7 @@ enum MENU
  	MENU_JOYKBDMAP,
  	MENU_JOYKBDMAP1,
+ 	MENU_JOYKBDMAP2,
 +	MENU_JOYNUMREMAP,
  	MENU_KBDMAP,
  	MENU_KBDMAP1,
  	MENU_BTPAIR,
-@@ -2525,7 +2526,7 @@ void HandleUI(void)
+@@ -2527,7 +2528,7 @@ void HandleUI(void)
  				s[28] = 0;
  				MenuWrite(n++, s, menusub == 2, 0);
- 				MenuWrite(n++, " Button/Key remap for game \x16", menusub == 3, 0);
+ 				MenuWrite(n++, " Button/Key remap          \x16", menusub == 3, 0);
 -				MenuWrite(n++, " Reset player assignment", menusub == 4, 0);
 +				MenuWrite(n++, " Change player assignment", menusub == 4, 0);
  
  				if (user_io_get_uart_mode())
  				{
-@@ -2656,8 +2657,9 @@ void HandleUI(void)
+@@ -2658,8 +2659,9 @@ void HandleUI(void)
  				break;
  
  			case 4:
@@ -278,7 +273,7 @@ index 718e007..4328bb8 100644
  				break;
  
  			case 5:
-@@ -4007,6 +4009,171 @@ void HandleUI(void)
+@@ -4009,6 +4011,171 @@ void HandleUI(void)
  		}
  		break;
  
@@ -451,5 +446,5 @@ index 718e007..4328bb8 100644
  		helptext_idx = 0;
  		menumask = 1;
 -- 
-2.41.0
+2.42.0
 
