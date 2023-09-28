@@ -1,7 +1,7 @@
-From 563651c0c733423c9638bd61e86d0adee5f9fa2e Mon Sep 17 00:00:00 2001
+From dd7bf3b41026d8ee8ca2304a62a51f2c66f918a4 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sun, 24 Sep 2023 18:28:57 -0400
-Subject: [PATCH 4/7] 0004
+Date: Thu, 28 Sep 2023 02:06:39 -0400
+Subject: [PATCH 4/8] 0004
 
 ---
  gamecontroller_db.cpp |  15 +-
@@ -9,10 +9,10 @@ Subject: [PATCH 4/7] 0004
  input.cpp             | 737 +++++++++++++++++++++++++++++++++++++++---
  input.h               |  47 +++
  menu.cpp              | 731 ++++++++++++++++++++++++++++++++++++++++-
- scaler.cpp            |  15 +
- scaler.h              |   1 +
+ scaler.cpp            |  25 ++
+ scaler.h              |   3 +-
  user_io.cpp           |   8 +-
- 8 files changed, 1489 insertions(+), 66 deletions(-)
+ 8 files changed, 1500 insertions(+), 67 deletions(-)
 
 diff --git a/gamecontroller_db.cpp b/gamecontroller_db.cpp
 index b84a0e9..6e92e17 100644
@@ -1975,10 +1975,10 @@ index 62ec156..a8054a1 100644
  				break;
  			}
 diff --git a/scaler.cpp b/scaler.cpp
-index d04ad1b..0e394be 100644
+index d04ad1b..f601c96 100644
 --- a/scaler.cpp
 +++ b/scaler.cpp
-@@ -149,3 +149,18 @@ int mister_scaler_read_32(mister_scaler *ms, unsigned char *gbuf) {
+@@ -149,3 +149,28 @@ int mister_scaler_read_32(mister_scaler *ms, unsigned char *gbuf) {
  
      return 0;
  }
@@ -1993,15 +1993,33 @@ index d04ad1b..0e394be 100644
 +
 +
 +  volatile unsigned char *buffer = (unsigned char *)(ms->map+ms->map_off);
-+
-+  return (buffer[5]>>5) & 0x07;
++	volatile unsigned char fc1, fc2, fc3, fc4, fc5;
++	//The scaler updates each header for the triple buffers separately, so we need to grab all of them
++	//Stupid: the headers can be at either base+0x200000/0x400000 or 0x800000/0x1000000
++	//since ram isn't on core loads, the headers (other than the frame counter) may look the same as 'used' ones
++	//even though they aren't. just use all of them. unused extra buffers will not change
++	//Each frame counter is three bits.
++	fc1 = (buffer[5]>>5) & 0x07;
++	fc2 = (buffer[0x200005]>>5) & 0x07;
++	fc3 = (buffer[0x400005]>>5) & 0x07;
++	fc4 = (buffer[0x800005]>>5) & 0x07;
++	fc5 = (buffer[0x1000005]>>5) & 0x07;
++  return (fc1 | (fc2 << 3) | (fc3 << 6) | (fc4 << 9) | (fc5 << 12));
 +}
 +
 diff --git a/scaler.h b/scaler.h
-index 3eb4084..2d9dcb0 100644
+index 3eb4084..e354f4b 100644
 --- a/scaler.h
 +++ b/scaler.h
-@@ -27,5 +27,6 @@ int mister_scaler_read(mister_scaler *,unsigned char *buffer);
+@@ -20,12 +20,13 @@ typedef struct {
+ } mister_scaler;
+ 
+ #define MISTER_SCALER_BASEADDR     0x20000000
+-#define MISTER_SCALER_BUFFERSIZE   2048*3*1024
++#define MISTER_SCALER_BUFFERSIZE   2048*3*4096
+ 
+ mister_scaler *mister_scaler_init();
+ int mister_scaler_read(mister_scaler *,unsigned char *buffer);
  int mister_scaler_read_32(mister_scaler *ms, unsigned char *buffer);
  int mister_scaler_read_yuv(mister_scaler *ms,int,unsigned char *y,int, unsigned char *U,int, unsigned char *V);
  void mister_scaler_free(mister_scaler *);

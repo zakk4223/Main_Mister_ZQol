@@ -1,7 +1,7 @@
-From 65efe03399dd07bd1e35cf6bded9482b27e24a6b Mon Sep 17 00:00:00 2001
+From ad065d48c6bc8f92a1a96e6d37f973c82cd8015e Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 27 Sep 2023 14:30:20 -0400
-Subject: [PATCH 8/8] saturn_chd
+Date: Thu, 28 Sep 2023 02:07:15 -0400
+Subject: [PATCH 8/8] 0008
 
 ---
  menu.cpp                     |  2 +-
