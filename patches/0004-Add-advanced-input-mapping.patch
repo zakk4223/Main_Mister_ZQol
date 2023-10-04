@@ -1,7 +1,7 @@
-From dd7bf3b41026d8ee8ca2304a62a51f2c66f918a4 Mon Sep 17 00:00:00 2001
+From e300888c71bab871585a183a47c4b18ffe179828 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 28 Sep 2023 02:06:39 -0400
-Subject: [PATCH 4/8] 0004
+Date: Wed, 4 Oct 2023 13:43:08 -0400
+Subject: [PATCH 4/9] 0004
 
 ---
  gamecontroller_db.cpp |  15 +-
