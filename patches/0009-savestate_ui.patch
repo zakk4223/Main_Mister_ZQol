@@ -1,6 +1,6 @@
-From c0750da992c7b3f3a5ed780c433ffc273efb9ac2 Mon Sep 17 00:00:00 2001
+From 202eeee863772e63b60eac66f5f6d3fff571cf67 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 4 Oct 2023 15:14:36 -0400
+Date: Wed, 11 Oct 2023 03:10:29 -0400
 Subject: [PATCH 9/9] 0009
 
 ---
@@ -67,10 +67,10 @@ index def1b4d..03f96a3 100644
  		if( p )
  		{
 diff --git a/input.cpp b/input.cpp
-index 046b137..a760723 100644
+index 162d172..128498d 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -1926,6 +1926,7 @@ static void uinp_send_key(uint16_t key, int press)
+@@ -1929,6 +1929,7 @@ static void uinp_send_key(uint16_t key, int press)
  
  static void uinp_check_key()
  {

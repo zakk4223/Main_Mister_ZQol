@@ -1,6 +1,6 @@
-From 9cf3253165d270deeeb5fb73ed28bae17c0dd075 Mon Sep 17 00:00:00 2001
+From 3f1c005958803abb6c73269c4c7cc42d9c9bf5f8 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 4 Oct 2023 13:43:29 -0400
+Date: Wed, 11 Oct 2023 03:10:04 -0400
 Subject: [PATCH 6/9] 0006
 
 ---
@@ -43,10 +43,10 @@ index 65cb797..3deeb92 100644
  
  extern cfg_t cfg;
 diff --git a/input.cpp b/input.cpp
-index 3f99809..73aafe6 100644
+index b205cbd..0e9ceb2 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -6147,9 +6147,34 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
+@@ -6161,9 +6161,34 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
  		if (abm->bnum[i] < 0) break;
  		int sys_btn = abm->bnum[i];
  		if (!(sys_btn & 0xF0)) continue;
@@ -81,7 +81,7 @@ index 3f99809..73aafe6 100644
  				case SYS_BTN_SCREENSHOT:
  	        if (abm->pressed && abm->cur_state_frames == 1)
  					  user_io_screenshot(nullptr, 1);
-@@ -6181,10 +6206,10 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
+@@ -6195,10 +6220,10 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
  //This function sets the button state for the given player, but will also directly
  //send keyboard events if any are mapped
  
@@ -94,7 +94,7 @@ index 3f99809..73aafe6 100644
  
  	for (uint devnum = 0; devnum < NUMDEV; devnum++)
  	{
-@@ -6256,6 +6281,7 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
+@@ -6270,6 +6295,7 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
  					{
  						int bnum = abm->bnum[b];
  						if (bnum < 0) break;
@@ -102,7 +102,7 @@ index 3f99809..73aafe6 100644
  						if (!(joy[pnum] & 1<<bnum))
  						{
  							if (abm->button_state == BUTTON_ON) autofire_new[pnum] |= 1<<bnum;
-@@ -6351,7 +6377,7 @@ int input_poll(int getchar)
+@@ -6365,7 +6391,7 @@ int input_poll(int getchar)
  				if (joy[i] & autofire[i]) send = 1;
  			}
  
