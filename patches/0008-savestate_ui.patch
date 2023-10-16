@@ -1,7 +1,7 @@
-From 202eeee863772e63b60eac66f5f6d3fff571cf67 Mon Sep 17 00:00:00 2001
+From ef2f31cfad8de17c6ef5917f73d95e8af3a3a9f2 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 11 Oct 2023 03:10:29 -0400
-Subject: [PATCH 9/9] 0009
+Date: Mon, 16 Oct 2023 13:59:29 -0400
+Subject: [PATCH 8/8] 0008
 
 ---
  cfg.cpp       |   7 +++
@@ -67,7 +67,7 @@ index def1b4d..03f96a3 100644
  		if( p )
  		{
 diff --git a/input.cpp b/input.cpp
-index 162d172..128498d 100644
+index 28b1789..d1dbcf6 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -1929,6 +1929,7 @@ static void uinp_send_key(uint16_t key, int press)
