@@ -1,6 +1,6 @@
-From 215923443bcfd9c64583075739b6566fd77d4695 Mon Sep 17 00:00:00 2001
+From 0a96ba0ae8c2d2119a851bfc63cc701696908e3d Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 16 Oct 2023 13:59:02 -0400
+Date: Tue, 24 Oct 2023 13:15:13 -0400
 Subject: [PATCH 6/8] 0006
 
 ---
@@ -126,7 +126,7 @@ index f0b8ce3..3a02a60 100644
  
  void set_kbdled(int mask, int state);
 diff --git a/menu.cpp b/menu.cpp
-index 33782d4..30024ea 100644
+index 3ae61e8..200c691 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -212,10 +212,13 @@ enum MENU
@@ -168,7 +168,7 @@ index 33782d4..30024ea 100644
  			else if (saved_menustate)
  			{
  				menustate = saved_menustate;
-@@ -3745,6 +3751,78 @@ void HandleUI(void)
+@@ -3751,6 +3757,78 @@ void HandleUI(void)
  					}
  					break;
  				}
@@ -247,7 +247,7 @@ index 33782d4..30024ea 100644
  	case MENU_DOC_FILE_SELECTED:
  		if (cfg.fb_terminal)
  		{
-@@ -8209,3 +8287,15 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
+@@ -8215,3 +8293,15 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
  		InfoMessage(progress_buf, 2000, title);
  	}
  }
@@ -275,7 +275,7 @@ index 00dc75c..95ecf29 100644
  
  #endif
 diff --git a/user_io.cpp b/user_io.cpp
-index 2de244e..15e39e6 100644
+index 5bb6d7c..de684bf 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -39,6 +39,10 @@
@@ -289,7 +289,7 @@ index 2de244e..15e39e6 100644
  static char core_path[1024] = {};
  static char rbf_path[1024] = {};
  
-@@ -1841,6 +1845,7 @@ int process_ss(const char *rom_name, int enable)
+@@ -1854,6 +1858,7 @@ int process_ss(const char *rom_name, int enable)
  
  		FileGenerateSavestatePath(rom_name, ss_name, 1);
  		ss_sufx = ss_name + strlen(ss_name) - 4;
@@ -297,7 +297,7 @@ index 2de244e..15e39e6 100644
  		return 1;
  	}
  
-@@ -1858,6 +1863,7 @@ int process_ss(const char *rom_name, int enable)
+@@ -1871,6 +1876,7 @@ int process_ss(const char *rom_name, int enable)
  			uint32_t curcnt = ((uint32_t*)(base[i]))[0];
  			uint32_t size = ((uint32_t*)(base[i]))[1];
  
@@ -305,7 +305,7 @@ index 2de244e..15e39e6 100644
  			if (curcnt != ss_cnt[i])
  			{
  				ss_cnt[i] = curcnt;
-@@ -1867,12 +1873,19 @@ int process_ss(const char *rom_name, int enable)
+@@ -1880,12 +1886,19 @@ int process_ss(const char *rom_name, int enable)
  					MenuHide();
  					Info("Saving the state", 500);
  
@@ -328,7 +328,7 @@ index 2de244e..15e39e6 100644
  					}
  					else
  					{
-@@ -4109,3 +4122,80 @@ void user_io_screenshot_cmd(const char *cmd)
+@@ -4129,3 +4142,80 @@ void user_io_screenshot_cmd(const char *cmd)
  
  	user_io_screenshot(cmd,0);
  }
@@ -410,12 +410,12 @@ index 2de244e..15e39e6 100644
 +
 +
 diff --git a/user_io.h b/user_io.h
-index 4fc2ec9..78f8017 100644
+index 2f25d7e..4a88b44 100644
 --- a/user_io.h
 +++ b/user_io.h
-@@ -281,6 +281,16 @@ char is_saturn();
- char is_pcxt();
+@@ -282,6 +282,16 @@ char is_pcxt();
  char is_n64();
+ char is_uneon();
  
 +
 +void ss_menu_load();

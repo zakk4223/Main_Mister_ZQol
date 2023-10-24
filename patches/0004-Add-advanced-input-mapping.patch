@@ -1,6 +1,6 @@
-From 7f879256266945ac699c108d667a29b6cdbb02b1 Mon Sep 17 00:00:00 2001
+From 523eabb4f26589a8a90a935204560b3a16168f54 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 16 Oct 2023 13:58:42 -0400
+Date: Tue, 24 Oct 2023 13:15:00 -0400
 Subject: [PATCH 4/8] 0004
 
 ---
@@ -1099,7 +1099,7 @@ index e89dc98..f0b8ce3 100644
  
  #endif
 diff --git a/menu.cpp b/menu.cpp
-index e911594..33782d4 100644
+index 011d86f..3ae61e8 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -64,6 +64,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -1260,7 +1260,7 @@ index e911594..33782d4 100644
  			if(video_fb_state()) video_menu_bg(user_io_status_get("[3:1]"));
  			video_fb_enable(0);
  			break;
-@@ -2534,7 +2638,7 @@ void HandleUI(void)
+@@ -2540,7 +2644,7 @@ void HandleUI(void)
  			while(1)
  			{
  				n = 0;
@@ -1269,7 +1269,7 @@ index e911594..33782d4 100644
  
  				if (!menusub) firstmenu = 0;
  				adjvisible = 0;
-@@ -2555,6 +2659,7 @@ void HandleUI(void)
+@@ -2561,6 +2665,7 @@ void HandleUI(void)
  				MenuWrite(n++, s, menusub == 2, 0);
  				MenuWrite(n++, " Button/Key remap          \x16", menusub == 3, 0);
  				MenuWrite(n++, " Change player assignment", menusub == 4, 0);
@@ -1277,7 +1277,7 @@ index e911594..33782d4 100644
  
  				if (user_io_get_uart_mode())
  				{
-@@ -2566,11 +2671,11 @@ void HandleUI(void)
+@@ -2572,11 +2677,11 @@ void HandleUI(void)
  					sprintf(s, " UART mode (%s)            ",p);
  					s[27] = '\x16';
  					s[28] = 0;
@@ -1291,7 +1291,7 @@ index e911594..33782d4 100644
  
  				if (audio_filter_en() >= 0)
  				{
-@@ -2690,14 +2795,21 @@ void HandleUI(void)
+@@ -2696,14 +2801,21 @@ void HandleUI(void)
          menusub = 0;
  				break;
  
@@ -1315,7 +1315,7 @@ index e911594..33782d4 100644
  				{
  					menustate = MENU_VIDEOPROC1;
  					menusub = 0;
-@@ -3049,6 +3161,590 @@ void HandleUI(void)
+@@ -3055,6 +3167,590 @@ void HandleUI(void)
  		}
  		break;
  
@@ -1906,7 +1906,7 @@ index e911594..33782d4 100644
  	case MENU_DOC_FILE_SELECTED:
  		if (cfg.fb_terminal)
  		{
-@@ -6514,7 +7210,7 @@ void HandleUI(void)
+@@ -6520,7 +7216,7 @@ void HandleUI(void)
  
  		m = 0;
  		OsdSetTitle("System Settings", OSD_ARROW_LEFT);
@@ -1915,7 +1915,7 @@ index e911594..33782d4 100644
  
  		OsdWrite(m++);
  		sprintf(s, "       MiSTer v%s", version + 5);
-@@ -6565,17 +7261,18 @@ void HandleUI(void)
+@@ -6571,17 +7267,18 @@ void HandleUI(void)
  		OsdWrite(m++, "");
  		OsdWrite(m++, " Remap keyboard            \x16", menusub == 1);
  		OsdWrite(m++, " Define joystick buttons   \x16", menusub == 2);
@@ -1938,7 +1938,7 @@ index e911594..33782d4 100644
  		menustate = MENU_SYSTEM2;
  		break;
  
-@@ -6604,6 +7301,10 @@ void HandleUI(void)
+@@ -6610,6 +7307,10 @@ void HandleUI(void)
  				break;
  
  			case 3:
@@ -1949,7 +1949,7 @@ index e911594..33782d4 100644
  				{
  					uint8_t confirm[32] = {};
  					int match = 0;
-@@ -6630,13 +7331,13 @@ void HandleUI(void)
+@@ -6636,13 +7337,13 @@ void HandleUI(void)
  				}
  				break;
  
@@ -1965,7 +1965,7 @@ index e911594..33782d4 100644
  				{
  					reboot_req = 1;
  
-@@ -6649,7 +7350,7 @@ void HandleUI(void)
+@@ -6655,7 +7356,7 @@ void HandleUI(void)
  				}
  				break;
  
@@ -2027,10 +2027,10 @@ index 3eb4084..e354f4b 100644
  
  #endif
 diff --git a/user_io.cpp b/user_io.cpp
-index c37ac43..2de244e 100644
+index 2a46c47..5bb6d7c 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
-@@ -3888,7 +3888,7 @@ void user_io_kbd(uint16_t key, int press)
+@@ -3908,7 +3908,7 @@ void user_io_kbd(uint16_t key, int press)
  				if (key == KEY_MENU) key = KEY_F12;
  				if (key != KEY_F12 || !block_F12)
  				{
@@ -2039,7 +2039,7 @@ index c37ac43..2de244e 100644
  
  					// these modifiers should be passed to core even if OSD is open or they will get stuck!
  					if (!osd_is_visible || key == KEY_LEFTALT || key == KEY_RIGHTALT || key == KEY_LEFTMETA || key == KEY_RIGHTMETA) send_keycode(key, press);
-@@ -3901,14 +3901,14 @@ void user_io_kbd(uint16_t key, int press)
+@@ -3921,14 +3921,14 @@ void user_io_kbd(uint16_t key, int press)
  				if (!osd_is_visible && !is_menu() && key == KEY_MENU && press == 3) open_joystick_setup();
  				else if ((has_menu() || osd_is_visible || (get_key_mod() & (LALT | RALT | RGUI | LGUI))) && (((key == KEY_F12) && ((!is_x86() && !is_pcxt() && !is_archie()) || (get_key_mod() & (RGUI | LGUI)))) || key == KEY_MENU))
  				{

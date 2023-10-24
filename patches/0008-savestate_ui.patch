@@ -1,6 +1,6 @@
-From ef2f31cfad8de17c6ef5917f73d95e8af3a3a9f2 Mon Sep 17 00:00:00 2001
+From 27e9c54d8e820c3367c2337bceb5c89589bcab08 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 16 Oct 2023 13:59:29 -0400
+Date: Tue, 24 Oct 2023 13:17:05 -0400
 Subject: [PATCH 8/8] 0008
 
 ---
@@ -79,7 +79,7 @@ index 28b1789..d1dbcf6 100644
  	{
  		if (!grabbed)
 diff --git a/menu.cpp b/menu.cpp
-index 30024ea..be3d1cd 100644
+index 200c691..59e53f6 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -44,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -258,7 +258,7 @@ index 30024ea..be3d1cd 100644
  			if (mgl->state == 1) mgl->state = 2;
  		}
  		break;
-@@ -3753,6 +3834,9 @@ void HandleUI(void)
+@@ -3759,6 +3840,9 @@ void HandleUI(void)
  				}
    case MENU_SAVE_STATE1:
     {
@@ -268,7 +268,7 @@ index 30024ea..be3d1cd 100644
  					menustate = MENU_SAVE_STATE2;
  					parentstate = MENU_SAVE_STATE1;
  					OsdSetTitle("Save States", 0);
-@@ -3776,10 +3860,20 @@ void HandleUI(void)
+@@ -3782,10 +3866,20 @@ void HandleUI(void)
            MenuWrite(n, " Save", menusub == n, 0); n++;
  					MenuWrite(n, " Load", menusub == n, 0); n++;
  					for (int i = n; i < OsdGetSize() - 1; i++) MenuWrite(i, "", 0, 0);
@@ -289,7 +289,7 @@ index 30024ea..be3d1cd 100644
       if (select || minus || plus || left || right)
       {
         menustate = MENU_SAVE_STATE1;
-@@ -3811,9 +3905,10 @@ void HandleUI(void)
+@@ -3817,9 +3911,10 @@ void HandleUI(void)
          case 3:
             if (select)
             {
@@ -302,7 +302,7 @@ index 30024ea..be3d1cd 100644
             break;
         }
       }
-@@ -3823,6 +3918,7 @@ void HandleUI(void)
+@@ -3829,6 +3924,7 @@ void HandleUI(void)
       }
     }
     break;
@@ -310,7 +310,7 @@ index 30024ea..be3d1cd 100644
  	case MENU_DOC_FILE_SELECTED:
  		if (cfg.fb_terminal)
  		{
-@@ -8130,6 +8226,18 @@ void PrintDirectory(int expand)
+@@ -8136,6 +8232,18 @@ void PrintDirectory(int expand)
  	}
  }
  
@@ -329,7 +329,7 @@ index 30024ea..be3d1cd 100644
  static void set_text(const char *message, unsigned char code)
  {
  	char s[40];
-@@ -8291,6 +8399,24 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
+@@ -8297,6 +8405,24 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
  
  void menu_open_savestate_osd()
  {
@@ -354,7 +354,7 @@ index 30024ea..be3d1cd 100644
    if (!user_io_osd_is_visible())
    {
      menu_open_savestate = true;
-@@ -8298,4 +8424,5 @@ void menu_open_savestate_osd()
+@@ -8304,4 +8430,5 @@ void menu_open_savestate_osd()
      menu_open_savestate = false;
      menustate = MENU_NONE1;
    }
@@ -385,7 +385,7 @@ index 919d31a..7b3323f 100644
  		}
  
 diff --git a/user_io.cpp b/user_io.cpp
-index 15e39e6..c9dabde 100644
+index de684bf..996d2aa 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -9,11 +9,14 @@
@@ -403,7 +403,7 @@ index 15e39e6..c9dabde 100644
  #include "user_io.h"
  #include "debug.h"
  #include "spi.h"
-@@ -1863,7 +1866,6 @@ int process_ss(const char *rom_name, int enable)
+@@ -1876,7 +1879,6 @@ int process_ss(const char *rom_name, int enable)
  			uint32_t curcnt = ((uint32_t*)(base[i]))[0];
  			uint32_t size = ((uint32_t*)(base[i]))[1];
  
@@ -411,7 +411,7 @@ index 15e39e6..c9dabde 100644
  			if (curcnt != ss_cnt[i])
  			{
  				ss_cnt[i] = curcnt;
-@@ -4194,8 +4196,34 @@ void ss_menu_save()
+@@ -4214,8 +4216,34 @@ void ss_menu_save()
    if (!cfg.ss_save_bit[0]) return;
  
    ss_save_pending = true;
@@ -447,10 +447,10 @@ index 15e39e6..c9dabde 100644
 +}
 +
 diff --git a/user_io.h b/user_io.h
-index 78f8017..175fa06 100644
+index 4a88b44..91e0182 100644
 --- a/user_io.h
 +++ b/user_io.h
-@@ -283,8 +283,10 @@ char is_n64();
+@@ -284,8 +284,10 @@ char is_uneon();
  
  
  void ss_menu_load();
