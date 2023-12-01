@@ -1,6 +1,6 @@
-From 27e9c54d8e820c3367c2337bceb5c89589bcab08 Mon Sep 17 00:00:00 2001
+From 8e734b55a0dc30fc65eccee09204e28ebe672e5a Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 24 Oct 2023 13:17:05 -0400
+Date: Fri, 1 Dec 2023 13:28:18 -0500
 Subject: [PATCH 8/8] 0008
 
 ---
@@ -16,10 +16,10 @@ Subject: [PATCH 8/8] 0008
  9 files changed, 180 insertions(+), 11 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 049cca5..7083280 100644
+index a67fc03..c307b34 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -132,6 +132,7 @@ static const ini_var_t ini_vars[] =
+@@ -133,6 +133,7 @@ static const ini_var_t ini_vars[] =
   	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
  	{ "SOCD_UD", (void*)(&(cfg.socd_ud)), STRING, 0, sizeof(cfg.socd_ud) - 1 },
  	{ "SOCD_LR", (void*)(&(cfg.socd_lr)), STRING, 0, sizeof(cfg.socd_lr) - 1 },
@@ -27,7 +27,7 @@ index 049cca5..7083280 100644
  };
  
  static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
-@@ -575,6 +576,12 @@ void cfg_parse()
+@@ -576,6 +577,12 @@ void cfg_parse()
      if (!strcasecmp(cfg.socd_lr, "right")) cfg.socd_lr_int = SOCD_LR_RIGHT;
    }
  
@@ -41,10 +41,10 @@ index 049cca5..7083280 100644
  
  bool cfg_has_video_sections()
 diff --git a/cfg.h b/cfg.h
-index c937b59..02e58ea 100644
+index 87ded5f..96256e2 100644
 --- a/cfg.h
 +++ b/cfg.h
-@@ -113,6 +113,8 @@ typedef struct {
+@@ -114,6 +114,8 @@ typedef struct {
    char socd_lr[16];
    uint8_t socd_ud_int;
    uint8_t socd_lr_int;
@@ -54,10 +54,10 @@ index c937b59..02e58ea 100644
  
  extern cfg_t cfg;
 diff --git a/file_io.cpp b/file_io.cpp
-index def1b4d..03f96a3 100644
+index dbc2c18..8a668d0 100644
 --- a/file_io.cpp
 +++ b/file_io.cpp
-@@ -839,7 +839,7 @@ void FileGenerateScreenshotName(const char *name, char *out_name, int buflen)
+@@ -838,7 +838,7 @@ void FileGenerateScreenshotName(const char *name, char *out_name, int buflen)
  	// If the name ends with .png then don't modify it
  	if( !strcasecmp(name + strlen(name) - 4, ".png") )
  	{
@@ -67,10 +67,10 @@ index def1b4d..03f96a3 100644
  		if( p )
  		{
 diff --git a/input.cpp b/input.cpp
-index 28b1789..d1dbcf6 100644
+index ea63a8e..cb7a9ca 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -1929,6 +1929,7 @@ static void uinp_send_key(uint16_t key, int press)
+@@ -1931,6 +1931,7 @@ static void uinp_send_key(uint16_t key, int press)
  
  static void uinp_check_key()
  {
@@ -385,7 +385,7 @@ index 919d31a..7b3323f 100644
  		}
  
 diff --git a/user_io.cpp b/user_io.cpp
-index de684bf..996d2aa 100644
+index cbf71b9..7cb244f 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -9,11 +9,14 @@
@@ -411,7 +411,7 @@ index de684bf..996d2aa 100644
  			if (curcnt != ss_cnt[i])
  			{
  				ss_cnt[i] = curcnt;
-@@ -4214,8 +4216,34 @@ void ss_menu_save()
+@@ -4222,8 +4224,34 @@ void ss_menu_save()
    if (!cfg.ss_save_bit[0]) return;
  
    ss_save_pending = true;
@@ -462,5 +462,5 @@ index 4a88b44..91e0182 100644
  int ss_menu_get_descr(char *descr, int descr_sz);
  bool core_has_save_states();
 -- 
-2.42.0
+2.43.0
 

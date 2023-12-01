@@ -1,6 +1,6 @@
-From 0a96ba0ae8c2d2119a851bfc63cc701696908e3d Mon Sep 17 00:00:00 2001
+From 7f071b62c7886f3ba9767e6864ee8929698973bf Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 24 Oct 2023 13:15:13 -0400
+Date: Fri, 1 Dec 2023 13:27:58 -0500
 Subject: [PATCH 6/8] 0006
 
 ---
@@ -15,13 +15,13 @@ Subject: [PATCH 6/8] 0006
  8 files changed, 231 insertions(+), 8 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 06fd378..e520654 100644
+index 5eef4a8..d8a35ee 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -127,6 +127,9 @@ static const ini_var_t ini_vars[] =
+@@ -128,6 +128,9 @@ static const ini_var_t ini_vars[] =
  	{ "CONTROLLER_UNIQUE_MAPPING", (void *)(cfg.controller_unique_mapping), UINT32ARR, 0, 0xFFFFFFFF },
  	{ "OSD_LOCK", (void*)(&(cfg.osd_lock)), STRING, 0, sizeof(cfg.osd_lock) - 1 },
- 	{ "OSD_LOCK_TIME", (void*)(&(cfg.osd_lock_time)), UINT16, 0, 60},
+ 	{ "OSD_LOCK_TIME", (void*)(&(cfg.osd_lock_time)), UINT16, 0, 60 },
 +	{ "SS_LOAD_BIT", (void *)(&(cfg.ss_load_bit)), STRING, 0, sizeof(cfg.ss_load_bit) - 1},
 + 	{ "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
 + 	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
@@ -29,10 +29,10 @@ index 06fd378..e520654 100644
  
  static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
 diff --git a/cfg.h b/cfg.h
-index 65cb797..3deeb92 100644
+index f90c0c0..e0e190c 100644
 --- a/cfg.h
 +++ b/cfg.h
-@@ -97,6 +97,9 @@ typedef struct {
+@@ -98,6 +98,9 @@ typedef struct {
  	uint32_t controller_unique_mapping[256];
  	char osd_lock[25];
  	uint16_t osd_lock_time;
@@ -43,10 +43,10 @@ index 65cb797..3deeb92 100644
  
  extern cfg_t cfg;
 diff --git a/input.cpp b/input.cpp
-index 4d9d1ed..f889433 100644
+index d64bf64..29b7e7b 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -6162,9 +6162,34 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
+@@ -6306,9 +6306,34 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
  		if (abm->bnum[i] < 0) break;
  		int sys_btn = abm->bnum[i];
  		if (!(sys_btn & 0xF0)) continue;
@@ -81,7 +81,7 @@ index 4d9d1ed..f889433 100644
  				case SYS_BTN_SCREENSHOT:
  	        if (abm->pressed && abm->cur_state_frames == 1)
  					  user_io_screenshot(nullptr, 1);
-@@ -6196,10 +6221,10 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
+@@ -6340,10 +6365,10 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
  //This function sets the button state for the given player, but will also directly
  //send keyboard events if any are mapped
  
@@ -94,7 +94,7 @@ index 4d9d1ed..f889433 100644
  
  	for (uint devnum = 0; devnum < NUMDEV; devnum++)
  	{
-@@ -6271,6 +6296,7 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
+@@ -6415,6 +6440,7 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
  					{
  						int bnum = abm->bnum[b];
  						if (bnum < 0) break;
@@ -102,7 +102,7 @@ index 4d9d1ed..f889433 100644
  						if (!(joy[pnum] & 1<<bnum))
  						{
  							if (abm->button_state == BUTTON_ON) autofire_new[pnum] |= 1<<bnum;
-@@ -6366,7 +6392,7 @@ int input_poll(int getchar)
+@@ -6510,7 +6536,7 @@ int input_poll(int getchar)
  				if (joy[i] & autofire[i]) send = 1;
  			}
  
@@ -275,7 +275,7 @@ index 00dc75c..95ecf29 100644
  
  #endif
 diff --git a/user_io.cpp b/user_io.cpp
-index 5bb6d7c..de684bf 100644
+index 8afa55f..cbf71b9 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -39,6 +39,10 @@
@@ -328,7 +328,7 @@ index 5bb6d7c..de684bf 100644
  					}
  					else
  					{
-@@ -4129,3 +4142,80 @@ void user_io_screenshot_cmd(const char *cmd)
+@@ -4137,3 +4150,80 @@ void user_io_screenshot_cmd(const char *cmd)
  
  	user_io_screenshot(cmd,0);
  }
@@ -431,5 +431,5 @@ index 2f25d7e..4a88b44 100644
  #define CoreName user_io_get_core_name()
  
 -- 
-2.42.0
+2.43.0
 
