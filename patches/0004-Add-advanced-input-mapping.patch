@@ -1,6 +1,6 @@
-From a8dac3d5b1d744e0bd0ed95b12fc658bb0d83f80 Mon Sep 17 00:00:00 2001
+From 8caf4f72fcd0bf301cac170ea7bbdd79924264e7 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 1 Dec 2023 13:25:07 -0500
+Date: Fri, 22 Dec 2023 22:35:02 -0500
 Subject: [PATCH 4/8] 0004
 
 ---
@@ -76,7 +76,7 @@ index 0010c58..42540aa 100644
  
  
 diff --git a/input.cpp b/input.cpp
-index f90b201..6932843 100644
+index 064a62d..457ef9f 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -28,6 +28,7 @@
@@ -574,7 +574,7 @@ index f90b201..6932843 100644
  					}
  				}
  			}
-@@ -5083,6 +5367,12 @@ int input_test(int getchar)
+@@ -5085,6 +5369,12 @@ int input_test(int getchar)
  			unflag_players();
  		}
  		cur_leds |= 0x80;
@@ -587,7 +587,7 @@ index f90b201..6932843 100644
  		state++;
  	}
  
-@@ -5131,6 +5421,7 @@ int input_test(int getchar)
+@@ -5133,6 +5423,7 @@ int input_test(int getchar)
  					if (input[i].bind >= 0) dev = input[i].bind;
  					if (!input[dev].num) continue;
  
@@ -595,7 +595,7 @@ index f90b201..6932843 100644
  					set_rumble(i, spi_uio_cmd(UIO_GET_RUMBLE | ((input[dev].num - 1) << 8)));
  				}
  			}
-@@ -5602,7 +5893,7 @@ int input_test(int getchar)
+@@ -5604,7 +5895,7 @@ int input_test(int getchar)
  										int treshold = range / 4;
  
  										int only_max = 1;
@@ -604,7 +604,7 @@ index f90b201..6932843 100644
  
  										if (ev.value < center - treshold && !only_max) axis_edge = 1;
  										if (ev.value > center + treshold) axis_edge = 2;
-@@ -5795,6 +6086,161 @@ int input_test(int getchar)
+@@ -5797,6 +6088,161 @@ int input_test(int getchar)
  	return 0;
  }
  
@@ -766,7 +766,7 @@ index f90b201..6932843 100644
  int input_poll(int getchar)
  {
  	PROFILE_FUNCTION();
-@@ -5837,6 +6283,8 @@ int input_poll(int getchar)
+@@ -5839,6 +6285,8 @@ int input_poll(int getchar)
  
  	if (grabbed)
  	{
@@ -775,7 +775,7 @@ index f90b201..6932843 100644
  		for (int i = 0; i < NUMPLAYERS; i++)
  		{
  			if (af_delay[i] < AF_MIN) af_delay[i] = AF_MIN;
-@@ -5844,29 +6292,30 @@ int input_poll(int getchar)
+@@ -5846,29 +6294,30 @@ int input_poll(int getchar)
  			if (!time[i]) time[i] = GetTimer(af_delay[i]);
  			int send = 0;
  
@@ -819,7 +819,7 @@ index f90b201..6932843 100644
  			}
  		}
  	}
-@@ -6026,3 +6475,210 @@ void parse_buttons()
+@@ -6028,3 +6477,210 @@ void parse_buttons()
  		joy_bcount++;
  	}
  }
@@ -1104,7 +1104,7 @@ index e89dc98..f0b8ce3 100644
  
  #endif
 diff --git a/menu.cpp b/menu.cpp
-index 011d86f..3ae61e8 100644
+index ec2ffc8..e65643a 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -64,6 +64,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -2032,10 +2032,10 @@ index 3eb4084..e354f4b 100644
  
  #endif
 diff --git a/user_io.cpp b/user_io.cpp
-index 6623de6..8afa55f 100644
+index e594619..171d678 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
-@@ -3916,7 +3916,7 @@ void user_io_kbd(uint16_t key, int press)
+@@ -3930,7 +3930,7 @@ void user_io_kbd(uint16_t key, int press)
  				if (key == KEY_MENU) key = KEY_F12;
  				if (key != KEY_F12 || !block_F12)
  				{
@@ -2044,7 +2044,7 @@ index 6623de6..8afa55f 100644
  
  					// these modifiers should be passed to core even if OSD is open or they will get stuck!
  					if (!osd_is_visible || key == KEY_LEFTALT || key == KEY_RIGHTALT || key == KEY_LEFTMETA || key == KEY_RIGHTMETA) send_keycode(key, press);
-@@ -3929,14 +3929,14 @@ void user_io_kbd(uint16_t key, int press)
+@@ -3943,14 +3943,14 @@ void user_io_kbd(uint16_t key, int press)
  				if (!osd_is_visible && !is_menu() && key == KEY_MENU && press == 3) open_joystick_setup();
  				else if ((has_menu() || osd_is_visible || (get_key_mod() & (LALT | RALT | RGUI | LGUI))) && (((key == KEY_F12) && ((!is_x86() && !is_pcxt() && !is_archie()) || (get_key_mod() & (RGUI | LGUI)))) || key == KEY_MENU))
  				{

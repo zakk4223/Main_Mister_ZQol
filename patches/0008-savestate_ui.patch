@@ -1,6 +1,6 @@
-From 8e734b55a0dc30fc65eccee09204e28ebe672e5a Mon Sep 17 00:00:00 2001
+From 3ec58d1c3faae48d7d51c8eef112c35d311a875c Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 1 Dec 2023 13:28:18 -0500
+Date: Fri, 22 Dec 2023 22:35:43 -0500
 Subject: [PATCH 8/8] 0008
 
 ---
@@ -54,7 +54,7 @@ index 87ded5f..96256e2 100644
  
  extern cfg_t cfg;
 diff --git a/file_io.cpp b/file_io.cpp
-index dbc2c18..8a668d0 100644
+index 65069bf..e39f4b2 100644
 --- a/file_io.cpp
 +++ b/file_io.cpp
 @@ -838,7 +838,7 @@ void FileGenerateScreenshotName(const char *name, char *out_name, int buflen)
@@ -67,7 +67,7 @@ index dbc2c18..8a668d0 100644
  		if( p )
  		{
 diff --git a/input.cpp b/input.cpp
-index ea63a8e..cb7a9ca 100644
+index c9188a0..075cde3 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -1931,6 +1931,7 @@ static void uinp_send_key(uint16_t key, int press)
@@ -79,7 +79,7 @@ index ea63a8e..cb7a9ca 100644
  	{
  		if (!grabbed)
 diff --git a/menu.cpp b/menu.cpp
-index 200c691..59e53f6 100644
+index c5181e3..8424e55 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -44,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -329,7 +329,7 @@ index 200c691..59e53f6 100644
  static void set_text(const char *message, unsigned char code)
  {
  	char s[40];
-@@ -8297,6 +8405,24 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
+@@ -8302,6 +8410,24 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
  
  void menu_open_savestate_osd()
  {
@@ -354,14 +354,14 @@ index 200c691..59e53f6 100644
    if (!user_io_osd_is_visible())
    {
      menu_open_savestate = true;
-@@ -8304,4 +8430,5 @@ void menu_open_savestate_osd()
+@@ -8309,4 +8435,5 @@ void menu_open_savestate_osd()
      menu_open_savestate = false;
      menustate = MENU_NONE1;
    }
 +	
  }
 diff --git a/menu.h b/menu.h
-index 95ecf29..e9ee021 100644
+index 9c2f48a..6d41e4b 100644
 --- a/menu.h
 +++ b/menu.h
 @@ -16,6 +16,7 @@ void InfoMessage(const char *message, int timeout = 2000, const char *title = "M
@@ -385,7 +385,7 @@ index 919d31a..7b3323f 100644
  		}
  
 diff --git a/user_io.cpp b/user_io.cpp
-index cbf71b9..7cb244f 100644
+index 2dfdde7..ae31dae 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -9,11 +9,14 @@
@@ -403,7 +403,7 @@ index cbf71b9..7cb244f 100644
  #include "user_io.h"
  #include "debug.h"
  #include "spi.h"
-@@ -1876,7 +1879,6 @@ int process_ss(const char *rom_name, int enable)
+@@ -1881,7 +1884,6 @@ int process_ss(const char *rom_name, int enable)
  			uint32_t curcnt = ((uint32_t*)(base[i]))[0];
  			uint32_t size = ((uint32_t*)(base[i]))[1];
  
@@ -411,7 +411,7 @@ index cbf71b9..7cb244f 100644
  			if (curcnt != ss_cnt[i])
  			{
  				ss_cnt[i] = curcnt;
-@@ -4222,8 +4224,34 @@ void ss_menu_save()
+@@ -4236,8 +4238,34 @@ void ss_menu_save()
    if (!cfg.ss_save_bit[0]) return;
  
    ss_save_pending = true;
@@ -447,10 +447,10 @@ index cbf71b9..7cb244f 100644
 +}
 +
 diff --git a/user_io.h b/user_io.h
-index 4a88b44..91e0182 100644
+index c94c1a6..e3d9c65 100644
 --- a/user_io.h
 +++ b/user_io.h
-@@ -284,8 +284,10 @@ char is_uneon();
+@@ -286,8 +286,10 @@ char is_uneon();
  
  
  void ss_menu_load();

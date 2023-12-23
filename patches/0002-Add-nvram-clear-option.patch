@@ -1,6 +1,6 @@
-From d0f67d24ccb837ab99da4b9103a533dd48fa0dba Mon Sep 17 00:00:00 2001
+From 24ab1100d112b8037d0e466b8b2bae248adae508 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 1 Dec 2023 11:42:23 -0500
+Date: Fri, 22 Dec 2023 22:34:29 -0500
 Subject: [PATCH 2/8] 0002
 
 ---
@@ -10,7 +10,7 @@ Subject: [PATCH 2/8] 0002
  3 files changed, 40 insertions(+)
 
 diff --git a/menu.cpp b/menu.cpp
-index 6d38d7e..011d86f 100644
+index 040ff4f..ec2ffc8 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -977,6 +977,7 @@ void HandleUI(void)
