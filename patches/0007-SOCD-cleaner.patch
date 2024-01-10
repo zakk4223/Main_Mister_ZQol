@@ -1,6 +1,6 @@
-From 3e08e0958fee8849fd115b8f60cd7f619f66a0f2 Mon Sep 17 00:00:00 2001
+From 46d6e0bb4b1a0c7023f337fb82d65b59cc04530d Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 22 Dec 2023 22:35:35 -0500
+Date: Tue, 9 Jan 2024 19:27:05 -0500
 Subject: [PATCH 7/8] 0007
 
 ---
@@ -78,10 +78,10 @@ index e0e190c..87ded5f 100644
  
  extern cfg_t cfg;
 diff --git a/input.cpp b/input.cpp
-index 7c9c68d..c9188a0 100644
+index d08b874..e2ca84e 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -6526,8 +6526,10 @@ int input_poll(int getchar)
+@@ -6549,8 +6549,10 @@ int input_poll(int getchar)
  
  		for (int i = 0; i < NUMPLAYERS; i++)
  		{
@@ -92,7 +92,7 @@ index 7c9c68d..c9188a0 100644
  			if (!time[i]) time[i] = GetTimer(af_delay[i]);
  			int send = 0;
  
-@@ -6543,6 +6545,8 @@ int input_poll(int getchar)
+@@ -6566,6 +6568,8 @@ int input_poll(int getchar)
  
  			if (autofire_new[i] != joy_prev[i])
  			{
@@ -101,7 +101,7 @@ index 7c9c68d..c9188a0 100644
  				send = 1;
  				if ((autofire_new[i] ^ joy_prev[i]) & autofire[i])
  				{
-@@ -6554,7 +6558,46 @@ int input_poll(int getchar)
+@@ -6577,7 +6581,46 @@ int input_poll(int getchar)
  
  			if (send)
  			{

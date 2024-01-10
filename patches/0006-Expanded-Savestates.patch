@@ -1,6 +1,6 @@
-From 122098cf3da6f74356071bac11f92ae3f609037f Mon Sep 17 00:00:00 2001
+From c9975b7fe9f5176e719dbaaa7a9231069d8301f6 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 22 Dec 2023 22:35:27 -0500
+Date: Tue, 9 Jan 2024 19:26:56 -0500
 Subject: [PATCH 6/8] 0006
 
 ---
@@ -43,10 +43,10 @@ index f90c0c0..e0e190c 100644
  
  extern cfg_t cfg;
 diff --git a/input.cpp b/input.cpp
-index f7a8d4d..7c9c68d 100644
+index 247f886..d08b874 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -6308,9 +6308,34 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
+@@ -6256,9 +6256,34 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
  		if (abm->bnum[i] < 0) break;
  		int sys_btn = abm->bnum[i];
  		if (!(sys_btn & 0xF0)) continue;
@@ -81,7 +81,7 @@ index f7a8d4d..7c9c68d 100644
  				case SYS_BTN_SCREENSHOT:
  	        if (abm->pressed && abm->cur_state_frames == 1)
  					  user_io_screenshot(nullptr, 1);
-@@ -6342,10 +6367,10 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
+@@ -6357,10 +6382,10 @@ void update_advanced_state(int devnum, int origcode, int evcode)
  //This function sets the button state for the given player, but will also directly
  //send keyboard events if any are mapped
  
@@ -92,9 +92,9 @@ index f7a8d4d..7c9c68d 100644
 -	autofire_new[pnum] = joy_state;
 +	if (!only_sys) autofire_new[pnum] = joy_state;
  
+ 	int user_kbdemu = user_io_get_kbdemu();
  	for (uint devnum = 0; devnum < NUMDEV; devnum++)
- 	{
-@@ -6417,6 +6442,7 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
+@@ -6440,6 +6465,7 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
  					{
  						int bnum = abm->bnum[b];
  						if (bnum < 0) break;
@@ -102,7 +102,7 @@ index f7a8d4d..7c9c68d 100644
  						if (!(joy[pnum] & 1<<bnum))
  						{
  							if (abm->button_state == BUTTON_ON) autofire_new[pnum] |= 1<<bnum;
-@@ -6512,7 +6538,7 @@ int input_poll(int getchar)
+@@ -6535,7 +6561,7 @@ int input_poll(int getchar)
  				if (joy[i] & autofire[i]) send = 1;
  			}
  
