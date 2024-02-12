@@ -1,10 +1,10 @@
-From c9975b7fe9f5176e719dbaaa7a9231069d8301f6 Mon Sep 17 00:00:00 2001
+From cd1130fe3a6a605f7c0ea4757dd5be0c8c2732ac Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 9 Jan 2024 19:26:56 -0500
+Date: Mon, 12 Feb 2024 03:09:49 -0500
 Subject: [PATCH 6/8] 0006
 
 ---
- cfg.cpp     |  3 ++
+ cfg.cpp     |  4 ++-
  cfg.h       |  3 ++
  input.cpp   | 32 ++++++++++++++++--
  input.h     |  2 +-
@@ -12,41 +12,42 @@ Subject: [PATCH 6/8] 0006
  menu.h      |  1 +
  user_io.cpp | 96 +++++++++++++++++++++++++++++++++++++++++++++++++++--
  user_io.h   | 10 ++++++
- 8 files changed, 231 insertions(+), 8 deletions(-)
+ 8 files changed, 231 insertions(+), 9 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 5eef4a8..d8a35ee 100644
+index 627b507..c89511e 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -128,6 +128,9 @@ static const ini_var_t ini_vars[] =
+@@ -130,7 +130,9 @@ static const ini_var_t ini_vars[] =
  	{ "CONTROLLER_UNIQUE_MAPPING", (void *)(cfg.controller_unique_mapping), UINT32ARR, 0, 0xFFFFFFFF },
  	{ "OSD_LOCK", (void*)(&(cfg.osd_lock)), STRING, 0, sizeof(cfg.osd_lock) - 1 },
  	{ "OSD_LOCK_TIME", (void*)(&(cfg.osd_lock_time)), UINT16, 0, 60 },
+-	{ "DEBUG", (void *)(&(cfg.debug)), UINT8, 0, 1 },
 +	{ "SS_LOAD_BIT", (void *)(&(cfg.ss_load_bit)), STRING, 0, sizeof(cfg.ss_load_bit) - 1},
-+ 	{ "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
-+ 	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
++	{ "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
++	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},{ "DEBUG", (void *)(&(cfg.debug)), UINT8, 0, 1 },
  };
  
  static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
 diff --git a/cfg.h b/cfg.h
-index f90c0c0..e0e190c 100644
+index dc49ce3..da44edd 100644
 --- a/cfg.h
 +++ b/cfg.h
-@@ -98,6 +98,9 @@ typedef struct {
- 	uint32_t controller_unique_mapping[256];
+@@ -99,6 +99,9 @@ typedef struct {
  	char osd_lock[25];
  	uint16_t osd_lock_time;
+ 	char debug;
 +	char ss_load_bit[8];
-+ 	char ss_save_bit[8];
-+ 	char ss_current_slot[15];
++	char ss_save_bit[8];
++	char ss_current_slot[15];
  } cfg_t;
  
  extern cfg_t cfg;
 diff --git a/input.cpp b/input.cpp
-index 247f886..d08b874 100644
+index bc2eb4c..ce988b4 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -6256,9 +6256,34 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
+@@ -6258,9 +6258,34 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
  		if (abm->bnum[i] < 0) break;
  		int sys_btn = abm->bnum[i];
  		if (!(sys_btn & 0xF0)) continue;
@@ -81,7 +82,7 @@ index 247f886..d08b874 100644
  				case SYS_BTN_SCREENSHOT:
  	        if (abm->pressed && abm->cur_state_frames == 1)
  					  user_io_screenshot(nullptr, 1);
-@@ -6357,10 +6382,10 @@ void update_advanced_state(int devnum, int origcode, int evcode)
+@@ -6359,10 +6384,10 @@ void update_advanced_state(int devnum, int origcode, int evcode)
  //This function sets the button state for the given player, but will also directly
  //send keyboard events if any are mapped
  
@@ -94,7 +95,7 @@ index 247f886..d08b874 100644
  
  	int user_kbdemu = user_io_get_kbdemu();
  	for (uint devnum = 0; devnum < NUMDEV; devnum++)
-@@ -6440,6 +6465,7 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
+@@ -6442,6 +6467,7 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
  					{
  						int bnum = abm->bnum[b];
  						if (bnum < 0) break;
@@ -102,7 +103,7 @@ index 247f886..d08b874 100644
  						if (!(joy[pnum] & 1<<bnum))
  						{
  							if (abm->button_state == BUTTON_ON) autofire_new[pnum] |= 1<<bnum;
-@@ -6535,7 +6561,7 @@ int input_poll(int getchar)
+@@ -6537,7 +6563,7 @@ int input_poll(int getchar)
  				if (joy[i] & autofire[i]) send = 1;
  			}
  
@@ -276,7 +277,7 @@ index b69bdfb..9c2f48a 100644
  int menu_present();
  
 diff --git a/user_io.cpp b/user_io.cpp
-index 171d678..2dfdde7 100644
+index 0a56296..e67c746 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -39,6 +39,10 @@

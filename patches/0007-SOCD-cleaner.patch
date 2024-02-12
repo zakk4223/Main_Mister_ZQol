@@ -1,28 +1,33 @@
-From 46d6e0bb4b1a0c7023f337fb82d65b59cc04530d Mon Sep 17 00:00:00 2001
+From 49620d5407a23465f0c0b3aab684a4dc2d4eb24e Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 9 Jan 2024 19:27:05 -0500
+Date: Mon, 12 Feb 2024 03:12:10 -0500
 Subject: [PATCH 7/8] 0007
 
 ---
- cfg.cpp   | 19 +++++++++++++++++++
+ cfg.cpp   | 22 +++++++++++++++++++++-
  cfg.h     | 13 +++++++++++++
  input.cpp | 45 ++++++++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 76 insertions(+), 1 deletion(-)
+ 3 files changed, 78 insertions(+), 2 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index d8a35ee..a67fc03 100644
+index c89511e..9f361ca 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -131,6 +131,8 @@ static const ini_var_t ini_vars[] =
+@@ -130,9 +130,12 @@ static const ini_var_t ini_vars[] =
+ 	{ "CONTROLLER_UNIQUE_MAPPING", (void *)(cfg.controller_unique_mapping), UINT32ARR, 0, 0xFFFFFFFF },
+ 	{ "OSD_LOCK", (void*)(&(cfg.osd_lock)), STRING, 0, sizeof(cfg.osd_lock) - 1 },
+ 	{ "OSD_LOCK_TIME", (void*)(&(cfg.osd_lock_time)), UINT16, 0, 60 },
++	{ "DEBUG", (void *)(&(cfg.debug)), UINT8, 0, 1 },
  	{ "SS_LOAD_BIT", (void *)(&(cfg.ss_load_bit)), STRING, 0, sizeof(cfg.ss_load_bit) - 1},
-  	{ "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
-  	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
+ 	{ "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
+-	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},{ "DEBUG", (void *)(&(cfg.debug)), UINT8, 0, 1 },
++	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
 +	{ "SOCD_UD", (void*)(&(cfg.socd_ud)), STRING, 0, sizeof(cfg.socd_ud) - 1 },
 +	{ "SOCD_LR", (void*)(&(cfg.socd_lr)), STRING, 0, sizeof(cfg.socd_lr) - 1 },
  };
  
  static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
-@@ -557,6 +559,23 @@ void cfg_parse()
+@@ -566,6 +569,23 @@ void cfg_parse()
  		if (!strcasecmp(cfg.vga_mode, "svideo")) cfg.vga_mode_int = 2;
  		if (!strcasecmp(cfg.vga_mode, "cvbs")) cfg.vga_mode_int = 3;
  	}
@@ -47,7 +52,7 @@ index d8a35ee..a67fc03 100644
  
  bool cfg_has_video_sections()
 diff --git a/cfg.h b/cfg.h
-index e0e190c..87ded5f 100644
+index da44edd..97b2dd2 100644
 --- a/cfg.h
 +++ b/cfg.h
 @@ -7,6 +7,15 @@
@@ -66,22 +71,22 @@ index e0e190c..87ded5f 100644
  //// type definitions ////
  typedef struct {
  	uint8_t  disable_nvram;
-@@ -101,6 +110,10 @@ typedef struct {
+@@ -102,6 +111,10 @@ typedef struct {
  	char ss_load_bit[8];
-  	char ss_save_bit[8];
-  	char ss_current_slot[15];
-+  char socd_ud[16];
-+  char socd_lr[16];
-+  uint8_t socd_ud_int;
-+  uint8_t socd_lr_int;
+ 	char ss_save_bit[8];
+ 	char ss_current_slot[15];
++	char socd_ud[16];
++	char socd_lr[16];
++	uint8_t socd_ud_int;
++	uint8_t socd_lr_int;
  } cfg_t;
  
  extern cfg_t cfg;
 diff --git a/input.cpp b/input.cpp
-index d08b874..e2ca84e 100644
+index ce988b4..8d93daa 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -6549,8 +6549,10 @@ int input_poll(int getchar)
+@@ -6551,8 +6551,10 @@ int input_poll(int getchar)
  
  		for (int i = 0; i < NUMPLAYERS; i++)
  		{
@@ -92,7 +97,7 @@ index d08b874..e2ca84e 100644
  			if (!time[i]) time[i] = GetTimer(af_delay[i]);
  			int send = 0;
  
-@@ -6566,6 +6568,8 @@ int input_poll(int getchar)
+@@ -6568,6 +6570,8 @@ int input_poll(int getchar)
  
  			if (autofire_new[i] != joy_prev[i])
  			{
@@ -101,7 +106,7 @@ index d08b874..e2ca84e 100644
  				send = 1;
  				if ((autofire_new[i] ^ joy_prev[i]) & autofire[i])
  				{
-@@ -6577,7 +6581,46 @@ int input_poll(int getchar)
+@@ -6579,7 +6583,46 @@ int input_poll(int getchar)
  
  			if (send)
  			{

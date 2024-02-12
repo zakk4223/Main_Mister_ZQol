@@ -1,6 +1,6 @@
-From d1b86b32a9067fe0c2211fb858068b4343525c18 Mon Sep 17 00:00:00 2001
+From e05dfd5fa1715fa35b48c37de138ce31f96021e1 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 9 Jan 2024 19:27:36 -0500
+Date: Mon, 12 Feb 2024 03:13:02 -0500
 Subject: [PATCH 8/8] 0008
 
 ---
@@ -16,18 +16,18 @@ Subject: [PATCH 8/8] 0008
  9 files changed, 180 insertions(+), 11 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index a67fc03..c307b34 100644
+index 9f361ca..31df9e1 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -133,6 +133,7 @@ static const ini_var_t ini_vars[] =
-  	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
+@@ -136,6 +136,7 @@ static const ini_var_t ini_vars[] =
+ 	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
  	{ "SOCD_UD", (void*)(&(cfg.socd_ud)), STRING, 0, sizeof(cfg.socd_ud) - 1 },
  	{ "SOCD_LR", (void*)(&(cfg.socd_lr)), STRING, 0, sizeof(cfg.socd_lr) - 1 },
 +	{ "EXTERNAL_SAVE_STATE_UI", (void *)(&(cfg.external_save_state_ui)), STRING, 0, sizeof(cfg.external_save_state_ui) - 1},
  };
  
  static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
-@@ -576,6 +577,12 @@ void cfg_parse()
+@@ -586,6 +587,12 @@ void cfg_parse()
      if (!strcasecmp(cfg.socd_lr, "right")) cfg.socd_lr_int = SOCD_LR_RIGHT;
    }
  
@@ -41,13 +41,13 @@ index a67fc03..c307b34 100644
  
  bool cfg_has_video_sections()
 diff --git a/cfg.h b/cfg.h
-index 87ded5f..96256e2 100644
+index 97b2dd2..c2c555b 100644
 --- a/cfg.h
 +++ b/cfg.h
-@@ -114,6 +114,8 @@ typedef struct {
-   char socd_lr[16];
-   uint8_t socd_ud_int;
-   uint8_t socd_lr_int;
+@@ -115,6 +115,8 @@ typedef struct {
+ 	char socd_lr[16];
+ 	uint8_t socd_ud_int;
+ 	uint8_t socd_lr_int;
 +	char external_save_state_ui[256];
 +	uint8_t use_external_save_state_ui;
  } cfg_t;
@@ -67,7 +67,7 @@ index 65069bf..e39f4b2 100644
  		if( p )
  		{
 diff --git a/input.cpp b/input.cpp
-index e2ca84e..5972bf4 100644
+index 8d93daa..d97510f 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -1933,6 +1933,7 @@ static void uinp_send_key(uint16_t key, int press)
@@ -385,7 +385,7 @@ index 919d31a..7b3323f 100644
  		}
  
 diff --git a/user_io.cpp b/user_io.cpp
-index 2dfdde7..ae31dae 100644
+index e67c746..a0511a7 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -9,11 +9,14 @@
