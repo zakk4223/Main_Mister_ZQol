@@ -1,6 +1,6 @@
-From e05dfd5fa1715fa35b48c37de138ce31f96021e1 Mon Sep 17 00:00:00 2001
+From 92eb1cfab2e48419c06b150bc16cb49e1533ee8e Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 12 Feb 2024 03:13:02 -0500
+Date: Wed, 13 Mar 2024 13:41:31 -0400
 Subject: [PATCH 8/8] 0008
 
 ---
@@ -16,7 +16,7 @@ Subject: [PATCH 8/8] 0008
  9 files changed, 180 insertions(+), 11 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 9f361ca..31df9e1 100644
+index 176f306..24b8cf2 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
 @@ -136,6 +136,7 @@ static const ini_var_t ini_vars[] =
@@ -27,7 +27,7 @@ index 9f361ca..31df9e1 100644
  };
  
  static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
-@@ -586,6 +587,12 @@ void cfg_parse()
+@@ -595,6 +596,12 @@ void cfg_parse()
      if (!strcasecmp(cfg.socd_lr, "right")) cfg.socd_lr_int = SOCD_LR_RIGHT;
    }
  
@@ -79,7 +79,7 @@ index 8d93daa..d97510f 100644
  	{
  		if (!grabbed)
 diff --git a/menu.cpp b/menu.cpp
-index c5181e3..8424e55 100644
+index 93ab809..43bc47d 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -44,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -258,7 +258,7 @@ index c5181e3..8424e55 100644
  			if (mgl->state == 1) mgl->state = 2;
  		}
  		break;
-@@ -3759,6 +3840,9 @@ void HandleUI(void)
+@@ -3765,6 +3846,9 @@ void HandleUI(void)
  				}
    case MENU_SAVE_STATE1:
     {
@@ -268,7 +268,7 @@ index c5181e3..8424e55 100644
  					menustate = MENU_SAVE_STATE2;
  					parentstate = MENU_SAVE_STATE1;
  					OsdSetTitle("Save States", 0);
-@@ -3782,10 +3866,20 @@ void HandleUI(void)
+@@ -3788,10 +3872,20 @@ void HandleUI(void)
            MenuWrite(n, " Save", menusub == n, 0); n++;
  					MenuWrite(n, " Load", menusub == n, 0); n++;
  					for (int i = n; i < OsdGetSize() - 1; i++) MenuWrite(i, "", 0, 0);
@@ -289,7 +289,7 @@ index c5181e3..8424e55 100644
       if (select || minus || plus || left || right)
       {
         menustate = MENU_SAVE_STATE1;
-@@ -3817,9 +3911,10 @@ void HandleUI(void)
+@@ -3823,9 +3917,10 @@ void HandleUI(void)
          case 3:
             if (select)
             {
@@ -302,7 +302,7 @@ index c5181e3..8424e55 100644
             break;
         }
       }
-@@ -3829,6 +3924,7 @@ void HandleUI(void)
+@@ -3835,6 +3930,7 @@ void HandleUI(void)
       }
     }
     break;
@@ -310,7 +310,7 @@ index c5181e3..8424e55 100644
  	case MENU_DOC_FILE_SELECTED:
  		if (cfg.fb_terminal)
  		{
-@@ -8136,6 +8232,18 @@ void PrintDirectory(int expand)
+@@ -8142,6 +8238,18 @@ void PrintDirectory(int expand)
  	}
  }
  
@@ -329,7 +329,7 @@ index c5181e3..8424e55 100644
  static void set_text(const char *message, unsigned char code)
  {
  	char s[40];
-@@ -8302,6 +8410,24 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
+@@ -8308,6 +8416,24 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
  
  void menu_open_savestate_osd()
  {
@@ -354,7 +354,7 @@ index c5181e3..8424e55 100644
    if (!user_io_osd_is_visible())
    {
      menu_open_savestate = true;
-@@ -8309,4 +8435,5 @@ void menu_open_savestate_osd()
+@@ -8315,4 +8441,5 @@ void menu_open_savestate_osd()
      menu_open_savestate = false;
      menustate = MENU_NONE1;
    }
@@ -385,7 +385,7 @@ index 919d31a..7b3323f 100644
  		}
  
 diff --git a/user_io.cpp b/user_io.cpp
-index e67c746..a0511a7 100644
+index 81f0c31..afd0a83 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -9,11 +9,14 @@
@@ -411,7 +411,7 @@ index e67c746..a0511a7 100644
  			if (curcnt != ss_cnt[i])
  			{
  				ss_cnt[i] = curcnt;
-@@ -4236,8 +4238,34 @@ void ss_menu_save()
+@@ -4244,8 +4246,34 @@ void ss_menu_save()
    if (!cfg.ss_save_bit[0]) return;
  
    ss_save_pending = true;
@@ -462,5 +462,5 @@ index c94c1a6..e3d9c65 100644
  int ss_menu_get_descr(char *descr, int descr_sz);
  bool core_has_save_states();
 -- 
-2.43.0
+2.44.0
 

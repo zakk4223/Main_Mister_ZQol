@@ -1,6 +1,6 @@
-From 49620d5407a23465f0c0b3aab684a4dc2d4eb24e Mon Sep 17 00:00:00 2001
+From 761af31d2b29fb44d2764b79d5664f2931d33ad3 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 12 Feb 2024 03:12:10 -0500
+Date: Wed, 13 Mar 2024 13:41:22 -0400
 Subject: [PATCH 7/8] 0007
 
 ---
@@ -10,7 +10,7 @@ Subject: [PATCH 7/8] 0007
  3 files changed, 78 insertions(+), 2 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index c89511e..9f361ca 100644
+index a2efa36..176f306 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
 @@ -130,9 +130,12 @@ static const ini_var_t ini_vars[] =
@@ -27,7 +27,7 @@ index c89511e..9f361ca 100644
  };
  
  static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
-@@ -566,6 +569,23 @@ void cfg_parse()
+@@ -575,6 +578,23 @@ void cfg_parse()
  		if (!strcasecmp(cfg.vga_mode, "svideo")) cfg.vga_mode_int = 2;
  		if (!strcasecmp(cfg.vga_mode, "cvbs")) cfg.vga_mode_int = 3;
  	}
@@ -155,5 +155,5 @@ index ce988b4..8d93daa 100644
  		}
  	}
 -- 
-2.43.0
+2.44.0
 
