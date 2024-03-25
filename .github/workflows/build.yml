@@ -56,8 +56,9 @@ jobs:
           MISTER_BIN_NAME=MiSTer_`date +%Y%m%d`
           echo "MISTER_BINARY_NAME=${MISTER_BIN_NAME}" >> $GITHUB_ENV
           cp ./main_mister/MiSTer ./main/releases/$MISTER_BIN_NAME
-          cp ./main_mister/MiSTer ./main/downloader/MiSTer
+          cp ./main_mister/MiSTer ./main/downloader/MiSTer_zakk
           if [ -f ./main/downloader/db.json.zip ]; then rm ./main/downloader/db.json.zip; fi
+          if [ -f ./main/downloader/db.json ]; then rm ./main/downloader/db.json; fi
       - name: Set last mister checksum
         if: env.DO_RUN_BUILD == 'YES' && env.LAST_MISTER_SHA != ''
         run: |
@@ -67,6 +68,7 @@ jobs:
         run: |
           cd ./main/downloader
           set -o pipefail && curl --fail --location https://raw.githubusercontent.com/theypsilon/Downloader_DB-Template_MiSTer/main/.github/build_db.py | python3 - -d
+          if [ -f ./db.json ]; then zip ./db.json.zip ./db.json ..; fi
       - name: Check in release
         if: env.DO_RUN_BUILD == 'YES' || env.DO_DB_BUILD == 'YES'
         uses: EndBug/add-and-commit@v7
@@ -74,6 +76,6 @@ jobs:
           author_name: Zakk
           author_email: zakk@rsdio.com
           message: "Automated Release ${{ env.RELEASE_DATE }}"
-          add: '["./releases/MiSTer_${{ env.RELEASE_DATE }}", "last_build_sum", "./downloader/MiSTer"]'
+          add: '["./releases/MiSTer_${{ env.RELEASE_DATE }}", "last_build_sum", "./downloader/MiSTer_zakk", "./downloader/db.json.zip", "./downloader/db.json"]'
           cwd: './main'
 
