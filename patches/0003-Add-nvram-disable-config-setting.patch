@@ -1,6 +1,6 @@
-From b4963086fe6cef9bd93d645ee11955a95d58082f Mon Sep 17 00:00:00 2001
+From e52f40ee7d356db8a2d99183d9b36661cd4c0485 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 13 Mar 2024 13:40:01 -0400
+Date: Mon, 25 Mar 2024 13:44:16 -0400
 Subject: [PATCH 3/8] 0003
 
 ---
@@ -10,7 +10,7 @@ Subject: [PATCH 3/8] 0003
  3 files changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 34c4aac..34e3aeb 100644
+index 118637d..46ab7db 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
 @@ -35,6 +35,7 @@ typedef struct
@@ -22,7 +22,7 @@ index 34c4aac..34e3aeb 100644
  	{ "COMPOSITE_SYNC", (void*)(&(cfg.csync)), UINT8, 0, 1 },
  	{ "FORCED_SCANDOUBLER", (void*)(&(cfg.forced_scandoubler)), UINT8, 0, 1 },
 diff --git a/cfg.h b/cfg.h
-index b7b9656..dc49ce3 100644
+index 491ba29..a837a8a 100644
 --- a/cfg.h
 +++ b/cfg.h
 @@ -9,6 +9,7 @@
@@ -34,7 +34,7 @@ index b7b9656..dc49ce3 100644
  	uint8_t forced_scandoubler;
  	uint8_t key_menu_as_rgui;
 diff --git a/support/arcade/mra_loader.cpp b/support/arcade/mra_loader.cpp
-index 5a8f176..d90ca20 100644
+index 2dc7243..036b86a 100644
 --- a/support/arcade/mra_loader.cpp
 +++ b/support/arcade/mra_loader.cpp
 @@ -13,6 +13,7 @@

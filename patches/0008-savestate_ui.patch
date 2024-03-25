@@ -1,6 +1,6 @@
-From 92eb1cfab2e48419c06b150bc16cb49e1533ee8e Mon Sep 17 00:00:00 2001
+From 9d90cac021b22a0e577a5d188e41ba7511164ff2 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 13 Mar 2024 13:41:31 -0400
+Date: Mon, 25 Mar 2024 13:49:12 -0400
 Subject: [PATCH 8/8] 0008
 
 ---
@@ -16,7 +16,7 @@ Subject: [PATCH 8/8] 0008
  9 files changed, 180 insertions(+), 11 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 176f306..24b8cf2 100644
+index 9abfcb6..4a5554f 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
 @@ -136,6 +136,7 @@ static const ini_var_t ini_vars[] =
@@ -24,10 +24,10 @@ index 176f306..24b8cf2 100644
  	{ "SOCD_UD", (void*)(&(cfg.socd_ud)), STRING, 0, sizeof(cfg.socd_ud) - 1 },
  	{ "SOCD_LR", (void*)(&(cfg.socd_lr)), STRING, 0, sizeof(cfg.socd_lr) - 1 },
 +	{ "EXTERNAL_SAVE_STATE_UI", (void *)(&(cfg.external_save_state_ui)), STRING, 0, sizeof(cfg.external_save_state_ui) - 1},
+ 	{ "MAIN", (void*)(&(cfg.main)), STRING, 0, sizeof(cfg.main) - 1 },
  };
  
- static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
-@@ -595,6 +596,12 @@ void cfg_parse()
+@@ -597,6 +598,12 @@ void cfg_parse()
      if (!strcasecmp(cfg.socd_lr, "right")) cfg.socd_lr_int = SOCD_LR_RIGHT;
    }
  
@@ -41,7 +41,7 @@ index 176f306..24b8cf2 100644
  
  bool cfg_has_video_sections()
 diff --git a/cfg.h b/cfg.h
-index 97b2dd2..c2c555b 100644
+index 05fa8ab..d18923a 100644
 --- a/cfg.h
 +++ b/cfg.h
 @@ -115,6 +115,8 @@ typedef struct {
@@ -50,11 +50,11 @@ index 97b2dd2..c2c555b 100644
  	uint8_t socd_lr_int;
 +	char external_save_state_ui[256];
 +	uint8_t use_external_save_state_ui;
+ 	char main[1024];
  } cfg_t;
  
- extern cfg_t cfg;
 diff --git a/file_io.cpp b/file_io.cpp
-index 65069bf..e39f4b2 100644
+index 9b99e2a..1f40fbf 100644
 --- a/file_io.cpp
 +++ b/file_io.cpp
 @@ -838,7 +838,7 @@ void FileGenerateScreenshotName(const char *name, char *out_name, int buflen)
@@ -79,7 +79,7 @@ index 8d93daa..d97510f 100644
  	{
  		if (!grabbed)
 diff --git a/menu.cpp b/menu.cpp
-index 93ab809..43bc47d 100644
+index 57fc038..5862a09 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -44,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -385,7 +385,7 @@ index 919d31a..7b3323f 100644
  		}
  
 diff --git a/user_io.cpp b/user_io.cpp
-index 81f0c31..afd0a83 100644
+index c6f9505..503c6d9 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -9,11 +9,14 @@
@@ -403,7 +403,7 @@ index 81f0c31..afd0a83 100644
  #include "user_io.h"
  #include "debug.h"
  #include "spi.h"
-@@ -1881,7 +1884,6 @@ int process_ss(const char *rom_name, int enable)
+@@ -1895,7 +1898,6 @@ int process_ss(const char *rom_name, int enable)
  			uint32_t curcnt = ((uint32_t*)(base[i]))[0];
  			uint32_t size = ((uint32_t*)(base[i]))[1];
  
@@ -411,7 +411,7 @@ index 81f0c31..afd0a83 100644
  			if (curcnt != ss_cnt[i])
  			{
  				ss_cnt[i] = curcnt;
-@@ -4244,8 +4246,34 @@ void ss_menu_save()
+@@ -4258,8 +4260,34 @@ void ss_menu_save()
    if (!cfg.ss_save_bit[0]) return;
  
    ss_save_pending = true;
@@ -447,10 +447,10 @@ index 81f0c31..afd0a83 100644
 +}
 +
 diff --git a/user_io.h b/user_io.h
-index c94c1a6..e3d9c65 100644
+index f78e1c7..045a808 100644
 --- a/user_io.h
 +++ b/user_io.h
-@@ -286,8 +286,10 @@ char is_uneon();
+@@ -287,8 +287,10 @@ char is_uneon();
  
  
  void ss_menu_load();

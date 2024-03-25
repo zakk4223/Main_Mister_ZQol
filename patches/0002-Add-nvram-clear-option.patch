@@ -1,6 +1,6 @@
-From bc95e1a395b157103733f17401ed5c0900b9ae44 Mon Sep 17 00:00:00 2001
+From cf6445e8af4c62e299f592b253d875541bdb8741 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 13 Mar 2024 13:39:53 -0400
+Date: Mon, 25 Mar 2024 13:44:08 -0400
 Subject: [PATCH 2/8] 0002
 
 ---
@@ -10,7 +10,7 @@ Subject: [PATCH 2/8] 0002
  3 files changed, 40 insertions(+)
 
 diff --git a/menu.cpp b/menu.cpp
-index f9e6072..52cc073 100644
+index 5400d99..c7a255b 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -977,6 +977,7 @@ void HandleUI(void)
@@ -59,7 +59,7 @@ index f9e6072..52cc073 100644
  			{
  				static char ext[256];
 diff --git a/support/arcade/mra_loader.cpp b/support/arcade/mra_loader.cpp
-index 0de177d..5a8f176 100644
+index 5099669..2dc7243 100644
 --- a/support/arcade/mra_loader.cpp
 +++ b/support/arcade/mra_loader.cpp
 @@ -57,6 +57,27 @@ static int  nvram_idx  = 0;

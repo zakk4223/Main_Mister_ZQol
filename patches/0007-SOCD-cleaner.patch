@@ -1,33 +1,28 @@
-From 761af31d2b29fb44d2764b79d5664f2931d33ad3 Mon Sep 17 00:00:00 2001
+From b30e2a024b2c97f0782d149ff18ee904c4db2530 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 13 Mar 2024 13:41:22 -0400
+Date: Mon, 25 Mar 2024 13:47:59 -0400
 Subject: [PATCH 7/8] 0007
 
 ---
- cfg.cpp   | 22 +++++++++++++++++++++-
+ cfg.cpp   | 19 +++++++++++++++++++
  cfg.h     | 13 +++++++++++++
  input.cpp | 45 ++++++++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 78 insertions(+), 2 deletions(-)
+ 3 files changed, 76 insertions(+), 1 deletion(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index a2efa36..176f306 100644
+index 40ad328..9abfcb6 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -130,9 +130,12 @@ static const ini_var_t ini_vars[] =
- 	{ "CONTROLLER_UNIQUE_MAPPING", (void *)(cfg.controller_unique_mapping), UINT32ARR, 0, 0xFFFFFFFF },
- 	{ "OSD_LOCK", (void*)(&(cfg.osd_lock)), STRING, 0, sizeof(cfg.osd_lock) - 1 },
- 	{ "OSD_LOCK_TIME", (void*)(&(cfg.osd_lock_time)), UINT16, 0, 60 },
-+	{ "DEBUG", (void *)(&(cfg.debug)), UINT8, 0, 1 },
+@@ -134,6 +134,8 @@ static const ini_var_t ini_vars[] =
  	{ "SS_LOAD_BIT", (void *)(&(cfg.ss_load_bit)), STRING, 0, sizeof(cfg.ss_load_bit) - 1},
  	{ "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
--	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},{ "DEBUG", (void *)(&(cfg.debug)), UINT8, 0, 1 },
-+	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
+ 	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
 +	{ "SOCD_UD", (void*)(&(cfg.socd_ud)), STRING, 0, sizeof(cfg.socd_ud) - 1 },
 +	{ "SOCD_LR", (void*)(&(cfg.socd_lr)), STRING, 0, sizeof(cfg.socd_lr) - 1 },
+ 	{ "MAIN", (void*)(&(cfg.main)), STRING, 0, sizeof(cfg.main) - 1 },
  };
  
- static const int nvars = (int)(sizeof(ini_vars) / sizeof(ini_var_t));
-@@ -575,6 +578,23 @@ void cfg_parse()
+@@ -578,6 +580,23 @@ void cfg_parse()
  		if (!strcasecmp(cfg.vga_mode, "svideo")) cfg.vga_mode_int = 2;
  		if (!strcasecmp(cfg.vga_mode, "cvbs")) cfg.vga_mode_int = 3;
  	}
@@ -52,7 +47,7 @@ index a2efa36..176f306 100644
  
  bool cfg_has_video_sections()
 diff --git a/cfg.h b/cfg.h
-index da44edd..97b2dd2 100644
+index d218c67..05fa8ab 100644
 --- a/cfg.h
 +++ b/cfg.h
 @@ -7,6 +7,15 @@
@@ -79,9 +74,9 @@ index da44edd..97b2dd2 100644
 +	char socd_lr[16];
 +	uint8_t socd_ud_int;
 +	uint8_t socd_lr_int;
+ 	char main[1024];
  } cfg_t;
  
- extern cfg_t cfg;
 diff --git a/input.cpp b/input.cpp
 index ce988b4..8d93daa 100644
 --- a/input.cpp
