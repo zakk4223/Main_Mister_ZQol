@@ -13,6 +13,8 @@ jobs:
       LAST_MISTER_SHA: ''
       LAST_DISTDB_SHA: ''
     steps:
+      - name: Install apt-get utilities
+        run: sudo apt-get install detox sharutils
       - name: Checkout Main
         uses: actions/checkout@v2
         with:
