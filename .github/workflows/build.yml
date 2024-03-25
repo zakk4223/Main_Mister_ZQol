@@ -2,18 +2,17 @@ name: Autobuild
 on: 
   push:
   workflow_dispatch:
+  schedule:
+    - cron: '*/30 * * * *'
 jobs:
   mister-release:
     runs-on: ubuntu-latest
     env:
       DO_RUN_BUILD: YES
-      DB_ID: zakk_main
+      DO_DB_BUILD: YES
       LAST_MISTER_SHA: ''
       LAST_DISTDB_SHA: ''
-      FINDER_IGNORE: ./last_build_sum ./last_db_sum ./patches ./releases ./scripts ./wip
     steps:
-      - name: Install apt-get utilities
-        run: sudo apt-get install detox sharutils
       - name: Checkout Main
         uses: actions/checkout@v2
         with:
@@ -23,17 +22,37 @@ jobs:
         with:
           repository: MiSTer-devel/Main_MiSTer
           path: main_mister
+      - name: Download distribution MiSTer
+        run: |
+          curl https://raw.githubusercontent.com/MiSTer-devel/Distribution_MiSTer/main/MiSTer -o MiSTer.dist
+      - name: Download distribution db.json.zip
+        run: |
+          curl https://raw.githubusercontent.com/MiSTer-devel/Distribution_MiSTer/main/db.json.zip -o db.json-dist.zip
+      - name: Extract db.json.zip
+        run: |
+          unzip db.json-dist.zip
+          mv db.json db.json.dist
       - name: Check if build needed
         if: github.event_name == 'schedule'
         run: |
           cd main_mister 
           LAST_MISTER_SHA=`git log -n 1 --pretty=format:"%H"`
           cd ..
+          LAST_DISTDB_SHA=`sha1sum ./db.json-dist.zip | cut -f1 -d ' '`
           LAST_BUILD_SHA=""
+          LAST_ZDB_SHA=""
           if [[ -f "./main/last_build_sum" ]]; then
             LAST_BUILD_SHA=`cat ./main/last_build_sum`
           fi
+          if [[ -f "./main/last_db_sum" ]]; then
+            LAST_ZDB_SHA=`cat ./main/last_db_sum`
+          fi
+          echo "LAST_DISTDB_SHA=${LAST_DISTDB_SHA}" >> $GITHUB_ENV
           echo "LAST_MISTER_SHA=${LAST_MISTER_SHA}" >> $GITHUB_ENV
+
+          if [[ "$LAST_DISTDB_SHA" == "$LAST_ZDB_SHA" ]]; then
+            echo "DO_DB_BUILD=NO" >> $GITHUB_ENV
+          fi
 
           if [[ "$LAST_MISTER_SHA" == "$LAST_BUILD_SHA" ]]; then
             echo "DO_RUN_BUILD=NO" >> $GITHUB_ENV  
@@ -54,25 +73,27 @@ jobs:
       - name: Copy Release
         if: env.DO_RUN_BUILD == 'YES'
         run: |
-          MISTER_BIN_NAME=MiSTer_`date +%Y%m%d`
-          echo "MISTER_BINARY_NAME=${MISTER_BIN_NAME}" >> $GITHUB_ENV
-          cp ./main_mister/MiSTer ./main/releases/$MISTER_BIN_NAME
-          cp ./main_mister/MiSTer ./main/downloader/MiSTer_zakk
-          touch ./main/downloader/README.md
-          if [ -f ./main/downloader/db.json.zip ]; then rm ./main/downloader/db.json.zip; fi
-          if [ -f ./main/downloader/db.json ]; then rm ./main/downloader/db.json; fi
+          cp ./main_mister/MiSTer ./main/releases/MiSTer_`date +%Y%m%d`
+          mkdir -p ./main/downloader
+          cp ./main_mister/MiSTer ./main/downloader
       - name: Set last mister checksum
         if: env.DO_RUN_BUILD == 'YES' && env.LAST_MISTER_SHA != ''
         run: |
           echo "${LAST_MISTER_SHA}" > ./main/last_build_sum
       - name: Update database json
-        if: env.DO_RUN_BUILD == 'YES'
+        if: env.DO_RUN_BUILD == 'YES' || env.DO_DB_BUILD == 'YES'
         run: |
-          cd ./main/
-          set -o pipefail && curl --fail --location https://raw.githubusercontent.com/theypsilon/Downloader_DB-Template_MiSTer/main/.github/build_db.py | python3 -
-          git checkout -f main 
-          cd downloader
-          if [ -f ./db.json ]; then zip ./db.json.zip ./db.json ..; fi
+          rm db.json-dist.zip
+          NEW_MISTER_MD5=`md5sum ./main/downloader/MiSTer | cut -f1 -d ' '`
+          NEW_MISTER_SIZE=`wc -c ./main/downloader/MiSTer | cut -f1 -d ' '`
+          NEW_MISTER_URL="https://raw.githubusercontent.com/zakk4223/Main_Mister_ZQol/main/downloader/MiSTer"
+          jq --arg msum "$NEW_MISTER_MD5" --argjson msize "$NEW_MISTER_SIZE" --arg murl "$NEW_MISTER_URL" '.files.MiSTer.hash = $msum | .files.MiSTer.size = $msize | .files.MiSTer.url = $murl' db.json.dist > db.json
+          zip db.json.zip db.json
+          cp ./db.json.zip ./main/downloader
+      - name: Set last DB checksum
+        if: (env.DO_RUN_BUILD == 'YES' || env.DO_DB_BUILD == 'YES') && env.LAST_DISTDB_SHA != ''
+        run: |
+          echo "${LAST_DISTDB_SHA}" > ./main/last_db_sum
       - name: Check in release
         if: env.DO_RUN_BUILD == 'YES' || env.DO_DB_BUILD == 'YES'
         uses: EndBug/add-and-commit@v7
@@ -80,6 +101,7 @@ jobs:
           author_name: Zakk
           author_email: zakk@rsdio.com
           message: "Automated Release ${{ env.RELEASE_DATE }}"
-          add: '["./releases/MiSTer_${{ env.RELEASE_DATE }}", "last_build_sum", "./downloader/MiSTer_zakk", "./downloader/db.json.zip", "./downloader/db.json"]'
+          add: '["./releases/MiSTer_${{ env.RELEASE_DATE }}", "last_db_sum", "last_build_sum", "./downloader/MiSTer", "./downloader/db.json.zip"]'
           cwd: './main'
+
 
