@@ -68,7 +68,7 @@ jobs:
         if: env.DO_RUN_BUILD == 'YES'
         run: |
           cd ./main/downloader
-          set -o pipefail && curl --fail --location https://raw.githubusercontent.com/theypsilon/Downloader_DB-Template_MiSTer/main/.github/build_db.py | python3 - -d
+          set -o pipefail && curl --fail --location https://raw.githubusercontent.com/theypsilon/Downloader_DB-Template_MiSTer/main/.github/build_db.py | python3 -
           if [ -f ./db.json ]; then zip ./db.json.zip ./db.json ..; fi
       - name: Check in release
         if: env.DO_RUN_BUILD == 'YES' || env.DO_DB_BUILD == 'YES'
