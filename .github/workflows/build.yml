@@ -70,7 +70,7 @@ jobs:
           cd ./main/downloader
           set -o pipefail && curl --fail --location https://raw.githubusercontent.com/theypsilon/Downloader_DB-Template_MiSTer/main/.github/build_db.py | python3 -
           cd ../
-          git checkout main 
+          git checkout -f main 
           cd downloader
           if [ -f ./db.json ]; then zip ./db.json.zip ./db.json ..; fi
       - name: Check in release
