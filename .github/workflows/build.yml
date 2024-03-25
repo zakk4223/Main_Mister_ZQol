@@ -57,6 +57,7 @@ jobs:
           echo "MISTER_BINARY_NAME=${MISTER_BIN_NAME}" >> $GITHUB_ENV
           cp ./main_mister/MiSTer ./main/releases/$MISTER_BIN_NAME
           cp ./main_mister/MiSTer ./main/downloader/MiSTer_zakk
+          touch ./main/downloader/README.md
           if [ -f ./main/downloader/db.json.zip ]; then rm ./main/downloader/db.json.zip; fi
           if [ -f ./main/downloader/db.json ]; then rm ./main/downloader/db.json; fi
       - name: Set last mister checksum
