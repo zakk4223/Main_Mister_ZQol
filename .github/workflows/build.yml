@@ -10,6 +10,7 @@ jobs:
       DB_ID: zakk_main
       LAST_MISTER_SHA: ''
       LAST_DISTDB_SHA: ''
+      FINDER_IGNORE: ./last_build_sum ./last_db_sum ./patches ./releases ./scripts ./wip
     steps:
       - name: Install apt-get utilities
         run: sudo apt-get install detox sharutils
@@ -67,9 +68,8 @@ jobs:
       - name: Update database json
         if: env.DO_RUN_BUILD == 'YES'
         run: |
-          cd ./main/downloader
+          cd ./main/
           set -o pipefail && curl --fail --location https://raw.githubusercontent.com/theypsilon/Downloader_DB-Template_MiSTer/main/.github/build_db.py | python3 -
-          cd ../
           git checkout -f main 
           cd downloader
           if [ -f ./db.json ]; then zip ./db.json.zip ./db.json ..; fi
