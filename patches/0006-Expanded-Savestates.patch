@@ -1,18 +1,18 @@
-From cc3cab95441465c6683f3b0b5a62399274ee34f7 Mon Sep 17 00:00:00 2001
+From 385077c685204e3f35eb97dedd38396c8b52cc74 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 25 Mar 2024 13:46:32 -0400
+Date: Sat, 18 May 2024 03:22:04 -0400
 Subject: [PATCH 6/8] 0006
 
 ---
  cfg.cpp     |  3 ++
  cfg.h       |  3 ++
- input.cpp   | 32 ++++++++++++++++--
+ input.cpp   | 38 +++++++++++++++++----
  input.h     |  2 +-
  menu.cpp    | 92 +++++++++++++++++++++++++++++++++++++++++++++++++-
  menu.h      |  1 +
  user_io.cpp | 96 +++++++++++++++++++++++++++++++++++++++++++++++++++--
  user_io.h   | 10 ++++++
- 8 files changed, 231 insertions(+), 8 deletions(-)
+ 8 files changed, 234 insertions(+), 11 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
 index 46ab7db..40ad328 100644
@@ -43,10 +43,10 @@ index a837a8a..d218c67 100644
  } cfg_t;
  
 diff --git a/input.cpp b/input.cpp
-index bc2eb4c..ce988b4 100644
+index 32a21b2..04038a9 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -6258,9 +6258,34 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
+@@ -6269,9 +6269,34 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
  		if (abm->bnum[i] < 0) break;
  		int sys_btn = abm->bnum[i];
  		if (!(sys_btn & 0xF0)) continue;
@@ -81,9 +81,26 @@ index bc2eb4c..ce988b4 100644
  				case SYS_BTN_SCREENSHOT:
  	        if (abm->pressed && abm->cur_state_frames == 1)
  					  user_io_screenshot(nullptr, 1);
-@@ -6359,10 +6384,10 @@ void update_advanced_state(int devnum, int origcode, int evcode)
- //This function sets the button state for the given player, but will also directly
- //send keyboard events if any are mapped
+@@ -6372,7 +6397,7 @@ void update_advanced_state(int devnum, int origcode, int evcode)
+ //We do two passes. First we process all autofire entries, then non-autofire entries.
+ //This is allows non-autofire entries to 'override' autofire.
+ //
+-static void process_abm_entry(advancedButtonMap *abm, int pnum, int curr_frame, int devnum)
++static void process_abm_entry(advancedButtonMap *abm, int pnum, int curr_frame, bool only_sys, int devnum)
+ {
+ 
+ 	bool has_sys_btn = false;
+@@ -6436,6 +6461,7 @@ static void process_abm_entry(advancedButtonMap *abm, int pnum, int curr_frame,
+ 		{
+ 			int bnum = abm->bnum[b];
+ 			if (bnum < 0) break;
++			if (only_sys && !(bnum & 0xF0)) continue;
+ 			if (!(autofire_new[pnum] & 1<<bnum))
+ 			{
+ 				if (abm->button_state == BUTTON_ON) autofire_new[pnum] |= 1<<bnum;
+@@ -6473,10 +6499,10 @@ static void process_abm_entry(advancedButtonMap *abm, int pnum, int curr_frame,
+ 	}
+ }
  
 -void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
 +void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state, bool only_sys)
@@ -94,15 +111,25 @@ index bc2eb4c..ce988b4 100644
  
  	int user_kbdemu = user_io_get_kbdemu();
  	for (uint devnum = 0; devnum < NUMDEV; devnum++)
-@@ -6442,6 +6467,7 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
- 					{
- 						int bnum = abm->bnum[b];
- 						if (bnum < 0) break;
-+						if (only_sys && !(bnum & 0xF0)) continue;
- 						if (!(joy[pnum] & 1<<bnum))
- 						{
- 							if (abm->button_state == BUTTON_ON) autofire_new[pnum] |= 1<<bnum;
-@@ -6537,7 +6563,7 @@ int input_poll(int getchar)
+@@ -6495,7 +6521,7 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
+ 
+ 				if (!abm->codes[0]) continue;
+ 				bool has_autofire = abm->on_frames && abm->off_frames;
+-			  if (has_autofire) process_abm_entry(abm, pnum, curr_frame, devnum);
++			  if (has_autofire) process_abm_entry(abm, pnum, curr_frame, only_sys, devnum);
+ 		}
+ 
+ 		for (uint i = 0; i < (sizeof(input[devnum].advanced_map)/sizeof(advancedButtonMap)); i++)
+@@ -6504,7 +6530,7 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
+ 
+ 				if (!abm->codes[0]) continue;
+ 				bool has_autofire = abm->on_frames && abm->off_frames;
+-			  if (!has_autofire) process_abm_entry(abm, pnum, curr_frame, devnum);
++			  if (!has_autofire) process_abm_entry(abm, pnum, curr_frame, only_sys, devnum);
+ 		}
+ 	}
+ }
+@@ -6567,7 +6593,7 @@ int input_poll(int getchar)
  				if (joy[i] & autofire[i]) send = 1;
  			}
  
@@ -112,7 +139,7 @@ index bc2eb4c..ce988b4 100644
  
  			if (autofire_new[i] != joy_prev[i])
 diff --git a/input.h b/input.h
-index f0b8ce3..3a02a60 100644
+index 7fee0d7..7d679c5 100644
 --- a/input.h
 +++ b/input.h
 @@ -97,8 +97,8 @@ typedef struct {
@@ -126,7 +153,7 @@ index f0b8ce3..3a02a60 100644
  
  void set_kbdled(int mask, int state);
 diff --git a/menu.cpp b/menu.cpp
-index 3dd82b4..57fc038 100644
+index 99470ec..8f1cdb2 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -212,10 +212,13 @@ enum MENU
@@ -160,7 +187,7 @@ index 3dd82b4..57fc038 100644
  	if (c && cfg.bootcore[0] != '\0') cfg.bootcore[0] = '\0';
  
  	if (!select_ini && is_menu() && cfg.osd_timeout >= 5)
-@@ -1508,6 +1513,7 @@ void HandleUI(void)
+@@ -1512,6 +1517,7 @@ void HandleUI(void)
  			{
  				SelectFile("", 0, SCANO_CORES, MENU_CORE_FILE_SELECTED1, MENU_NONE1);
  			}
@@ -168,7 +195,7 @@ index 3dd82b4..57fc038 100644
  			else if (saved_menustate)
  			{
  				menustate = saved_menustate;
-@@ -3757,6 +3763,78 @@ void HandleUI(void)
+@@ -3773,6 +3779,78 @@ void HandleUI(void)
  					}
  					break;
  				}
@@ -247,7 +274,7 @@ index 3dd82b4..57fc038 100644
  	case MENU_DOC_FILE_SELECTED:
  		if (cfg.fb_terminal)
  		{
-@@ -8226,3 +8304,15 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
+@@ -8242,3 +8320,15 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
  		InfoMessage(progress_buf, 2000, title);
  	}
  }
@@ -432,5 +459,5 @@ index 50ab5a9..f78e1c7 100644
  #define CoreName user_io_get_core_name()
  #define CoreName2 user_io_get_core_name2()
 -- 
-2.44.0
+2.45.1
 
