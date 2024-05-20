@@ -1,6 +1,6 @@
-From 833fe7069d92230afdeaecaec96f7464faf24d5c Mon Sep 17 00:00:00 2001
+From c0781d337a1aa4293c13103d1ec4a2c82bd13736 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sat, 18 May 2024 03:11:12 -0400
+Date: Mon, 20 May 2024 16:52:24 -0400
 Subject: [PATCH 4/8] 0004
 
 ---
@@ -9,11 +9,11 @@ Subject: [PATCH 4/8] 0004
  gamecontroller_db.h   |   1 +
  input.cpp             | 799 +++++++++++++++++++++++++++++++++++++++---
  input.h               |  48 +++
- menu.cpp              | 799 +++++++++++++++++++++++++++++++++++++++---
+ menu.cpp              | 743 ++++++++++++++++++++++++++++++++++++++-
  scaler.cpp            |  25 ++
  scaler.h              |   3 +-
  user_io.cpp           |   8 +-
- 9 files changed, 1603 insertions(+), 97 deletions(-)
+ 9 files changed, 1573 insertions(+), 71 deletions(-)
 
 diff --git a/Makefile b/Makefile
 index b5f03ab..738694e 100644
@@ -1220,7 +1220,7 @@ index e89dc98..7fee0d7 100644
  
  #endif
 diff --git a/menu.cpp b/menu.cpp
-index c7a255b..99470ec 100644
+index 25d55f1..89c77fd 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -64,6 +64,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -1381,75 +1381,7 @@ index c7a255b..99470ec 100644
  			if(video_fb_state()) video_menu_bg(user_io_status_get("[3:1]"));
  			video_fb_enable(0);
  			break;
-@@ -1280,37 +1384,41 @@ void HandleUI(void)
- 	{
- 		if (down)
- 		{
--            if((menumask >= ((uint64_t)1 << (menusub + 1))))	// Any active entries left?
--            {
--			    do
--			    {
--				    menusub++;
--			    } while ((menumask & ((uint64_t)1 << menusub)) == 0);
--            }
--            else
--            {
--                menusub = 0; // jump to first item
--            }
-+			if((menumask >= ((uint64_t)1 << (menusub + 1))))	// Any active entries left?
-+			{
-+				do
-+				{
-+					menusub++;
-+				} while ((menumask & ((uint64_t)1 << menusub)) == 0);
-+			}
-+			else
-+		{
-+				menusub = 0; // jump to first item
-+				while ((menumask & ((uint64_t)1 << menusub)) == 0) menusub++;
-+			}
- 
--            menustate = parentstate;
-+			menustate = parentstate;
- 		}
- 
- 		if (up)
- 		{
--            if (menusub > 0)
--            {
--			    do
--			    {
--				    --menusub;
--			    } while ((menumask & ((uint64_t)1 << menusub)) == 0);
--            }
--            else
--            {
--                do
--                {
--                    menusub++;
--                } while ((menumask & ((uint64_t)(~0) << (menusub + 1))) != 0); // jump to last item
--            }
-+			if (menusub > 0)
-+			{
-+				do
-+				{
-+					--menusub;
-+				} while (menusub != 0 && (menumask & ((uint64_t)1 << menusub)) == 0);
-+				if (menusub == 0 && (menumask & 1) == 0) {
-+					while ((menumask & ((uint64_t)(~0) << (menusub + 1))) != 0) menusub++; // jump to last item
-+				}
-+			}
-+			else
-+		{
-+				do
-+				{
-+					menusub++;
-+				} while ((menumask & ((uint64_t)(~0) << (menusub + 1))) != 0); // jump to last item
-+			}
- 			menustate = parentstate;
- 		}
- 	}
-@@ -2546,7 +2654,7 @@ void HandleUI(void)
+@@ -2547,7 +2651,7 @@ void HandleUI(void)
  			while(1)
  			{
  				n = 0;
@@ -1458,7 +1390,7 @@ index c7a255b..99470ec 100644
  
  				if (!menusub) firstmenu = 0;
  				adjvisible = 0;
-@@ -2567,6 +2675,7 @@ void HandleUI(void)
+@@ -2568,6 +2672,7 @@ void HandleUI(void)
  				MenuWrite(n++, s, menusub == 2, 0);
  				MenuWrite(n++, " Button/Key remap          \x16", menusub == 3, 0);
  				MenuWrite(n++, " Change player assignment", menusub == 4, 0);
@@ -1466,7 +1398,7 @@ index c7a255b..99470ec 100644
  
  				if (user_io_get_uart_mode())
  				{
-@@ -2578,11 +2687,11 @@ void HandleUI(void)
+@@ -2579,11 +2684,11 @@ void HandleUI(void)
  					sprintf(s, " UART mode (%s)            ",p);
  					s[27] = '\x16';
  					s[28] = 0;
@@ -1480,7 +1412,7 @@ index c7a255b..99470ec 100644
  
  				if (audio_filter_en() >= 0)
  				{
-@@ -2702,14 +2811,21 @@ void HandleUI(void)
+@@ -2703,14 +2808,21 @@ void HandleUI(void)
          menusub = 0;
  				break;
  
@@ -1504,7 +1436,7 @@ index c7a255b..99470ec 100644
  				{
  					menustate = MENU_VIDEOPROC1;
  					menusub = 0;
-@@ -3061,6 +3177,602 @@ void HandleUI(void)
+@@ -3062,6 +3174,602 @@ void HandleUI(void)
  		}
  		break;
  
@@ -2107,7 +2039,7 @@ index c7a255b..99470ec 100644
  	case MENU_DOC_FILE_SELECTED:
  		if (cfg.fb_terminal)
  		{
-@@ -6526,7 +7238,7 @@ void HandleUI(void)
+@@ -6527,7 +7235,7 @@ void HandleUI(void)
  
  		m = 0;
  		OsdSetTitle("System Settings", OSD_ARROW_LEFT);
@@ -2116,7 +2048,7 @@ index c7a255b..99470ec 100644
  
  		OsdWrite(m++);
  		sprintf(s, "       MiSTer v%s", version + 5);
-@@ -6577,17 +7289,18 @@ void HandleUI(void)
+@@ -6578,17 +7286,18 @@ void HandleUI(void)
  		OsdWrite(m++, "");
  		OsdWrite(m++, " Remap keyboard            \x16", menusub == 1);
  		OsdWrite(m++, " Define joystick buttons   \x16", menusub == 2);
@@ -2139,7 +2071,7 @@ index c7a255b..99470ec 100644
  		menustate = MENU_SYSTEM2;
  		break;
  
-@@ -6616,6 +7329,10 @@ void HandleUI(void)
+@@ -6617,6 +7326,10 @@ void HandleUI(void)
  				break;
  
  			case 3:
@@ -2150,7 +2082,7 @@ index c7a255b..99470ec 100644
  				{
  					uint8_t confirm[32] = {};
  					int match = 0;
-@@ -6642,13 +7359,13 @@ void HandleUI(void)
+@@ -6643,13 +7356,13 @@ void HandleUI(void)
  				}
  				break;
  
@@ -2166,7 +2098,7 @@ index c7a255b..99470ec 100644
  				{
  					reboot_req = 1;
  
-@@ -6661,7 +7378,7 @@ void HandleUI(void)
+@@ -6662,7 +7375,7 @@ void HandleUI(void)
  				}
  				break;
  

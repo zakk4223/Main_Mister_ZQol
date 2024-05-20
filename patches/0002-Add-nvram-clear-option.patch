@@ -1,6 +1,6 @@
-From c7672f340e8088fbdd557f6e1d41ffc6c8b77891 Mon Sep 17 00:00:00 2001
+From 967a767cccef8d419c23ba71e9a3cd6bf9cccb3a Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 13 May 2024 12:09:51 -0400
+Date: Mon, 20 May 2024 16:51:20 -0400
 Subject: [PATCH 2/8] 0002
 
 ---
@@ -10,7 +10,7 @@ Subject: [PATCH 2/8] 0002
  3 files changed, 40 insertions(+)
 
 diff --git a/menu.cpp b/menu.cpp
-index 5400d99..c7a255b 100644
+index 404024d..25d55f1 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -977,6 +977,7 @@ void HandleUI(void)
@@ -21,7 +21,7 @@ index 5400d99..c7a255b 100644
  	static int need_reset = 0;
  	static int flat = 0;
  	static int menusub_parent = 0;
-@@ -1703,6 +1704,8 @@ void HandleUI(void)
+@@ -1704,6 +1705,8 @@ void HandleUI(void)
  
  			dip_submenu = -1;
  			dip2_submenu = -1;
@@ -30,7 +30,7 @@ index 5400d99..c7a255b 100644
  
  			int last_space = 0;
  
-@@ -1984,6 +1987,16 @@ void HandleUI(void)
+@@ -1985,6 +1988,16 @@ void HandleUI(void)
  				}
  			} while (p);
  
@@ -47,7 +47,7 @@ index 5400d99..c7a255b 100644
  			if (!entry) break;
  
  			for (; entry < OsdGetSize() - 1; entry++) MenuWrite(entry, "", 0, 0);
-@@ -2095,6 +2108,10 @@ void HandleUI(void)
+@@ -2096,6 +2109,10 @@ void HandleUI(void)
  				menustate = MENU_ARCADE_DIP1;
  				menusub = 0;
  			}

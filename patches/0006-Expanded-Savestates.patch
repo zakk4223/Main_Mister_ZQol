@@ -1,6 +1,6 @@
-From 385077c685204e3f35eb97dedd38396c8b52cc74 Mon Sep 17 00:00:00 2001
+From 48226ce14e1ba2303aee0e481f8446e2db9aa575 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sat, 18 May 2024 03:22:04 -0400
+Date: Mon, 20 May 2024 16:52:40 -0400
 Subject: [PATCH 6/8] 0006
 
 ---
@@ -153,7 +153,7 @@ index 7fee0d7..7d679c5 100644
  
  void set_kbdled(int mask, int state);
 diff --git a/menu.cpp b/menu.cpp
-index 99470ec..8f1cdb2 100644
+index 89c77fd..0ef291e 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -212,10 +212,13 @@ enum MENU
@@ -187,7 +187,7 @@ index 99470ec..8f1cdb2 100644
  	if (c && cfg.bootcore[0] != '\0') cfg.bootcore[0] = '\0';
  
  	if (!select_ini && is_menu() && cfg.osd_timeout >= 5)
-@@ -1512,6 +1517,7 @@ void HandleUI(void)
+@@ -1509,6 +1514,7 @@ void HandleUI(void)
  			{
  				SelectFile("", 0, SCANO_CORES, MENU_CORE_FILE_SELECTED1, MENU_NONE1);
  			}
@@ -195,7 +195,7 @@ index 99470ec..8f1cdb2 100644
  			else if (saved_menustate)
  			{
  				menustate = saved_menustate;
-@@ -3773,6 +3779,78 @@ void HandleUI(void)
+@@ -3770,6 +3776,78 @@ void HandleUI(void)
  					}
  					break;
  				}
