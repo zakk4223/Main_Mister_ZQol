@@ -1,6 +1,6 @@
-From 3ca407374afda88394c4a6e4d3c9a59c659cc469 Mon Sep 17 00:00:00 2001
+From 26272d6153c41fb8a5f34b388eb9fb81d750b135 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 20 May 2024 16:52:56 -0400
+Date: Tue, 2 Jul 2024 02:57:40 -0400
 Subject: [PATCH 8/8] 0008
 
 ---
@@ -67,7 +67,7 @@ index c5ba8be..e8d5c20 100644
  		if( p )
  		{
 diff --git a/input.cpp b/input.cpp
-index 32f0f19..766b9df 100644
+index 5b0e8ad..c2f0a89 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -1941,6 +1941,7 @@ static void uinp_send_key(uint16_t key, int press)
@@ -385,7 +385,7 @@ index 919d31a..7b3323f 100644
  		}
  
 diff --git a/user_io.cpp b/user_io.cpp
-index c6f9505..503c6d9 100644
+index 03f4ded..2a4480f 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -9,11 +9,14 @@
@@ -403,7 +403,7 @@ index c6f9505..503c6d9 100644
  #include "user_io.h"
  #include "debug.h"
  #include "spi.h"
-@@ -1895,7 +1898,6 @@ int process_ss(const char *rom_name, int enable)
+@@ -1897,7 +1900,6 @@ int process_ss(const char *rom_name, int enable)
  			uint32_t curcnt = ((uint32_t*)(base[i]))[0];
  			uint32_t size = ((uint32_t*)(base[i]))[1];
  
@@ -411,7 +411,7 @@ index c6f9505..503c6d9 100644
  			if (curcnt != ss_cnt[i])
  			{
  				ss_cnt[i] = curcnt;
-@@ -4258,8 +4260,34 @@ void ss_menu_save()
+@@ -4260,8 +4262,34 @@ void ss_menu_save()
    if (!cfg.ss_save_bit[0]) return;
  
    ss_save_pending = true;
@@ -447,7 +447,7 @@ index c6f9505..503c6d9 100644
 +}
 +
 diff --git a/user_io.h b/user_io.h
-index f78e1c7..045a808 100644
+index db58e84..2aeb183 100644
 --- a/user_io.h
 +++ b/user_io.h
 @@ -287,8 +287,10 @@ char is_uneon();
@@ -462,5 +462,5 @@ index f78e1c7..045a808 100644
  int ss_menu_get_descr(char *descr, int descr_sz);
  bool core_has_save_states();
 -- 
-2.45.1
+2.45.2
 

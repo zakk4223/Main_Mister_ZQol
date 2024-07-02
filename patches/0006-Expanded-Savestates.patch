@@ -1,6 +1,6 @@
-From 48226ce14e1ba2303aee0e481f8446e2db9aa575 Mon Sep 17 00:00:00 2001
+From 4edd4b5e0f60a30332b100c091cf3325edf28e79 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 20 May 2024 16:52:40 -0400
+Date: Tue, 2 Jul 2024 02:57:21 -0400
 Subject: [PATCH 6/8] 0006
 
 ---
@@ -43,10 +43,10 @@ index a837a8a..d218c67 100644
  } cfg_t;
  
 diff --git a/input.cpp b/input.cpp
-index 32a21b2..04038a9 100644
+index 5140689..2653e6d 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -6269,9 +6269,34 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
+@@ -6273,9 +6273,34 @@ void execute_advanced_sys_button(int pnum, advancedButtonMap *abm)
  		if (abm->bnum[i] < 0) break;
  		int sys_btn = abm->bnum[i];
  		if (!(sys_btn & 0xF0)) continue;
@@ -81,7 +81,7 @@ index 32a21b2..04038a9 100644
  				case SYS_BTN_SCREENSHOT:
  	        if (abm->pressed && abm->cur_state_frames == 1)
  					  user_io_screenshot(nullptr, 1);
-@@ -6372,7 +6397,7 @@ void update_advanced_state(int devnum, int origcode, int evcode)
+@@ -6376,7 +6401,7 @@ void update_advanced_state(int devnum, int origcode, int evcode)
  //We do two passes. First we process all autofire entries, then non-autofire entries.
  //This is allows non-autofire entries to 'override' autofire.
  //
@@ -90,7 +90,7 @@ index 32a21b2..04038a9 100644
  {
  
  	bool has_sys_btn = false;
-@@ -6436,6 +6461,7 @@ static void process_abm_entry(advancedButtonMap *abm, int pnum, int curr_frame,
+@@ -6440,6 +6465,7 @@ static void process_abm_entry(advancedButtonMap *abm, int pnum, int curr_frame,
  		{
  			int bnum = abm->bnum[b];
  			if (bnum < 0) break;
@@ -98,12 +98,12 @@ index 32a21b2..04038a9 100644
  			if (!(autofire_new[pnum] & 1<<bnum))
  			{
  				if (abm->button_state == BUTTON_ON) autofire_new[pnum] |= 1<<bnum;
-@@ -6473,10 +6499,10 @@ static void process_abm_entry(advancedButtonMap *abm, int pnum, int curr_frame,
+@@ -6477,10 +6503,10 @@ static void process_abm_entry(advancedButtonMap *abm, int pnum, int curr_frame,
  	}
  }
  
--void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
-+void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state, bool only_sys)
+-void process_advanced_map(int pnum, int curr_frame, uint64_t joy_state)
++void process_advanced_map(int pnum, int curr_frame, uint64_t joy_state, bool only_sys)
  {
  	//Process all input devices with matching player number
 -	autofire_new[pnum] = joy_state;
@@ -111,7 +111,7 @@ index 32a21b2..04038a9 100644
  
  	int user_kbdemu = user_io_get_kbdemu();
  	for (uint devnum = 0; devnum < NUMDEV; devnum++)
-@@ -6495,7 +6521,7 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
+@@ -6499,7 +6525,7 @@ void process_advanced_map(int pnum, int curr_frame, uint64_t joy_state)
  
  				if (!abm->codes[0]) continue;
  				bool has_autofire = abm->on_frames && abm->off_frames;
@@ -120,7 +120,7 @@ index 32a21b2..04038a9 100644
  		}
  
  		for (uint i = 0; i < (sizeof(input[devnum].advanced_map)/sizeof(advancedButtonMap)); i++)
-@@ -6504,7 +6530,7 @@ void process_advanced_map(int pnum, int curr_frame, uint32_t joy_state)
+@@ -6508,7 +6534,7 @@ void process_advanced_map(int pnum, int curr_frame, uint64_t joy_state)
  
  				if (!abm->codes[0]) continue;
  				bool has_autofire = abm->on_frames && abm->off_frames;
@@ -129,14 +129,14 @@ index 32a21b2..04038a9 100644
  		}
  	}
  }
-@@ -6567,7 +6593,7 @@ int input_poll(int getchar)
+@@ -6570,7 +6596,7 @@ int input_poll(int getchar)
  				if (joy[i] & autofire[i]) send = 1;
  			}
  
 -			process_advanced_map(i, curr_frame, joy[i]);
 +			process_advanced_map(i, curr_frame, joy[i], false);
- 			int newdir = ((joy[i] & 0xF) != (joy_prev[i] & 0xF));
- 
+ 			int newdir = ((((uint32_t)(joy[i]) | (uint32_t)(joy[i] >> 32)) & 0xF) != (((uint32_t)(joy_prev[i]) | (uint32_t)(joy_prev[i] >> 32)) & 0xF));
+ 			
  			if (autofire_new[i] != joy_prev[i])
 diff --git a/input.h b/input.h
 index 7fee0d7..7d679c5 100644
@@ -303,7 +303,7 @@ index b69bdfb..9c2f48a 100644
  int menu_present();
  
 diff --git a/user_io.cpp b/user_io.cpp
-index 2e7781e..c6f9505 100644
+index df5efa8..03f4ded 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -39,6 +39,10 @@
@@ -317,7 +317,7 @@ index 2e7781e..c6f9505 100644
  static char core_path[1024] = {};
  static char rbf_path[1024] = {};
  
-@@ -1873,6 +1877,7 @@ int process_ss(const char *rom_name, int enable)
+@@ -1875,6 +1879,7 @@ int process_ss(const char *rom_name, int enable)
  
  		FileGenerateSavestatePath(rom_name, ss_name, 1);
  		ss_sufx = ss_name + strlen(ss_name) - 4;
@@ -325,7 +325,7 @@ index 2e7781e..c6f9505 100644
  		return 1;
  	}
  
-@@ -1890,6 +1895,7 @@ int process_ss(const char *rom_name, int enable)
+@@ -1892,6 +1897,7 @@ int process_ss(const char *rom_name, int enable)
  			uint32_t curcnt = ((uint32_t*)(base[i]))[0];
  			uint32_t size = ((uint32_t*)(base[i]))[1];
  
@@ -333,7 +333,7 @@ index 2e7781e..c6f9505 100644
  			if (curcnt != ss_cnt[i])
  			{
  				ss_cnt[i] = curcnt;
-@@ -1899,12 +1905,19 @@ int process_ss(const char *rom_name, int enable)
+@@ -1901,12 +1907,19 @@ int process_ss(const char *rom_name, int enable)
  					MenuHide();
  					Info("Saving the state", 500);
  
@@ -356,7 +356,7 @@ index 2e7781e..c6f9505 100644
  					}
  					else
  					{
-@@ -4173,3 +4186,80 @@ void user_io_screenshot_cmd(const char *cmd)
+@@ -4175,3 +4188,80 @@ void user_io_screenshot_cmd(const char *cmd)
  
  	user_io_screenshot(cmd,0);
  }
@@ -438,7 +438,7 @@ index 2e7781e..c6f9505 100644
 +
 +
 diff --git a/user_io.h b/user_io.h
-index 50ab5a9..f78e1c7 100644
+index 0abddce..db58e84 100644
 --- a/user_io.h
 +++ b/user_io.h
 @@ -285,6 +285,16 @@ char is_pcxt();
@@ -459,5 +459,5 @@ index 50ab5a9..f78e1c7 100644
  #define CoreName user_io_get_core_name()
  #define CoreName2 user_io_get_core_name2()
 -- 
-2.45.1
+2.45.2
 
