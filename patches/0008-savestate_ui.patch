@@ -1,6 +1,6 @@
-From 26272d6153c41fb8a5f34b388eb9fb81d750b135 Mon Sep 17 00:00:00 2001
+From 392b17bd3f7ceb5a0d72c7e616adf9e48224baed Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 2 Jul 2024 02:57:40 -0400
+Date: Tue, 2 Jul 2024 14:36:57 -0400
 Subject: [PATCH 8/8] 0008
 
 ---
@@ -67,7 +67,7 @@ index c5ba8be..e8d5c20 100644
  		if( p )
  		{
 diff --git a/input.cpp b/input.cpp
-index 5b0e8ad..c2f0a89 100644
+index 9788bb7..3c27ea2 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -1941,6 +1941,7 @@ static void uinp_send_key(uint16_t key, int press)

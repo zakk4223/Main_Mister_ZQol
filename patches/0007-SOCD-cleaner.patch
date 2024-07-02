@@ -1,6 +1,6 @@
-From 5745539f7ac3d137019d9f987c4a8cd9b3065c4c Mon Sep 17 00:00:00 2001
+From 0c5470993d605380c5e4139380fee84791a79b34 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 2 Jul 2024 02:57:33 -0400
+Date: Tue, 2 Jul 2024 14:35:04 -0400
 Subject: [PATCH 7/8] 0007
 
 ---
@@ -78,7 +78,7 @@ index d218c67..05fa8ab 100644
  } cfg_t;
  
 diff --git a/input.cpp b/input.cpp
-index 2653e6d..5b0e8ad 100644
+index 2653e6d..9788bb7 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -6585,8 +6585,10 @@ int input_poll(int getchar)
@@ -106,7 +106,7 @@ index 2653e6d..5b0e8ad 100644
  			if (send)
  			{
 -				user_io_digital_joystick(i, af[i] ? autofire_new[i] & ~autofire[i] : autofire_new[i], newdir);
-+        uint32_t to_send = af[i] ? autofire_new[i] & ~autofire[i] : autofire_new[i];
++        uint64_t to_send = af[i] ? autofire_new[i] & ~autofire[i] : autofire_new[i];
 +
 +        if ((to_send & 0x3) == 0x3) //l+r socd
 +        {
