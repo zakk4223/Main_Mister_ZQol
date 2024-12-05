@@ -1,63 +1,13 @@
-From 9e4c2dcd34ada92d85ce045e22c29f710720efa6 Mon Sep 17 00:00:00 2001
+From e8bdd5a8a729869a0d2f8c1f67750017de24a796 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 2 Jul 2024 14:24:00 -0400
-Subject: [PATCH 2/8] 0002
+Date: Tue, 3 Dec 2024 17:01:08 -0500
+Subject: [PATCH 2/9] 0002
 
 ---
- menu.cpp                      | 17 +++++++++++++++++
  support/arcade/mra_loader.cpp | 21 +++++++++++++++++++++
  support/arcade/mra_loader.h   |  2 ++
- 3 files changed, 40 insertions(+)
+ 2 files changed, 23 insertions(+)
 
-diff --git a/menu.cpp b/menu.cpp
-index 404024d..25d55f1 100644
---- a/menu.cpp
-+++ b/menu.cpp
-@@ -977,6 +977,7 @@ void HandleUI(void)
- 	static unsigned long flash_timer = 0;
- 	static int flash_state = 0;
- 	static uint32_t dip_submenu, dip2_submenu, dipv;
-+	static uint32_t clear_nvm_submenu;
- 	static int need_reset = 0;
- 	static int flat = 0;
- 	static int menusub_parent = 0;
-@@ -1704,6 +1705,8 @@ void HandleUI(void)
- 
- 			dip_submenu = -1;
- 			dip2_submenu = -1;
-+			clear_nvm_submenu = -1;
-+
- 
- 			int last_space = 0;
- 
-@@ -1985,6 +1988,16 @@ void HandleUI(void)
- 				}
- 			} while (p);
- 
-+
-+			if (arcade_has_nvm())
-+			{
-+				clear_nvm_submenu = selentry;
-+				MenuWrite(entry, " Clear NVRAM", menusub == selentry, 0);
-+				entry++;
-+				selentry++;
-+				menumask = (menumask << 1) | 1;
-+			}
-+
- 			if (!entry) break;
- 
- 			for (; entry < OsdGetSize() - 1; entry++) MenuWrite(entry, "", 0, 0);
-@@ -2096,6 +2109,10 @@ void HandleUI(void)
- 				menustate = MENU_ARCADE_DIP1;
- 				menusub = 0;
- 			}
-+			else if (clear_nvm_submenu == menusub && select)
-+			{
-+				arcade_nvm_clear();
-+			}
- 			else
- 			{
- 				static char ext[256];
 diff --git a/support/arcade/mra_loader.cpp b/support/arcade/mra_loader.cpp
 index 5099669..2dc7243 100644
 --- a/support/arcade/mra_loader.cpp
@@ -104,5 +54,5 @@ index f4c56a0..38bdb4a 100644
  mgl_struct* mgl_parse(const char *xml);
  mgl_struct* mgl_get();
 -- 
-2.45.2
+2.47.1
 

@@ -1,7 +1,7 @@
-From c3a2a6a4c1b8403225f094d03d63cc8ba4c088d9 Mon Sep 17 00:00:00 2001
+From 4be396acaad3a898762ee09044cc399eab518e76 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 2 Jul 2024 14:24:07 -0400
-Subject: [PATCH 3/8] 0003
+Date: Tue, 3 Dec 2024 17:01:13 -0500
+Subject: [PATCH 3/9] 0003
 
 ---
  cfg.cpp                       | 1 +
@@ -10,7 +10,7 @@ Subject: [PATCH 3/8] 0003
  3 files changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 118637d..46ab7db 100644
+index ab68ccd..ccd74ff 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
 @@ -35,6 +35,7 @@ typedef struct
@@ -64,5 +64,5 @@ index 2dc7243..036b86a 100644
  		char path[256] = "nvram/";
  		uint8_t *buf = new uint8_t[nvram_size];
 -- 
-2.45.2
+2.47.1
 
