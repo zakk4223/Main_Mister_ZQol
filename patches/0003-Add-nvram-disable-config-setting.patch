@@ -1,6 +1,6 @@
-From 4be396acaad3a898762ee09044cc399eab518e76 Mon Sep 17 00:00:00 2001
+From c6e4f82df0ea62201bc8ddfa80750ff6af95ccbc Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 3 Dec 2024 17:01:13 -0500
+Date: Fri, 10 Jan 2025 03:37:27 -0500
 Subject: [PATCH 3/9] 0003
 
 ---
@@ -10,7 +10,7 @@ Subject: [PATCH 3/9] 0003
  3 files changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index ab68ccd..ccd74ff 100644
+index 129e16d..14cb49a 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
 @@ -35,6 +35,7 @@ typedef struct

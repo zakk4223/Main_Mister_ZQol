@@ -1,20 +1,20 @@
-From 7595bd83c4a7aaad3c0dbadd1e16176be41babcb Mon Sep 17 00:00:00 2001
+From 8ea847ec8b37a13efcfb39cf656c599b69592009 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 3 Dec 2024 17:01:21 -0500
+Date: Fri, 10 Jan 2025 04:17:18 -0500
 Subject: [PATCH 4/9] 0004
 
 ---
  gamecontroller_db.cpp |  14 +-
  gamecontroller_db.h   |   1 +
- input.cpp             | 683 ++++++++++++++++++++++++++++++++++----
+ input.cpp             | 683 ++++++++++++++++++++++++++++++++++---
  input.h               |  36 ++
- menu.cpp              | 748 ++++++++++++++++++++++++++++++++++++++++--
+ menu.cpp              | 763 ++++++++++++++++++++++++++++++++++++++++--
  user_io.cpp           |  15 +-
  user_io.h             |   2 +-
- 7 files changed, 1394 insertions(+), 105 deletions(-)
+ 7 files changed, 1409 insertions(+), 105 deletions(-)
 
 diff --git a/gamecontroller_db.cpp b/gamecontroller_db.cpp
-index b84a0e9..2d61493 100644
+index fab15ec..d229820 100644
 --- a/gamecontroller_db.cpp
 +++ b/gamecontroller_db.cpp
 @@ -195,14 +195,15 @@ static int find_linux_code_for_button(char *btn_name, uint16_t *btn_map, uint16_
@@ -74,7 +74,7 @@ index 0010c58..42540aa 100644
  
  
 diff --git a/input.cpp b/input.cpp
-index 6c08549..cb30c30 100644
+index 3e61d77..6e3a82c 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -37,6 +37,9 @@
@@ -432,7 +432,7 @@ index 6c08549..cb30c30 100644
  					break;
  				}
  			}
-@@ -5151,6 +5241,7 @@ int input_test(int getchar)
+@@ -5163,6 +5253,7 @@ int input_test(int getchar)
  
  		while (1)
  		{
@@ -440,7 +440,7 @@ index 6c08549..cb30c30 100644
  			if (cfg.rumble && !is_menu())
  			{
  				for (int i = 0; i < NUMDEV; i++)
-@@ -5165,6 +5256,7 @@ int input_test(int getchar)
+@@ -5177,6 +5268,7 @@ int input_test(int getchar)
  				}
  			}
  
@@ -448,7 +448,7 @@ index 6c08549..cb30c30 100644
  			int return_value = poll(pool, NUMDEV + 3, timeout);
  			if (!return_value) break;
  
-@@ -5190,7 +5282,6 @@ int input_test(int getchar)
+@@ -5202,7 +5294,6 @@ int input_test(int getchar)
  			{
  				int i = pos;
  
@@ -456,7 +456,7 @@ index 6c08549..cb30c30 100644
  				if ((pool[i].fd >= 0) && (pool[i].revents & POLLIN))
  				{
  					if (!input[i].mouse)
-@@ -5832,6 +5923,8 @@ int input_poll(int getchar)
+@@ -5844,6 +5935,8 @@ int input_poll(int getchar)
  	static int af[NUMPLAYERS] = {};
  	static uint32_t time[NUMPLAYERS] = {};
  	static uint64_t joy_prev[NUMPLAYERS] = {};
@@ -465,7 +465,7 @@ index 6c08549..cb30c30 100644
  
  	int ret = input_test(getchar);
  	if (getchar) return ret;
-@@ -5872,31 +5965,30 @@ int input_poll(int getchar)
+@@ -5884,31 +5977,30 @@ int input_poll(int getchar)
  			if (af_delay[i] < AF_MIN) af_delay[i] = AF_MIN;
  
  			if (!time[i]) time[i] = GetTimer(af_delay[i]);
@@ -511,7 +511,7 @@ index 6c08549..cb30c30 100644
  			}
  		}
  	}
-@@ -6056,3 +6148,484 @@ void parse_buttons()
+@@ -6068,3 +6160,484 @@ void parse_buttons()
  		joy_bcount++;
  	}
  }
@@ -1049,7 +1049,7 @@ index e89dc98..16f7187 100644
 +
  #endif
 diff --git a/menu.cpp b/menu.cpp
-index 9a5d987..303936c 100644
+index 40558cb..f3b37bc 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -64,6 +64,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -1204,7 +1204,7 @@ index 9a5d987..303936c 100644
  			if(video_fb_state()) video_menu_bg(user_io_status_get("[3:1]"));
  			video_fb_enable(0);
  			break;
-@@ -2675,7 +2773,8 @@ void HandleUI(void)
+@@ -2684,7 +2782,8 @@ void HandleUI(void)
  				break;
  
  			case 3:
@@ -1214,7 +1214,7 @@ index 9a5d987..303936c 100644
  				menustate = MENU_JOYKBDMAP;
  				menusub = 0;
  				break;
-@@ -4199,72 +4298,230 @@ void HandleUI(void)
+@@ -4208,72 +4307,230 @@ void HandleUI(void)
  		break;
  
  	case MENU_JOYKBDMAP:
@@ -1339,10 +1339,7 @@ index 9a5d987..303936c 100644
  			}
 -			else
 +			if (abm)
- 			{
--				OsdWrite(1, "   Press button to map to", 0, 0);
--				OsdWrite(2, "      on the same pad", 0, 0);
--				OsdWrite(3, "    or key on a keyboard", 0, 0);
++			{
 +	      memcpy(abm, &abm_edit_map, sizeof(abm_edit_map));
 +			} else {
 +			  menu_timeout = GetTimer(1000);
@@ -1365,7 +1362,10 @@ index 9a5d987..303936c 100644
 +		{
 +			int exit_status = 0;
 +      if (pressed && !abm_clear_timer && is_osd)
-+			{
+ 			{
+-				OsdWrite(1, "   Press button to map to", 0, 0);
+-				OsdWrite(2, "      on the same pad", 0, 0);
+-				OsdWrite(3, "    or key on a keyboard", 0, 0);
 +			  abm_clear_timer = GetTimer(5000);
 +			} else if (pressed && CheckTimer(abm_clear_timer) && is_osd) {
 +        //User cleared
@@ -1478,7 +1478,7 @@ index 9a5d987..303936c 100644
  			menusub = 3;
  		}
  		break;
-@@ -7070,6 +7327,425 @@ void HandleUI(void)
+@@ -7079,6 +7336,440 @@ void HandleUI(void)
  		SelectFile("", 0, SCANO_CORES, MENU_CORE_FILE_SELECTED1, cp_MenuCancel);
  		break;
  
@@ -1686,33 +1686,36 @@ index 9a5d987..303936c 100644
 +										if (select) 
 +										{
 +											menustate = MENU_ADVANCED_MAP_EDIT3;
++                      menusub = 0;
 +										} else if (right && (mapped_button_cnt <= 1)) {
 +											if (first_map_idx == -1) 
 +												first_map_idx = 0;
 +											else
 +												first_map_idx++;
++											menu_button_name(first_map_idx, bname, sizeof(bname));
 +                  	  while(!strncmp("-", bname, sizeof(bname)))
 +                  	  {
 +                  	    first_map_idx++;
++											  menu_button_name(first_map_idx, bname, sizeof(bname));
 +                  	  }
 +											if (first_map_idx-4 >= joy_bcount)
 +											{
 +												first_map_idx = 0;
 +											}
 +											edit_abm->button_mask = 1<<first_map_idx;
-+											menu_button_name(first_map_idx, bname, sizeof(bname));
 +										} else if (left && (mapped_button_cnt <= 1)) {
 +											if (first_map_idx == -1) 
 +												first_map_idx = 0;
 +											else
 +												first_map_idx--;
++											menu_button_name(first_map_idx, bname, sizeof(bname));
 +                  	  while(!strncmp("-", bname, sizeof(bname)))
 +                  	  {
 +                  	    first_map_idx--;
++											  menu_button_name(first_map_idx, bname, sizeof(bname));
 +                  	  }
 +											if (first_map_idx < 0) first_map_idx=joy_bcount+3;
 +											edit_abm->button_mask = 1<<first_map_idx;
-+											menu_button_name(first_map_idx, bname, sizeof(bname));
 +										}
 +
 +										break;
@@ -1796,7 +1799,19 @@ index 9a5d987..303936c 100644
 +						menusub = 1;
 +					} else if (select) {
 +						menustate = MENU_ADVANCED_MAP_EDIT3;
-+						edit_abm->button_mask ^= 1<<menusub;
++            uint32_t btn_cnt = 0;
++            for(int i = 0; i < joy_bcount+4; i++)
++            {
++              char bname[32];
++              menu_button_name(i, bname, sizeof(bname));
++              if (!strcmp("-", bname)) continue;
++              if (menusub == btn_cnt)
++              {
++                edit_abm->button_mask ^= 1<<i;
++                break;
++              }
++              btn_cnt++;
++            }
 +					}
 +					break;
 +				}
@@ -1905,10 +1920,10 @@ index 9a5d987..303936c 100644
  		/* we should never come here                                      */
  		/******************************************************************/
 diff --git a/user_io.cpp b/user_io.cpp
-index a7b532b..82fff9b 100644
+index e7c5416..9fd196f 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
-@@ -1697,23 +1697,22 @@ void user_io_r_analog_joystick(unsigned char joystick, char valueX, char valueY)
+@@ -1704,23 +1704,22 @@ void user_io_r_analog_joystick(unsigned char joystick, char valueX, char valueY)
  	}
  }
  
@@ -1937,7 +1952,7 @@ index a7b532b..82fff9b 100644
  	}
  }
  
-@@ -3954,7 +3953,7 @@ void user_io_kbd(uint16_t key, int press)
+@@ -3988,7 +3987,7 @@ void user_io_kbd(uint16_t key, int press)
  				if (key == KEY_MENU) key = KEY_F12;
  				if (key != KEY_F12 || !block_F12)
  				{
@@ -1946,7 +1961,7 @@ index a7b532b..82fff9b 100644
  
  					// these modifiers should be passed to core even if OSD is open or they will get stuck!
  					if (!osd_is_visible || key == KEY_LEFTALT || key == KEY_RIGHTALT || key == KEY_LEFTMETA || key == KEY_RIGHTMETA) send_keycode(key, press);
-@@ -3967,7 +3966,7 @@ void user_io_kbd(uint16_t key, int press)
+@@ -4001,7 +4000,7 @@ void user_io_kbd(uint16_t key, int press)
  				if (!osd_is_visible && !is_menu() && key == KEY_MENU && press == 3) open_joystick_setup();
  				else if ((has_menu() || osd_is_visible || (get_key_mod() & (LALT | RALT | RGUI | LGUI))) && (((key == KEY_F12) && ((!is_x86() && !is_pcxt() && !is_archie()) || (get_key_mod() & (RGUI | LGUI)))) || key == KEY_MENU))
  				{
@@ -1956,7 +1971,7 @@ index a7b532b..82fff9b 100644
  				}
  				else if (osd_is_visible)
 diff --git a/user_io.h b/user_io.h
-index 0abddce..50ab5a9 100644
+index 7cab093..6802160 100644
 --- a/user_io.h
 +++ b/user_io.h
 @@ -203,7 +203,7 @@ void user_io_mouse(unsigned char b, int16_t x, int16_t y, int16_t w);

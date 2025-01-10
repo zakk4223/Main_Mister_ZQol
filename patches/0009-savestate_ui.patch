@@ -1,6 +1,6 @@
-From 8dfbc62eec265ce7d538854476d98eccda8da3aa Mon Sep 17 00:00:00 2001
+From 1f5d61fb032b5c81d78bd2ea40559ee4a47ce0e5 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 3 Dec 2024 17:08:56 -0500
+Date: Fri, 10 Jan 2025 04:18:05 -0500
 Subject: [PATCH 9/9] 0009
 
 ---
@@ -16,7 +16,7 @@ Subject: [PATCH 9/9] 0009
  9 files changed, 160 insertions(+), 23 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 63f7109..d75a594 100644
+index 7908d91..f37c23c 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
 @@ -136,6 +136,7 @@ static const ini_var_t ini_vars[] =
@@ -27,7 +27,7 @@ index 63f7109..d75a594 100644
  	{ "MAIN", (void*)(&(cfg.main)), STRING, 0, sizeof(cfg.main) - 1 },
  };
  
-@@ -631,6 +632,12 @@ void cfg_parse()
+@@ -628,6 +629,12 @@ void cfg_parse()
      if (!strcasecmp(cfg.socd_lr, "right")) cfg.socd_lr_int = SOCD_LR_RIGHT;
    }
  
@@ -54,7 +54,7 @@ index 05fa8ab..d18923a 100644
  } cfg_t;
  
 diff --git a/file_io.cpp b/file_io.cpp
-index c5ba8be..e8d5c20 100644
+index e7f7297..4b0ff32 100644
 --- a/file_io.cpp
 +++ b/file_io.cpp
 @@ -838,7 +838,7 @@ void FileGenerateScreenshotName(const char *name, char *out_name, int buflen)
@@ -67,7 +67,7 @@ index c5ba8be..e8d5c20 100644
  		if( p )
  		{
 diff --git a/input.cpp b/input.cpp
-index d138a34..e584e21 100644
+index 2e1d82e..b4a18e2 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -1825,6 +1825,7 @@ static void uinp_send_key(uint16_t key, int press)
@@ -79,7 +79,7 @@ index d138a34..e584e21 100644
  	{
  		if (!grabbed)
 diff --git a/menu.cpp b/menu.cpp
-index 9b6235f..83b3df8 100644
+index 2b7a999..ebc70f3 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -44,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -258,7 +258,7 @@ index 9b6235f..83b3df8 100644
  			if (mgl->state == 1) mgl->state = 2;
  		}
  		break;
-@@ -7846,6 +7927,9 @@ void HandleUI(void)
+@@ -7870,6 +7951,9 @@ void HandleUI(void)
  
    case MENU_SAVE_STATE1:
     {
@@ -268,7 +268,7 @@ index 9b6235f..83b3df8 100644
  					menustate = MENU_SAVE_STATE2;
  					parentstate = MENU_SAVE_STATE1;
  					OsdSetTitle("Save States", 0);
-@@ -7869,10 +7953,20 @@ void HandleUI(void)
+@@ -7893,10 +7977,20 @@ void HandleUI(void)
            MenuWrite(n, " Save", menusub == n, 0); n++;
  					MenuWrite(n, " Load", menusub == n, 0); n++;
  					for (int i = n; i < OsdGetSize() - 1; i++) MenuWrite(i, "", 0, 0);
@@ -289,7 +289,7 @@ index 9b6235f..83b3df8 100644
       if (select || minus || plus || left || right)
       {
         menustate = MENU_SAVE_STATE1;
-@@ -7904,9 +7998,10 @@ void HandleUI(void)
+@@ -7928,9 +8022,10 @@ void HandleUI(void)
          case 3:
             if (select)
             {
@@ -302,7 +302,7 @@ index 9b6235f..83b3df8 100644
             break;
         }
       }
-@@ -8207,6 +8302,18 @@ void PrintDirectory(int expand)
+@@ -8235,6 +8330,18 @@ void PrintDirectory(int expand)
  	}
  }
  
@@ -321,7 +321,7 @@ index 9b6235f..83b3df8 100644
  static void set_text(const char *message, unsigned char code)
  {
  	char s[40];
-@@ -8370,16 +8477,3 @@ void ProgressMessage(const char* title, const char* text, int current, int max,
+@@ -8398,16 +8505,3 @@ void ProgressMessage(const char* title, const char* text, int current, int max,
  	}
  }
  
@@ -363,7 +363,7 @@ index 919d31a..7b3323f 100644
  		}
  
 diff --git a/user_io.cpp b/user_io.cpp
-index ac12bac..5e43c88 100644
+index d733179..725aa52 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -9,11 +9,14 @@
@@ -381,7 +381,7 @@ index ac12bac..5e43c88 100644
  #include "user_io.h"
  #include "debug.h"
  #include "spi.h"
-@@ -4269,8 +4272,34 @@ void ss_menu_save()
+@@ -4303,8 +4306,34 @@ void ss_menu_save()
    if (!cfg.ss_save_bit[0]) return;
  
    ss_save_pending = true;
@@ -417,10 +417,10 @@ index ac12bac..5e43c88 100644
 +}
 +
 diff --git a/user_io.h b/user_io.h
-index f78e1c7..045a808 100644
+index 038a37d..4998ab4 100644
 --- a/user_io.h
 +++ b/user_io.h
-@@ -287,8 +287,10 @@ char is_uneon();
+@@ -288,8 +288,10 @@ char is_uneon();
  
  
  void ss_menu_load();
