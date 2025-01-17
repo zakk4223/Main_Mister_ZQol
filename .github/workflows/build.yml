@@ -73,9 +73,9 @@ jobs:
       - name: Copy Release
         if: env.DO_RUN_BUILD == 'YES'
         run: |
-          cp ./main_mister/MiSTer ./main/releases/MiSTer_`date +%Y%m%d`
+          cp ./main_mister/bin/MiSTer ./main/releases/MiSTer_`date +%Y%m%d`
           mkdir -p ./main/downloader
-          cp ./main_mister/MiSTer ./main/downloader
+          cp ./main_mister/bin/MiSTer ./main/downloader
       - name: Set last mister checksum
         if: env.DO_RUN_BUILD == 'YES' && env.LAST_MISTER_SHA != ''
         run: |
