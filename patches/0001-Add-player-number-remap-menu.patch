@@ -1,6 +1,6 @@
-From 03f52f68f58cf38d6c9c50e3dae7a77c48218c15 Mon Sep 17 00:00:00 2001
+From 3cf3e83e7c34dfa30f03aa0f5f59df111b479784 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 10 Jan 2025 04:32:25 -0500
+Date: Thu, 20 Feb 2025 03:51:53 -0500
 Subject: [PATCH 1/9] 0001
 
 ---
@@ -10,10 +10,10 @@ Subject: [PATCH 1/9] 0001
  3 files changed, 323 insertions(+), 3 deletions(-)
 
 diff --git a/input.cpp b/input.cpp
-index 52a6784..3e61d77 100644
+index 1fc63d7..5770ab1 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -1405,6 +1405,75 @@ static int tmp_axis_n = 0;
+@@ -1406,6 +1406,75 @@ static int tmp_axis_n = 0;
  
  static int grabbed = 1;
  
@@ -89,7 +89,7 @@ index 52a6784..3e61d77 100644
  void start_map_setting(int cnt, int set)
  {
  	mapping_current_key = 0;
-@@ -2342,6 +2411,7 @@ void reset_players()
+@@ -2344,6 +2413,7 @@ void reset_players()
  	}
  	memset(player_pad, 0, sizeof(player_pad));
  	memset(player_pdsp, 0, sizeof(player_pdsp));
@@ -97,7 +97,7 @@ index 52a6784..3e61d77 100644
  }
  
  static void store_player(int num, int dev)
-@@ -2460,6 +2530,51 @@ static void setup_deadzone(struct input_event* ev, int dev)
+@@ -2462,6 +2532,51 @@ static void setup_deadzone(struct input_event* ev, int dev)
  	}
  }
  
@@ -149,7 +149,7 @@ index 52a6784..3e61d77 100644
  void unflag_players()
  {
  	for (int k = 1; k < NUMPLAYERS; k++)
-@@ -3143,6 +3258,13 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3149,6 +3264,13 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  			if (ev->code < 1024 && input[dev].jkmap[ev->code] && !user_io_osd_is_visible()) ev->code = input[dev].jkmap[ev->code];
  
  			//joystick buttons, digital directions
@@ -163,7 +163,7 @@ index 52a6784..3e61d77 100644
  			if (ev->code >= 256)
  			{
  				if (input[dev].lightgun_req && !user_io_osd_is_visible())
-@@ -3161,6 +3283,11 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3167,6 +3289,11 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  				if (user_io_osd_is_visible() || video_fb_state())
  				{
@@ -175,7 +175,7 @@ index 52a6784..3e61d77 100644
  					if (ev->value <= 1)
  					{
  						if ((input[dev].mmap[SYS_BTN_MENU_FUNC] & 0xFFFF) ?
-@@ -3436,6 +3563,10 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3442,6 +3569,10 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  		//analog joystick
  		case EV_ABS:
@@ -186,7 +186,7 @@ index 52a6784..3e61d77 100644
  			if (!user_io_osd_is_visible())
  			{
  				int value = ev->value;
-@@ -3558,6 +3689,12 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3564,6 +3695,12 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  		// spinner
  		case EV_REL:
@@ -199,7 +199,7 @@ index 52a6784..3e61d77 100644
  			if (!user_io_osd_is_visible() && ev->code == 7)
  			{
  				if (input[dev].num && input[dev].num <= NUMPLAYERS)
-@@ -4618,6 +4755,11 @@ int input_test(int getchar)
+@@ -4661,6 +4798,11 @@ int input_test(int getchar)
  	struct input_event ev;
  	static uint32_t timeout = 0;
  
@@ -211,7 +211,7 @@ index 52a6784..3e61d77 100644
  	if (touch_rel && CheckTimer(touch_rel))
  	{
  		touch_rel = 0;
-@@ -5281,6 +5423,7 @@ int input_test(int getchar)
+@@ -5371,6 +5513,7 @@ int input_test(int getchar)
  								if (is_menu() && !video_fb_state())
  								{
  									/*
@@ -241,7 +241,7 @@ index 892cbf1..e89dc98 100644
  uint32_t get_key_mod();
  uint32_t get_ps2_code(uint16_t key);
 diff --git a/menu.cpp b/menu.cpp
-index d2fcd17..40558cb 100644
+index a096b22..547ea0e 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -110,6 +110,7 @@ enum MENU
@@ -252,7 +252,7 @@ index d2fcd17..40558cb 100644
  	MENU_KBDMAP,
  	MENU_KBDMAP1,
  	MENU_KBDMAP2,
-@@ -2558,7 +2559,7 @@ void HandleUI(void)
+@@ -2542,7 +2543,7 @@ void HandleUI(void)
  				s[28] = 0;
  				MenuWrite(n++, s, menusub == 2, 0);
  				MenuWrite(n++, " Button/Key remap          \x16", menusub == 3, 0);
@@ -261,7 +261,7 @@ index d2fcd17..40558cb 100644
  
  				if (user_io_get_uart_mode())
  				{
-@@ -2689,8 +2690,9 @@ void HandleUI(void)
+@@ -2673,8 +2674,9 @@ void HandleUI(void)
  				break;
  
  			case 4:
@@ -273,7 +273,7 @@ index d2fcd17..40558cb 100644
  				break;
  
  			case 5:
-@@ -4040,6 +4042,171 @@ void HandleUI(void)
+@@ -4016,6 +4018,171 @@ void HandleUI(void)
  		}
  		break;
  
@@ -446,5 +446,5 @@ index d2fcd17..40558cb 100644
  		helptext_idx = 0;
  		menumask = 1;
 -- 
-2.47.1
+2.48.1
 

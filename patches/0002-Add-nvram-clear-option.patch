@@ -1,6 +1,6 @@
-From cc9b9db81e3a07a8599b6117788bb70057474d8a Mon Sep 17 00:00:00 2001
+From f2c905474365c7e816c82a8f8ff5f0b23c5c4088 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 10 Jan 2025 04:32:38 -0500
+Date: Thu, 20 Feb 2025 03:52:02 -0500
 Subject: [PATCH 2/9] 0002
 
 ---
@@ -9,10 +9,10 @@ Subject: [PATCH 2/9] 0002
  2 files changed, 23 insertions(+)
 
 diff --git a/support/arcade/mra_loader.cpp b/support/arcade/mra_loader.cpp
-index 5099669..2dc7243 100644
+index e967f35..3dc9696 100644
 --- a/support/arcade/mra_loader.cpp
 +++ b/support/arcade/mra_loader.cpp
-@@ -57,6 +57,27 @@ static int  nvram_idx  = 0;
+@@ -61,6 +61,27 @@ static int  nvram_idx  = 0;
  static int  nvram_size = 0;
  static char nvram_name[200] = {};
  
@@ -41,7 +41,7 @@ index 5099669..2dc7243 100644
  {
  	if(nvram_idx && nvram_size)
 diff --git a/support/arcade/mra_loader.h b/support/arcade/mra_loader.h
-index f4c56a0..38bdb4a 100644
+index 9982174..ec6d02f 100644
 --- a/support/arcade/mra_loader.h
 +++ b/support/arcade/mra_loader.h
 @@ -66,6 +66,8 @@ void arcade_pre_parse(const char *xml);
@@ -54,5 +54,5 @@ index f4c56a0..38bdb4a 100644
  mgl_struct* mgl_parse(const char *xml);
  mgl_struct* mgl_get();
 -- 
-2.47.1
+2.48.1
 

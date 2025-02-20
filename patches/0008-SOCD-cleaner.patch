@@ -1,6 +1,6 @@
-From db18b8e43eb5c58881a520b6b3473eb158f6519a Mon Sep 17 00:00:00 2001
+From 3b6cb0ae9d9aa962ef748050d8887a642ba801c6 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 10 Jan 2025 04:33:59 -0500
+Date: Thu, 20 Feb 2025 04:30:28 -0500
 Subject: [PATCH 8/9] 0008
 
 ---
@@ -78,21 +78,20 @@ index d218c67..05fa8ab 100644
  } cfg_t;
  
 diff --git a/input.cpp b/input.cpp
-index 0d09d5b..2e1d82e 100644
+index 0813c50..94f9ada 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -6188,8 +6188,10 @@ int input_poll(int getchar)
+@@ -6278,7 +6278,9 @@ int input_poll(int getchar)
  	{
  		for (int i = 0; i < NUMPLAYERS; i++)
  		{
 +      uint8_t new_dir_mask = 0;
+ 			int send = 0;
++      
  			if (af_delay[i] < AF_MIN) af_delay[i] = AF_MIN;
  
-+
- 			if (!time[i]) time[i] = GetTimer(af_delay[i]);
- 
- 			if (((joy[i] ^ joy_prev[i]) & autofire[i]) || ((joy_adv[i] ^ joy_adv_prev[i]) & advancedautofire[i]))
-@@ -6209,6 +6211,41 @@ int input_poll(int getchar)
+ 			/* Autofire handler */
+@@ -6301,6 +6303,41 @@ int input_poll(int getchar)
  			uint32_t adv_send = af[i] ? joy_adv[i] & ~advancedautofire[i] : joy_adv[i];
  			uint32_t send_comb = (uint32_t)joy_send | (uint32_t)(joy_send >> 32) | adv_send;
  			int newdir = (send_comb & 0xF) != (send_prev[i] & 0x0F);
@@ -132,8 +131,8 @@ index 0d09d5b..2e1d82e 100644
 +        }
 +      }
  			if (send_comb != send_prev[i]) 
- 			{
+  			{
  				user_io_digital_joystick(i, send_comb, newdir);
 -- 
-2.47.1
+2.48.1
 

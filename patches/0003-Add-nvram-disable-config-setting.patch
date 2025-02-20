@@ -1,6 +1,6 @@
-From ed3523517bd2677bdb2e93a9ac028676cb7812ef Mon Sep 17 00:00:00 2001
+From 5c97beee5516d8de612613630b46bc972214b540 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 10 Jan 2025 04:32:52 -0500
+Date: Thu, 20 Feb 2025 03:54:25 -0500
 Subject: [PATCH 3/9] 0003
 
 ---
@@ -34,18 +34,18 @@ index 491ba29..a837a8a 100644
  	uint8_t forced_scandoubler;
  	uint8_t key_menu_as_rgui;
 diff --git a/support/arcade/mra_loader.cpp b/support/arcade/mra_loader.cpp
-index 2dc7243..036b86a 100644
+index 3dc9696..d21b306 100644
 --- a/support/arcade/mra_loader.cpp
 +++ b/support/arcade/mra_loader.cpp
-@@ -13,6 +13,7 @@
- #include "../../fpga_io.h"
- #include "../../lib/md5/md5.h"
+@@ -15,6 +15,7 @@
  #include "../../shmem.h"
+ #include "../../str_util.h"
+ #include "../../cheats.h"
 +#include "../../cfg.h"
  
  #include "buffer.h"
  #include "mra_loader.h"
-@@ -80,7 +81,7 @@ void arcade_nvm_clear()
+@@ -84,7 +85,7 @@ void arcade_nvm_clear()
  
  void arcade_nvm_save()
  {
@@ -54,7 +54,7 @@ index 2dc7243..036b86a 100644
  	{
  		char path[256] = CONFIG_DIR"/nvram/";
  		FileCreatePath(path);
-@@ -104,7 +105,7 @@ void arcade_nvm_save()
+@@ -108,7 +109,7 @@ void arcade_nvm_save()
  
  static void arcade_nvm_load()
  {
@@ -64,5 +64,5 @@ index 2dc7243..036b86a 100644
  		char path[256] = "nvram/";
  		uint8_t *buf = new uint8_t[nvram_size];
 -- 
-2.47.1
+2.48.1
 

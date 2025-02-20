@@ -1,77 +1,20 @@
-From 8dbd8041cd55c5f4e19f055eb4c3a4f591c8d781 Mon Sep 17 00:00:00 2001
+From d12269836bd20346ceeb7d22f037ffc823adeadc Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 10 Jan 2025 04:33:34 -0500
+Date: Thu, 20 Feb 2025 04:27:58 -0500
 Subject: [PATCH 5/9] 0005
 
 ---
- frame_timer.cpp | 40 ++++++++++++++++++++
- frame_timer.h   |  1 +
- input.cpp       | 99 ++++++++++++++++++++++++++++++++++++++++++++++++-
- input.h         | 13 ++++++-
- menu.cpp        | 66 ++++++++++++++++++++++++++++++++-
- scaler.cpp      | 26 +++++++++++++
- scaler.h        |  4 +-
- video.cpp       |  5 +++
- video.h         |  1 +
- 9 files changed, 250 insertions(+), 5 deletions(-)
- create mode 100644 frame_timer.cpp
- create mode 100644 frame_timer.h
+ input.cpp  | 99 +++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ input.h    | 13 ++++++-
+ menu.cpp   | 66 ++++++++++++++++++++++++++++++++++--
+ scaler.cpp | 26 ++++++++++++++
+ scaler.h   |  4 ++-
+ video.cpp  |  5 +++
+ video.h    |  1 +
+ 7 files changed, 209 insertions(+), 5 deletions(-)
 
-diff --git a/frame_timer.cpp b/frame_timer.cpp
-new file mode 100644
-index 0000000..0803b15
---- /dev/null
-+++ b/frame_timer.cpp
-@@ -0,0 +1,40 @@
-+
-+#include "hardware.h"
-+#include "scaler.h"
-+#include "video.h"
-+
-+static int current_frame = -1;
-+static unsigned long current_timer = 0;
-+static mister_scaler *scaler_inst = NULL;
-+
-+int GetCurrentFrame()
-+{
-+
-+  if (!scaler_inst)
-+  {
-+    scaler_inst = mister_scaler_init();
-+  }
-+  if (current_frame == -1)
-+  {
-+    current_frame = mister_scaler_frame_counter(scaler_inst);
-+    return current_frame;
-+  }
-+
-+  //Don't start using the timer until we've seen at least one frame transition.
-+
-+
-+  if (CheckTimer(current_timer))
-+  {
-+    int frame_num = mister_scaler_frame_counter(scaler_inst);
-+    if (frame_num != current_frame)
-+    {
-+      float frame_ms = video_get_vtime_ms();
-+      //Try 80% of frame time...
-+      frame_ms*=0.80;
-+      current_timer = GetTimer((unsigned long)frame_ms); 
-+      current_frame = frame_num;
-+    }
-+  }
-+  return current_frame;
-+
-+}
-diff --git a/frame_timer.h b/frame_timer.h
-new file mode 100644
-index 0000000..e1b0717
---- /dev/null
-+++ b/frame_timer.h
-@@ -0,0 +1 @@
-+int GetCurrentFrame();
 diff --git a/input.cpp b/input.cpp
-index 6e3a82c..93fab16 100644
+index d2e2f89..a45f671 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -31,6 +31,7 @@
@@ -90,7 +33,7 @@ index 6e3a82c..93fab16 100644
  bool osd_inhibit_next_release = false;
  
  char joy_bnames[NUMBUTTONS][32] = {};
-@@ -5939,6 +5941,7 @@ int input_poll(int getchar)
+@@ -6029,6 +6031,7 @@ int input_poll(int getchar)
  	static uint32_t send_prev[NUMPLAYERS] = {};
  
  	int ret = input_test(getchar);
@@ -98,7 +41,7 @@ index 6e3a82c..93fab16 100644
  	if (getchar) return ret;
  
  	uinp_check_key();
-@@ -6187,6 +6190,8 @@ static void advanced_convert_jkmap(int devnum)
+@@ -6290,6 +6293,8 @@ static void advanced_convert_jkmap(int devnum)
  static void process_abm_entry(advancedButtonMap *abm, advancedButtonState *abs, int devnum, int pnum)
  {
  	uint64_t joy_sav = 0;
@@ -107,7 +50,7 @@ index 6e3a82c..93fab16 100644
  	if (pnum >= 0)
  	{
  		joy_sav = joy[pnum];
-@@ -6241,6 +6246,93 @@ static void process_abm_entry(advancedButtonMap *abm, advancedButtonState *abs,
+@@ -6344,6 +6349,93 @@ static void process_abm_entry(advancedButtonMap *abm, advancedButtonState *abs,
  	}
  }
  
@@ -201,7 +144,7 @@ index 6e3a82c..93fab16 100644
  //TODO:
  //any way to shorten/cleanup this function and process_abm_entry
  //same for the menu functions
-@@ -6369,6 +6461,11 @@ bool update_advanced_state(int devnum, uint16_t evcode, int evstate, int osd_eve
+@@ -6472,6 +6564,11 @@ bool update_advanced_state(int devnum, uint16_t evcode, int evstate, int osd_eve
  
  		if (abs->pressed != abs->last_pressed) 
  		{
@@ -213,7 +156,7 @@ index 6e3a82c..93fab16 100644
  			if (pnum >= 0 && abs->autofire && !abs->pressed)
  			{
  				af_disable |= abs->current_mask;
-@@ -6398,7 +6495,7 @@ bool update_advanced_state(int devnum, uint16_t evcode, int evstate, int osd_eve
+@@ -6501,7 +6598,7 @@ bool update_advanced_state(int devnum, uint16_t evcode, int evstate, int osd_eve
  				else
  					af_force_disable |= abs->current_mask;
  			}
@@ -253,10 +196,10 @@ index 16f7187..fe2611b 100644
  	uint8_t last_pressed : 1;
  	uint8_t autofire : 1;
 diff --git a/menu.cpp b/menu.cpp
-index f3b37bc..c4e6459 100644
+index 9c5b374..7728350 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -7460,6 +7460,7 @@ void HandleUI(void)
+@@ -7433,6 +7433,7 @@ void HandleUI(void)
  					advancedButtonMap *edit_abm = abms+abm_edit_idx;
  					int mapped_button_cnt = 0;
  					int first_map_idx = -1;
@@ -264,7 +207,7 @@ index f3b37bc..c4e6459 100644
  				  bool dev_kbd = device_is_keyboard(abm_dev_num);
  					for (uint bn = 0; bn < sizeof(edit_abm->button_mask)*8; bn++)
  					{
-@@ -7504,6 +7505,26 @@ void HandleUI(void)
+@@ -7477,6 +7478,26 @@ void HandleUI(void)
  					MenuWrite(n, s, menusub == n, 0);
  				  menumask |= 1 << n++; 
  
@@ -291,7 +234,7 @@ index f3b37bc..c4e6459 100644
  					MenuWrite(n, " Delete", menusub == n, 0);
  				  menumask |= 1 << n++; 
  					MenuWrite(n, " Done", menusub == n, 0);
-@@ -7519,6 +7540,7 @@ void HandleUI(void)
+@@ -7492,6 +7513,7 @@ void HandleUI(void)
  						menustate = MENU_ADVANCED_MAP_EDIT1;
  						advancedButtonMap *abms = get_advanced_map_defs(abm_dev_num);
  						advancedButtonMap *edit_abm = abms+abm_edit_idx;
@@ -299,7 +242,7 @@ index f3b37bc..c4e6459 100644
              char bname[32] = {0};
  						switch(menusub)
  							{
-@@ -7589,7 +7611,47 @@ void HandleUI(void)
+@@ -7562,7 +7584,47 @@ void HandleUI(void)
  									}
  									break;
  								
@@ -348,7 +291,7 @@ index f3b37bc..c4e6459 100644
  									if (select)
  									{
  										menustate = MENU_ADVANCED_MAP_LIST1;
-@@ -7599,7 +7661,7 @@ void HandleUI(void)
+@@ -7572,7 +7634,7 @@ void HandleUI(void)
  										input_advanced_save(abm_dev_num);
  									}
  									break;
@@ -412,10 +355,10 @@ index 3eb4084..e8f86d9 100644
  
  #endif
 diff --git a/video.cpp b/video.cpp
-index 68759df..05116d8 100644
+index 3effee5..cfd22e1 100644
 --- a/video.cpp
 +++ b/video.cpp
-@@ -3912,4 +3912,9 @@ int video_get_rotated()
+@@ -3915,4 +3915,9 @@ int video_get_rotated()
    return current_video_info.rotated;
  }
  
@@ -438,5 +381,5 @@ index 30ecab9..1426a25 100644
  void video_cfg_reset();
  
 -- 
-2.47.1
+2.48.1
 

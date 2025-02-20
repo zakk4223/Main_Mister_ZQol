@@ -1,17 +1,17 @@
-From 508d1ccbc0047f6abd7dcf03cd214b91f8ddbfae Mon Sep 17 00:00:00 2001
+From 30f471a2a1a01c4d4486a78d3c73c094e5f65988 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Fri, 10 Jan 2025 04:32:59 -0500
+Date: Thu, 20 Feb 2025 04:27:42 -0500
 Subject: [PATCH 4/9] 0004
 
 ---
  gamecontroller_db.cpp |  14 +-
  gamecontroller_db.h   |   1 +
- input.cpp             | 683 ++++++++++++++++++++++++++++++++++---
+ input.cpp             | 671 ++++++++++++++++++++++++++++++++++---
  input.h               |  36 ++
  menu.cpp              | 763 ++++++++++++++++++++++++++++++++++++++++--
  user_io.cpp           |  15 +-
  user_io.h             |   2 +-
- 7 files changed, 1409 insertions(+), 105 deletions(-)
+ 7 files changed, 1408 insertions(+), 94 deletions(-)
 
 diff --git a/gamecontroller_db.cpp b/gamecontroller_db.cpp
 index fab15ec..d229820 100644
@@ -74,7 +74,7 @@ index 0010c58..42540aa 100644
  
  
 diff --git a/input.cpp b/input.cpp
-index 3e61d77..6e3a82c 100644
+index 5770ab1..d2e2f89 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -37,6 +37,9 @@
@@ -87,7 +87,7 @@ index 3e61d77..6e3a82c 100644
  char joy_bnames[NUMBUTTONS][32] = {};
  int  joy_bcount = 0;
  static struct pollfd pool[NUMDEV + 3];
-@@ -1149,8 +1152,6 @@ typedef struct
+@@ -1150,8 +1153,6 @@ typedef struct
  
  	uint8_t  has_mmap;
  	uint32_t mmap[NUMBUTTONS];
@@ -96,7 +96,7 @@ index 3e61d77..6e3a82c 100644
  	int      stick_l[2];
  	int      stick_r[2];
  
-@@ -1204,6 +1205,10 @@ typedef struct
+@@ -1205,6 +1206,10 @@ typedef struct
  	float    max_range[2];
  
  	uint32_t deadzone;
@@ -107,7 +107,7 @@ index 3e61d77..6e3a82c 100644
  } devInput;
  
  static devInput input[NUMDEV] = {};
-@@ -1400,12 +1405,18 @@ static int mapping_set;
+@@ -1401,12 +1406,18 @@ static int mapping_set;
  static int mapping_current_key = 0;
  static int mapping_current_dev = -1;
  
@@ -127,7 +127,7 @@ index 3e61d77..6e3a82c 100644
  static int last_pdsp_dev = 1<<31;
  static int player_num_remapping = 0;
  static int remapping_spinner_input = 0;
-@@ -1587,11 +1598,6 @@ void finish_map_setting(int dismiss)
+@@ -1588,11 +1599,6 @@ void finish_map_setting(int dismiss)
  		if (dismiss) FileDeleteConfig(get_kbdmap_name(mapping_dev));
  		else FileSaveConfig(get_kbdmap_name(mapping_dev), &input[mapping_dev].kbdmap, sizeof(input[mapping_dev].kbdmap));
  	}
@@ -139,7 +139,7 @@ index 3e61d77..6e3a82c 100644
  	else
  	{
  		for (int i = 0; i < NUMDEV; i++)
-@@ -1709,12 +1715,14 @@ static int keyrah_trans(int key, int press)
+@@ -1711,12 +1717,14 @@ static int keyrah_trans(int key, int press)
  	return key;
  }
  
@@ -155,7 +155,7 @@ index 3e61d77..6e3a82c 100644
  static int af_delay[NUMPLAYERS] = {};
  
  static uint32_t crtgun_timeout[NUMDEV] = {};
-@@ -1736,7 +1744,7 @@ static uint32_t mouse_timer = 0;
+@@ -1738,7 +1746,7 @@ static uint32_t mouse_timer = 0;
  #define BTN_TGL 100
  #define BTN_OSD 101
  
@@ -164,7 +164,7 @@ index 3e61d77..6e3a82c 100644
  #define AF_MAX  512
  #define AF_STEP 8
  
-@@ -1908,10 +1916,25 @@ static void joy_apply_deadzone(int* x, int* y, const devInput* dev, const int st
+@@ -1910,10 +1918,25 @@ static void joy_apply_deadzone(int* x, int* y, const devInput* dev, const int st
  	joy_clamp(y, min_range, INT8_MAX);
  }
  
@@ -191,7 +191,7 @@ index 3e61d77..6e3a82c 100644
  	static uint32_t lastcode[NUMPLAYERS];
  	static uint64_t lastmask[NUMPLAYERS];
  	int num = jnum - 1;
-@@ -1941,6 +1964,7 @@ static void joy_digital(int jnum, uint64_t mask, uint32_t code, char press, int
+@@ -1943,6 +1966,7 @@ static void joy_digital(int jnum, uint64_t mask, uint32_t code, char press, int
  				{
  					if (lastcode[num] && lastmask[num])
  					{
@@ -199,7 +199,7 @@ index 3e61d77..6e3a82c 100644
  						int found = 0;
  						int zero = -1;
  						for (uint i = 0; i < BTN_NUM; i++)
-@@ -1955,22 +1979,13 @@ static void joy_digital(int jnum, uint64_t mask, uint32_t code, char press, int
+@@ -1957,22 +1981,13 @@ static void joy_digital(int jnum, uint64_t mask, uint32_t code, char press, int
  						}
  
  						if (!found && zero >= 0) autofirecodes[num][zero] = lastcode[num];
@@ -224,7 +224,7 @@ index 3e61d77..6e3a82c 100644
  						if (lastmask[num] & 9)
  						{
  							af_delay[num] += AF_STEP << ((lastmask[num] & 1) ? 1 : 0);
-@@ -2143,10 +2158,14 @@ static void joy_digital(int jnum, uint64_t mask, uint32_t code, char press, int
+@@ -2145,10 +2160,14 @@ static void joy_digital(int jnum, uint64_t mask, uint32_t code, char press, int
  				break;
  
  			default:
@@ -241,7 +241,7 @@ index 3e61d77..6e3a82c 100644
  		}
  		else if (video_fb_state())
  		{
-@@ -2204,7 +2223,10 @@ static void joy_digital(int jnum, uint64_t mask, uint32_t code, char press, int
+@@ -2206,7 +2225,10 @@ static void joy_digital(int jnum, uint64_t mask, uint32_t code, char press, int
  			{
  				int found = 0;
  				for (uint i = 0; i < BTN_NUM; i++) if (autofirecodes[num][i] == code) found = 1;
@@ -253,7 +253,7 @@ index 3e61d77..6e3a82c 100644
  			}
  		}
  	}
-@@ -2445,7 +2467,6 @@ static void restore_player(int dev)
+@@ -2447,7 +2469,6 @@ static void restore_player(int dev)
  				input[input[dev].bind].map_shown = player[k].map_shown;
  			}
  
@@ -261,7 +261,7 @@ index 3e61d77..6e3a82c 100644
  			input[dev].lightgun = player[k].lightgun;
  			break;
  		}
-@@ -2611,7 +2632,7 @@ static void assign_player(int dev, int num, int force = 0)
+@@ -2613,7 +2634,7 @@ static void assign_player(int dev, int num, int force = 0)
  	printf("Device %s %sassigned to player %d\n", input[dev].id, force ? "forcebly " : "", input[dev].num);
  }
  
@@ -270,7 +270,7 @@ index 3e61d77..6e3a82c 100644
  {
  	if (ev->type != EV_KEY && ev->type != EV_ABS && ev->type != EV_REL) return;
  	if (ev->type == EV_KEY && (!ev->code || ev->code == KEY_UNKNOWN)) return;
-@@ -2623,6 +2644,68 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2625,6 +2646,68 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  	//check if device is a part of multifunctional device
  	if (!JOYCON_COMBINED(dev) && input[dev].bind >= 0) dev = input[dev].bind;
  
@@ -339,7 +339,7 @@ index 3e61d77..6e3a82c 100644
  	if (ev->type == EV_KEY)
  	{
  		if (input[dev].timeout > 0) input[dev].timeout = cfg.bt_auto_disconnect * 10;
-@@ -2752,13 +2835,10 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2756,13 +2839,10 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  		input[dev].has_map++;
  	}
  
@@ -356,7 +356,7 @@ index 3e61d77..6e3a82c 100644
  	}
  
  	if (!input[dev].num)
-@@ -2992,9 +3072,6 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -2998,9 +3078,6 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  				{
  					if (ev->value == 1)
  					{
@@ -366,7 +366,7 @@ index 3e61d77..6e3a82c 100644
  						mapping_current_dev = dev;
  					}
  
-@@ -3255,8 +3332,11 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3261,8 +3338,11 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  		switch (ev->type)
  		{
  		case EV_KEY:
@@ -379,7 +379,7 @@ index 3e61d77..6e3a82c 100644
  			//joystick buttons, digital directions
  			/*
  			if (player_num_remapping && input[dev].num)
-@@ -3427,11 +3507,14 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3433,11 +3513,14 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  						else if (ev->code == (input[dev].map[i] >> 16)) mask = (uint64_t)1 << (i + 32); // 1 is uint32_t. i spent hours realizing this.
  						if (mask) {
  							if (i <= 3 && origcode == ev->code) origcode = 0; // prevent autofire for original dpad
@@ -395,7 +395,7 @@ index 3e61d77..6e3a82c 100644
  					if (ev->code == input[dev].mmap[SYS_MS_BTN_EMU] && (ev->value <= 1) && ((!(mouse_emu & 1)) ^ (!ev->value)))
  					{
  						mouse_emu = ev->value ? mouse_emu | 1 : mouse_emu & ~1;
-@@ -3472,6 +3555,11 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3478,6 +3561,11 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  				if (ev->code == 111) reset_m |= 0x100;
  				user_io_check_reset(reset_m, (keyrah && !cfg.reset_combo) ? 1 : cfg.reset_combo);
  
@@ -407,7 +407,7 @@ index 3e61d77..6e3a82c 100644
  				if(!user_io_osd_is_visible() && ((user_io_get_kbdemu() == EMU_JOY0) || (user_io_get_kbdemu() == EMU_JOY1)) && !video_fb_state())
  				{
  					if (!kbd_toggle)
-@@ -3556,7 +3644,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3562,7 +3650,7 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  				}
  
  				if (ev->code == KEY_HOMEPAGE) ev->code = KEY_MENU;
@@ -416,7 +416,7 @@ index 3e61d77..6e3a82c 100644
  				return;
  			}
  			break;
-@@ -3827,6 +3915,7 @@ void mergedevs()
+@@ -3833,6 +3921,7 @@ void mergedevs()
  
  									input[i].unique_hash = str_hash(input[i].id);
  									input[i].unique_hash = str_hash(input[i].mac, input[i].unique_hash);
@@ -424,7 +424,7 @@ index 3e61d77..6e3a82c 100644
  
  									input[i].timeout = (strlen(uniq) && strstr(sysfs, "bluetooth")) ? (cfg.bt_auto_disconnect * 10) : 0;
  								}
-@@ -3868,6 +3957,7 @@ void mergedevs()
+@@ -3874,6 +3963,7 @@ void mergedevs()
  				if (!strcmp(input[i].id, input[j].id))
  				{
  					input[i].bind = j;
@@ -432,7 +432,7 @@ index 3e61d77..6e3a82c 100644
  					break;
  				}
  			}
-@@ -5163,6 +5253,7 @@ int input_test(int getchar)
+@@ -5253,6 +5343,7 @@ int input_test(int getchar)
  
  		while (1)
  		{
@@ -440,7 +440,7 @@ index 3e61d77..6e3a82c 100644
  			if (cfg.rumble && !is_menu())
  			{
  				for (int i = 0; i < NUMDEV; i++)
-@@ -5177,6 +5268,7 @@ int input_test(int getchar)
+@@ -5267,6 +5358,7 @@ int input_test(int getchar)
  				}
  			}
  
@@ -448,7 +448,7 @@ index 3e61d77..6e3a82c 100644
  			int return_value = poll(pool, NUMDEV + 3, timeout);
  			if (!return_value) break;
  
-@@ -5202,7 +5294,6 @@ int input_test(int getchar)
+@@ -5292,7 +5384,6 @@ int input_test(int getchar)
  			{
  				int i = pos;
  
@@ -456,7 +456,7 @@ index 3e61d77..6e3a82c 100644
  				if ((pool[i].fd >= 0) && (pool[i].revents & POLLIN))
  				{
  					if (!input[i].mouse)
-@@ -5844,6 +5935,8 @@ int input_poll(int getchar)
+@@ -5934,6 +6025,8 @@ int input_poll(int getchar)
  	static int af[NUMPLAYERS] = {};
  	static uint32_t time[NUMPLAYERS] = {};
  	static uint64_t joy_prev[NUMPLAYERS] = {};
@@ -465,53 +465,43 @@ index 3e61d77..6e3a82c 100644
  
  	int ret = input_test(getchar);
  	if (getchar) return ret;
-@@ -5884,31 +5977,30 @@ int input_poll(int getchar)
+@@ -5975,10 +6068,10 @@ int input_poll(int getchar)
  			if (af_delay[i] < AF_MIN) af_delay[i] = AF_MIN;
  
- 			if (!time[i]) time[i] = GetTimer(af_delay[i]);
--			int send = 0;
--			int newdir = ((((uint32_t)(joy[i]) | (uint32_t)(joy[i] >> 32)) & 0xF) != (((uint32_t)(joy_prev[i]) | (uint32_t)(joy_prev[i] >> 32)) & 0xF));
--			
--			if (joy[i] != joy_prev[i])
--			{
--				if ((joy[i] ^ joy_prev[i]) & autofire[i])
--				{
--					time[i] = GetTimer(af_delay[i]);
--					af[i] = 0;
--				}
- 
--				send = 1;
--				joy_prev[i] = joy[i];
-+			if (((joy[i] ^ joy_prev[i]) & autofire[i]) || ((joy_adv[i] ^ joy_adv_prev[i]) & advancedautofire[i]))
-+			{
-+				time[i] = GetTimer(af_delay[i]);
-+				af[i] = 0;
- 			}
- 
- 			if (CheckTimer(time[i]))
+ 			/* Autofire handler */
+-			if (joy[i] & autofire[i])
++			if ((joy[i] & autofire[i]) || (joy_adv[i] & advancedautofire[i]))
  			{
- 				time[i] = GetTimer(af_delay[i]);
- 				af[i] = !af[i];
--				if (joy[i] & autofire[i]) send = 1;
+ 				if (!time[i]) time[i] = GetTimer(af_delay[i]);
+-				else if ((joy[i] ^ joy_prev[i]) & autofire[i])
++				else if (((joy[i] ^ joy_prev[i]) & autofire[i]) || ((joy_adv[i] ^ joy_adv_prev[i]) & advancedautofire[i]))
+ 				{
+ 					time[i] = GetTimer(af_delay[i]);
+ 					af[i] = 0;
+@@ -5987,11 +6080,20 @@ int input_poll(int getchar)
+ 				{
+ 					time[i] = GetTimer(af_delay[i]);
+ 					af[i] = !af[i];
+-					send = 1;
+ 				}
  			}
  
--			if (send)
-+
+-			int newdir = ((((uint32_t)(joy[i]) | (uint32_t)(joy[i] >> 32)) & 0xF) != (((uint32_t)(joy_prev[i]) | (uint32_t)(joy_prev[i] >> 32)) & 0xF));
 +			uint64_t joy_send = af[i] ? joy[i] & ~autofire[i] : joy[i];
 +			uint32_t adv_send = af[i] ? joy_adv[i] & ~advancedautofire[i] : joy_adv[i];
 +			uint32_t send_comb = (uint32_t)joy_send | (uint32_t)(joy_send >> 32) | adv_send;
 +			int newdir = (send_comb & 0xF) != (send_prev[i] & 0x0F);
 +			if (send_comb != send_prev[i]) 
- 			{
--				user_io_digital_joystick(i, af[i] ? joy[i] & ~autofire[i] : joy[i], newdir);
++ 			{
 +				user_io_digital_joystick(i, send_comb, newdir);
 +				send_prev[i] = send_comb;
 +				joy_prev[i] = joy[i];
 +				joy_adv_prev[i] = joy_adv[i];
- 			}
- 		}
- 	}
-@@ -6068,3 +6160,484 @@ void parse_buttons()
++ 			}
+ 
+ 			if (joy[i] != joy_prev[i])
+ 			{
+@@ -6161,3 +6263,484 @@ void parse_buttons()
  		joy_bcount++;
  	}
  }
@@ -1049,7 +1039,7 @@ index e89dc98..16f7187 100644
 +
  #endif
 diff --git a/menu.cpp b/menu.cpp
-index 40558cb..f3b37bc 100644
+index 547ea0e..9c5b374 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -64,6 +64,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -1204,7 +1194,7 @@ index 40558cb..f3b37bc 100644
  			if(video_fb_state()) video_menu_bg(user_io_status_get("[3:1]"));
  			video_fb_enable(0);
  			break;
-@@ -2684,7 +2782,8 @@ void HandleUI(void)
+@@ -2668,7 +2766,8 @@ void HandleUI(void)
  				break;
  
  			case 3:
@@ -1214,7 +1204,7 @@ index 40558cb..f3b37bc 100644
  				menustate = MENU_JOYKBDMAP;
  				menusub = 0;
  				break;
-@@ -4208,72 +4307,230 @@ void HandleUI(void)
+@@ -4184,72 +4283,230 @@ void HandleUI(void)
  		break;
  
  	case MENU_JOYKBDMAP:
@@ -1478,7 +1468,7 @@ index 40558cb..f3b37bc 100644
  			menusub = 3;
  		}
  		break;
-@@ -7079,6 +7336,440 @@ void HandleUI(void)
+@@ -7052,6 +7309,440 @@ void HandleUI(void)
  		SelectFile("", 0, SCANO_CORES, MENU_CORE_FILE_SELECTED1, cp_MenuCancel);
  		break;
  
@@ -1920,7 +1910,7 @@ index 40558cb..f3b37bc 100644
  		/* we should never come here                                      */
  		/******************************************************************/
 diff --git a/user_io.cpp b/user_io.cpp
-index e7c5416..9fd196f 100644
+index 3224860..55e50de 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -1704,23 +1704,22 @@ void user_io_r_analog_joystick(unsigned char joystick, char valueX, char valueY)
@@ -1952,7 +1942,7 @@ index e7c5416..9fd196f 100644
  	}
  }
  
-@@ -3988,7 +3987,7 @@ void user_io_kbd(uint16_t key, int press)
+@@ -3990,7 +3989,7 @@ void user_io_kbd(uint16_t key, int press)
  				if (key == KEY_MENU) key = KEY_F12;
  				if (key != KEY_F12 || !block_F12)
  				{
@@ -1961,7 +1951,7 @@ index e7c5416..9fd196f 100644
  
  					// these modifiers should be passed to core even if OSD is open or they will get stuck!
  					if (!osd_is_visible || key == KEY_LEFTALT || key == KEY_RIGHTALT || key == KEY_LEFTMETA || key == KEY_RIGHTMETA) send_keycode(key, press);
-@@ -4001,7 +4000,7 @@ void user_io_kbd(uint16_t key, int press)
+@@ -4003,7 +4002,7 @@ void user_io_kbd(uint16_t key, int press)
  				if (!osd_is_visible && !is_menu() && key == KEY_MENU && press == 3) open_joystick_setup();
  				else if ((has_menu() || osd_is_visible || (get_key_mod() & (LALT | RALT | RGUI | LGUI))) && (((key == KEY_F12) && ((!is_x86() && !is_pcxt() && !is_archie()) || (get_key_mod() & (RGUI | LGUI)))) || key == KEY_MENU))
  				{
@@ -1984,5 +1974,5 @@ index 7cab093..6802160 100644
  void user_io_r_analog_joystick(unsigned char, char, char);
  void user_io_set_joyswap(int swap);
 -- 
-2.47.1
+2.48.1
 
