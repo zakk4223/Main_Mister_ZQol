@@ -1,6 +1,6 @@
-From 30caa115e02860915605556eeda1167e0d55d874 Mon Sep 17 00:00:00 2001
+From 300dccc46a1fb1138281da5e6f6d29484c304192 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 20 Feb 2025 04:44:05 -0500
+Date: Mon, 31 Mar 2025 03:09:33 -0400
 Subject: [PATCH 7/9] 0007
 
 ---
@@ -13,7 +13,7 @@ Subject: [PATCH 7/9] 0007
  6 files changed, 258 insertions(+), 15 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 14cb49a..faca935 100644
+index a710257..f5c83cf 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
 @@ -131,6 +131,9 @@ static const ini_var_t ini_vars[] =
@@ -24,10 +24,10 @@ index 14cb49a..faca935 100644
 +	{ "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
 +	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
  	{ "MAIN", (void*)(&(cfg.main)), STRING, 0, sizeof(cfg.main) - 1 },
+ 	{"VFILTER_INTERLACE_DEFAULT", (void*)(&(cfg.vfilter_interlace_default)), STRING, 0, sizeof(cfg.vfilter_interlace_default) - 1 },
  };
- 
 diff --git a/cfg.h b/cfg.h
-index a837a8a..d218c67 100644
+index 8b2db0c..1eb3297 100644
 --- a/cfg.h
 +++ b/cfg.h
 @@ -99,6 +99,9 @@ typedef struct {
@@ -38,10 +38,10 @@ index a837a8a..d218c67 100644
 +	char ss_save_bit[8];
 +	char ss_current_slot[15];
  	char main[1024];
+ 	char vfilter_interlace_default[1023];
  } cfg_t;
- 
 diff --git a/menu.cpp b/menu.cpp
-index 7728350..bfbdce9 100644
+index 15deb96..a6ceca0 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -211,7 +211,11 @@ enum MENU
@@ -120,7 +120,7 @@ index 7728350..bfbdce9 100644
  			// Within the menu the esc key acts as the menu key. problem:
  			// if the menu is left with a press of ESC, then the follwing
  			// break code for the ESC key when the key is released will
-@@ -7805,6 +7840,94 @@ void HandleUI(void)
+@@ -7814,6 +7849,94 @@ void HandleUI(void)
  		  }
  			break;
  
@@ -215,7 +215,7 @@ index 7728350..bfbdce9 100644
  		/******************************************************************/
  		/* we should never come here                                      */
  		/******************************************************************/
-@@ -8114,9 +8237,9 @@ static void set_text(const char *message, unsigned char code)
+@@ -8123,9 +8246,9 @@ static void set_text(const char *message, unsigned char code)
  	while (l <= 7) OsdWrite(l++, "", 0, 0);
  }
  
@@ -227,7 +227,7 @@ index 7728350..bfbdce9 100644
  	{
  		if (menustate != MENU_INFO)
  		{
-@@ -8127,7 +8250,7 @@ void InfoMessage(const char *message, int timeout, const char *title)
+@@ -8136,7 +8259,7 @@ void InfoMessage(const char *message, int timeout, const char *title)
  		set_text(message, 0);
  
  		menu_timer = GetTimer(timeout);
@@ -236,7 +236,7 @@ index 7728350..bfbdce9 100644
  		HandleUI();
  		OsdUpdate();
  	}
-@@ -8216,7 +8339,7 @@ static char pchar[] = { 0x8C, 0x8E, 0x8F, 0x90, 0x91, 0x7F };
+@@ -8225,7 +8348,7 @@ static char pchar[] = { 0x8C, 0x8E, 0x8F, 0x90, 0x91, 0x7F };
  #define PROGRESS_CHARS  (int)(sizeof(pchar)/sizeof(pchar[0]))
  #define PROGRESS_MAX    ((PROGRESS_CHARS*PROGRESS_CNT)-1)
  
@@ -245,7 +245,7 @@ index 7728350..bfbdce9 100644
  {
  	static int progress;
  	if (!current && !max)
-@@ -8244,6 +8367,20 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
+@@ -8253,6 +8376,20 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
  		for (int i = 0; i <= new_progress; i++) buf[i] = (i < new_progress) ? 0x7F : c;
  		buf[PROGRESS_CNT] = 0;
  
@@ -452,5 +452,5 @@ index 6802160..038a37d 100644
  #define CoreName user_io_get_core_name()
  #define CoreName2 user_io_get_core_name2()
 -- 
-2.48.1
+2.49.0
 

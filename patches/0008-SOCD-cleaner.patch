@@ -1,6 +1,6 @@
-From 06d2e40e22ba5200cab72b680e3857a57b00dbcd Mon Sep 17 00:00:00 2001
+From 7407398e28c9defa64a6cb441bc0dcbe21c77802 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 20 Feb 2025 04:44:12 -0500
+Date: Mon, 31 Mar 2025 03:09:40 -0400
 Subject: [PATCH 8/9] 0008
 
 ---
@@ -10,7 +10,7 @@ Subject: [PATCH 8/9] 0008
  3 files changed, 69 insertions(+)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index faca935..7908d91 100644
+index f5c83cf..6011252 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
 @@ -134,6 +134,8 @@ static const ini_var_t ini_vars[] =
@@ -20,9 +20,9 @@ index faca935..7908d91 100644
 +	{ "SOCD_UD", (void*)(&(cfg.socd_ud)), STRING, 0, sizeof(cfg.socd_ud) - 1 },
 +	{ "SOCD_LR", (void*)(&(cfg.socd_lr)), STRING, 0, sizeof(cfg.socd_lr) - 1 },
  	{ "MAIN", (void*)(&(cfg.main)), STRING, 0, sizeof(cfg.main) - 1 },
+ 	{"VFILTER_INTERLACE_DEFAULT", (void*)(&(cfg.vfilter_interlace_default)), STRING, 0, sizeof(cfg.vfilter_interlace_default) - 1 },
  };
- 
-@@ -609,6 +611,23 @@ void cfg_parse()
+@@ -610,6 +612,23 @@ void cfg_parse()
  		if (!strcasecmp(cfg.vga_mode, "svideo")) cfg.vga_mode_int = 2;
  		if (!strcasecmp(cfg.vga_mode, "cvbs")) cfg.vga_mode_int = 3;
  	}
@@ -47,7 +47,7 @@ index faca935..7908d91 100644
  
  bool cfg_has_video_sections()
 diff --git a/cfg.h b/cfg.h
-index d218c67..05fa8ab 100644
+index 1eb3297..fb7706d 100644
 --- a/cfg.h
 +++ b/cfg.h
 @@ -7,6 +7,15 @@
@@ -75,8 +75,8 @@ index d218c67..05fa8ab 100644
 +	uint8_t socd_ud_int;
 +	uint8_t socd_lr_int;
  	char main[1024];
+ 	char vfilter_interlace_default[1023];
  } cfg_t;
- 
 diff --git a/input.cpp b/input.cpp
 index 0813c50..94f9ada 100644
 --- a/input.cpp
@@ -134,5 +134,5 @@ index 0813c50..94f9ada 100644
   			{
  				user_io_digital_joystick(i, send_comb, newdir);
 -- 
-2.48.1
+2.49.0
 

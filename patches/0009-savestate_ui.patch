@@ -1,6 +1,6 @@
-From e3d95da3ae038b1a3aa5c03b5e3b5117d3090bbf Mon Sep 17 00:00:00 2001
+From 45dc63b3dad7fabb3549155e92d3211816c48411 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 20 Feb 2025 04:44:17 -0500
+Date: Mon, 31 Mar 2025 03:09:50 -0400
 Subject: [PATCH 9/9] 0009
 
 ---
@@ -16,7 +16,7 @@ Subject: [PATCH 9/9] 0009
  9 files changed, 160 insertions(+), 23 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 7908d91..f37c23c 100644
+index 6011252..42851ac 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
 @@ -136,6 +136,7 @@ static const ini_var_t ini_vars[] =
@@ -25,9 +25,9 @@ index 7908d91..f37c23c 100644
  	{ "SOCD_LR", (void*)(&(cfg.socd_lr)), STRING, 0, sizeof(cfg.socd_lr) - 1 },
 +	{ "EXTERNAL_SAVE_STATE_UI", (void *)(&(cfg.external_save_state_ui)), STRING, 0, sizeof(cfg.external_save_state_ui) - 1},
  	{ "MAIN", (void*)(&(cfg.main)), STRING, 0, sizeof(cfg.main) - 1 },
+ 	{"VFILTER_INTERLACE_DEFAULT", (void*)(&(cfg.vfilter_interlace_default)), STRING, 0, sizeof(cfg.vfilter_interlace_default) - 1 },
  };
- 
-@@ -628,6 +629,12 @@ void cfg_parse()
+@@ -629,6 +630,12 @@ void cfg_parse()
      if (!strcasecmp(cfg.socd_lr, "right")) cfg.socd_lr_int = SOCD_LR_RIGHT;
    }
  
@@ -41,7 +41,7 @@ index 7908d91..f37c23c 100644
  
  bool cfg_has_video_sections()
 diff --git a/cfg.h b/cfg.h
-index 05fa8ab..d18923a 100644
+index fb7706d..4f3fd10 100644
 --- a/cfg.h
 +++ b/cfg.h
 @@ -115,6 +115,8 @@ typedef struct {
@@ -51,8 +51,8 @@ index 05fa8ab..d18923a 100644
 +	char external_save_state_ui[256];
 +	uint8_t use_external_save_state_ui;
  	char main[1024];
+ 	char vfilter_interlace_default[1023];
  } cfg_t;
- 
 diff --git a/file_io.cpp b/file_io.cpp
 index e7f7297..4b0ff32 100644
 --- a/file_io.cpp
@@ -79,7 +79,7 @@ index 94f9ada..9f46b82 100644
  	{
  		if (!grabbed)
 diff --git a/menu.cpp b/menu.cpp
-index bfbdce9..bb0f6d6 100644
+index a6ceca0..5ee2fe7 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -44,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -258,7 +258,7 @@ index bfbdce9..bb0f6d6 100644
  			if (mgl->state == 1) mgl->state = 2;
  		}
  		break;
-@@ -7843,6 +7924,9 @@ void HandleUI(void)
+@@ -7852,6 +7933,9 @@ void HandleUI(void)
  
    case MENU_SAVE_STATE1:
     {
@@ -268,7 +268,7 @@ index bfbdce9..bb0f6d6 100644
  					menustate = MENU_SAVE_STATE2;
  					parentstate = MENU_SAVE_STATE1;
  					OsdSetTitle("Save States", 0);
-@@ -7866,10 +7950,20 @@ void HandleUI(void)
+@@ -7875,10 +7959,20 @@ void HandleUI(void)
            MenuWrite(n, " Save", menusub == n, 0); n++;
  					MenuWrite(n, " Load", menusub == n, 0); n++;
  					for (int i = n; i < OsdGetSize() - 1; i++) MenuWrite(i, "", 0, 0);
@@ -289,7 +289,7 @@ index bfbdce9..bb0f6d6 100644
       if (select || minus || plus || left || right)
       {
         menustate = MENU_SAVE_STATE1;
-@@ -7901,9 +7995,10 @@ void HandleUI(void)
+@@ -7910,9 +8004,10 @@ void HandleUI(void)
          case 3:
             if (select)
             {
@@ -302,7 +302,7 @@ index bfbdce9..bb0f6d6 100644
             break;
         }
       }
-@@ -8208,6 +8303,18 @@ void PrintDirectory(int expand)
+@@ -8217,6 +8312,18 @@ void PrintDirectory(int expand)
  	}
  }
  
@@ -321,7 +321,7 @@ index bfbdce9..bb0f6d6 100644
  static void set_text(const char *message, unsigned char code)
  {
  	char s[40];
-@@ -8371,16 +8478,3 @@ void ProgressMessage(const char* title, const char* text, int current, int max,
+@@ -8380,16 +8487,3 @@ void ProgressMessage(const char* title, const char* text, int current, int max,
  	}
  }
  
@@ -432,5 +432,5 @@ index 038a37d..4998ab4 100644
  int ss_menu_get_descr(char *descr, int descr_sz);
  bool core_has_save_states();
 -- 
-2.48.1
+2.49.0
 
