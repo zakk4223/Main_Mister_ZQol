@@ -1,0 +1,457 @@
+From a7102f58865820877d33c7ebe35acf795f757f2f Mon Sep 17 00:00:00 2001
+From: Zakk <zakk@rsdio.com>
+Date: Thu, 24 Apr 2025 20:33:10 -0400
+Subject: [PATCH] 0010
+
+---
+ menu.cpp  | 117 +++++++++++++++++++++++++++++-
+ video.cpp | 210 +++++++++++++++++++++++++++++++++++++++++++++++++++---
+ video.h   |  17 ++++-
+ 3 files changed, 332 insertions(+), 12 deletions(-)
+
+diff --git a/menu.cpp b/menu.cpp
+index 5ee2fe7..a32b91f 100644
+--- a/menu.cpp
++++ b/menu.cpp
+@@ -216,7 +216,10 @@ enum MENU
+   MENU_SAVE_STATE1,
+   MENU_SAVE_STATE2,
+   MENU_SAVE_STATE3,
+-
++  MENU_VIDEO_CFG1,
++  MENU_VIDEO_CFG2,
++  MENU_VIDEO_CONFIRM1,
++  MENU_VIDEO_CONFIRM2,
+ };
+ 
+ static bool menu_using_fb = false;
+@@ -238,8 +241,12 @@ static pid_t ttypid = 0;
+ static int ttypipe[2];
+ static bool menu_did_write;
+ 
++
++
+ extern const char *version;
+ 
++
++
+ const char *config_tos_wrprot[] = { "None", "A:", "B:", "A: and B:" };
+ 
+ const char *config_scanlines_msg[] = { "Off", "HQ2x", "CRT 25%" , "CRT 50%" , "CRT 75%" };
+@@ -3021,7 +3028,12 @@ void HandleUI(void)
+ 				menustate = sharpmz_default_ui_state();
+ 				break;
+ 			}
+-		}
++		} else if (right)
++    {
++        menusub = 0;
++        menustate = MENU_VIDEO_CFG1;
++        video_start_reconfig();
++    }
+ 		else if (minus || plus)
+ 		{
+ 			if (menusub == 10 && audio_filter_en())
+@@ -8032,6 +8044,107 @@ void HandleUI(void)
+       }
+       }
+       break;
++
++    case MENU_VIDEO_CFG1:
++      {
++          uint32_t n = 0;
++          char vdesc[256];
++          menumask = 0x3D;
++          menustate = MENU_VIDEO_CFG2;
++          parentstate = MENU_VIDEO_CFG1;
++		      OsdSetTitle("Scaler");
++          if (video_get_vmode() == -1)
++            snprintf(s, sizeof(s), " Video Mode: Current ");
++          else
++            snprintf(s, sizeof(s), " Video mode: %d ", video_get_vmode());
++          MenuWrite(n, s, menusub == n, 0); n++;
++          video_get_vmode_description(video_get_vmode(), vdesc, sizeof(vdesc));
++          snprintf(s, sizeof(s), "     %s     ", vdesc);
++          MenuWrite(n, s, menusub == n, 0); n++;
++					snprintf(s, sizeof(s), " Vsync adjust: %d ", video_get_vsync_adjust());
++          MenuWrite(n, s, menusub == n, 0); n++;
++					snprintf(s, sizeof(s), " Vscale mode: %d ", video_get_vscale_mode());
++          MenuWrite(n, s, menusub == n, 0); n++;
++					snprintf(s, sizeof(s), " Direct video: %d ", video_get_direct_video());
++          MenuWrite(n, s, menusub == n, 0); n++;
++          snprintf(s, sizeof(s), " Apply ");
++          MenuWrite(n, s, menusub == n, 0); n++;
++					for (int i = n; i < OsdGetSize(); i++) MenuWrite(i, "", 0, 0);
++      }
++    break;
++
++    case MENU_VIDEO_CFG2:
++    {
++        uint32_t n = 0;
++        int vcfg_val = 0;
++        menustate = MENU_VIDEO_CFG1;
++        if (menu)
++        {
++          menustate = MENU_NONE1;
++        } else if (left) {
++          menusub = 0;
++          menustate = MENU_COMMON1;
++        } else if (select || plus || minus) {
++          if (menusub == 0) {
++            vcfg_val = video_get_vmode() + ((select || plus) ? 1 : -1);
++            video_set_vmode(vcfg_val);
++          } else if (menusub == 2) {
++            vcfg_val = video_get_vsync_adjust() + ((select || plus) ? 1 : -1);
++            video_set_vsync_adjust(vcfg_val);
++          } else if (menusub == 3) {
++            vcfg_val = video_get_vscale_mode() + ((select || plus) ? 1 : -1);
++            video_set_vscale_mode(vcfg_val);
++          } else if (menusub == 4) {
++            vcfg_val = video_get_direct_video() + ((select || plus) ? 1 : -1);
++            video_set_direct_video(vcfg_val);
++          } else if (menusub == 5) {
++            if (select) {
++              video_apply_changes();
++              menustate = MENU_VIDEO_CONFIRM1;
++              menusub = 0;
++            }
++          }
++        }
++    }
++    break;
++    case MENU_VIDEO_CONFIRM1:
++    {
++        int v_timer = video_check_revert_timer();
++
++        menumask = 0x3;
++        if (v_timer <= 0) 
++        {
++          menustate = MENU_VIDEO_CFG1;
++          menusub = 0;
++        } else {
++          OsdSetTitle("Scaler");
++          menustate = MENU_VIDEO_CONFIRM2;
++          parentstate = MENU_VIDEO_CONFIRM1;
++          uint32_t n = 0;
++          MenuWrite(n, " Video settings have changed ",0, 0); n++;
++          snprintf(s, sizeof(s), " Reverting in %d seconds ", v_timer/1000);
++          MenuWrite(n, s, 0, 0); n++;
++          MenuWrite(n, " Revert", menusub == n-2, 0); n++;
++          MenuWrite(n, " Accept", menusub == n-2, 0); n++;
++					for (int i = n; i < OsdGetSize(); i++) MenuWrite(i, "", 0, 0);
++        }
++    }
++    break;
++    case MENU_VIDEO_CONFIRM2:
++    {
++        menustate = MENU_VIDEO_CONFIRM1;
++        if (select)
++        {
++          if (menusub == 0)
++          {
++            video_revert_changes();
++          } else if (menusub == 1) {
++            video_accept_changes();
++          }
++        }
++    }
++    break;
++        
+ 		/******************************************************************/
+ 		/* we should never come here                                      */
+ 		/******************************************************************/
+diff --git a/video.cpp b/video.cpp
+index 47462c0..6053aa6 100644
+--- a/video.cpp
++++ b/video.cpp
+@@ -2544,6 +2544,7 @@ static bool get_video_info(bool force, VideoInfo *video_info)
+ 		video_info->vtime = spi_w(0) | (spi_w(0) << 16);
+ 		video_info->ptime = spi_w(0) | (spi_w(0) << 16);
+ 		video_info->vtimeh = spi_w(0) | (spi_w(0) << 16);
++    printf("VTIMEH %d\n", video_info->vtimeh);
+ 		video_info->ctime = spi_w(0) | (spi_w(0) << 16);
+ 		video_info->pixrep = spi_w(0);
+ 		video_info->de_h = spi_w(0);
+@@ -2887,15 +2888,15 @@ static void set_yc_mode()
+ 	}
+ }
+ 
+-void video_mode_adjust()
+-{
+-	static bool force = false;
++static bool adjust_force = false;
+ 
++void video_mode_adjust(bool force_reconfig)
++{
+ 	VideoInfo video_info;
+ 
+-	const bool vid_changed = get_video_info(force, &video_info);
++	const bool vid_changed = get_video_info(adjust_force, &video_info);
+ 
+-	if (vid_changed || force)
++	if (vid_changed || adjust_force)
+ 	{
+ 		current_video_info = video_info;
+ 		show_video_info(&video_info, &v_cur);
+@@ -2903,7 +2904,8 @@ void video_mode_adjust()
+ 		if (cfg.direct_video) spd_config_dv();
+ 		//else if(use_vrr != VRR_FREESYNC) spd_config_hdmi();
+ 	}
+-	force = false;
++
++  adjust_force = false;
+ 
+ 	if (cfg.direct_video)
+ 	{
+@@ -2913,7 +2915,7 @@ void video_mode_adjust()
+ 		menu = menu_now;
+ 	}
+ 
+-	if (vid_changed && !is_menu())
++	if ((vid_changed || force_reconfig) && !is_menu())
+ 	{
+ 		if (cfg_has_video_sections())
+ 		{
+@@ -2961,13 +2963,13 @@ void video_mode_adjust()
+ 
+ 			video_set_mode(v, Fpix);
+ 			user_io_send_buttons(1);
+-			force = true;
++			adjust_force = true;
+ 		}
+ 		else if (cfg_has_video_sections()) // if we have video sections but aren't updating the resolution for other reasons, then do it here
+ 		{
+ 			video_set_mode(&v_def, 0);
+ 			user_io_send_buttons(1);
+-			force = true;
++			adjust_force = true;
+ 		}
+ 		else
+ 		{
+@@ -3934,3 +3936,193 @@ float video_get_vtime_ms()
+ }
+ 
+ 
++
++struct video_staging_param {
++  int vsync_adjust;
++  int vscale_mode;
++  int direct_video;
++  int video_mode;
++  char vmode_str[256];
++};
++
++
++
++static video_staging_param dyn_video_cfg_default = {}, dyn_video_new = {}, dyn_video_revert = {};
++static unsigned long dyn_video_timer = 0;
++
++void video_start_reconfig()
++{
++  dyn_video_new.vsync_adjust = cfg.vsync_adjust;
++  dyn_video_new.vscale_mode = cfg.vscale_mode;
++  dyn_video_new.direct_video = cfg.direct_video;
++  dyn_video_new.video_mode = -1;
++  dyn_video_new.vmode_str[0] = 0;
++}
++
++
++
++void video_set_vsync_adjust(int value)
++{
++  dyn_video_new.vsync_adjust = value;
++  if (dyn_video_new.vsync_adjust < 0)
++    dyn_video_new.vsync_adjust = 2;
++  if (dyn_video_new.vsync_adjust > 2 )
++    dyn_video_new.vsync_adjust = 0;
++}
++
++void video_set_vscale_mode(int value)
++{
++  dyn_video_new.vscale_mode = value;
++  if (dyn_video_new.vscale_mode < 0)
++    dyn_video_new.vscale_mode = 5;
++  if (dyn_video_new.vscale_mode > 5 )
++    dyn_video_new.vscale_mode = 0;
++}
++
++void video_set_direct_video(int value)
++{
++  dyn_video_new.direct_video = value;
++  if (dyn_video_new.direct_video < 0)
++    dyn_video_new.direct_video = 1;
++  if (dyn_video_new.direct_video > 1 )
++    dyn_video_new.direct_video = 0;
++}
++
++void video_set_vmode(int value)
++{
++  dyn_video_new.video_mode = value;
++  if (dyn_video_new.video_mode < -1)
++    dyn_video_new.video_mode = 14;
++  if (dyn_video_new.video_mode > 14 )
++    dyn_video_new.video_mode = -1;
++}
++
++
++int video_get_vsync_adjust()
++{
++  return dyn_video_new.vsync_adjust; 
++}
++
++int video_get_vscale_mode()
++{
++  return dyn_video_new.vscale_mode; 
++}
++
++int video_get_direct_video()
++{
++  return dyn_video_new.direct_video; 
++}
++
++int video_get_vmode()
++{
++  return dyn_video_new.video_mode;
++}
++
++void video_get_vmode_description(int vmode, char *res, size_t res_size)
++{
++  vmode_t use_mode;
++  if (vmode == -1)
++  {
++			for (int i = 0; i < 8; i++) use_mode.vpar[i] = v_cur.item[i + 1];
++      use_mode.Fpix = v_cur.Fpix;
++  } else {
++    memcpy(&use_mode, &vmodes[vmode], sizeof(use_mode));
++  }
++
++  int pix = (use_mode.vpar[0] + use_mode.vpar[1] + use_mode.vpar[2] + use_mode.vpar[3]) * (use_mode.vpar[4] + use_mode.vpar[5] + use_mode.vpar[6] + use_mode.vpar[7]);  
++  double fps = 1/(pix/(use_mode.Fpix*1000000));
++  snprintf(res, res_size, "%dx%d %.0fHz", use_mode.vpar[0], use_mode.vpar[4], fps);
++}
++
++static void power_down_hdmi()
++{
++	int fd = i2c_open(0x39, 0);
++	if (fd >= 0)
++	{
++  	int res = i2c_smbus_write_byte_data(fd, 0x41, 0x40);
++		if (res < 0) printf("i2c: write error (%02X %02X): %d\n", 0x41, 0x40, res);
++		i2c_close(fd);
++	}
++	else
++	{
++		printf("*** ADV7513 not found on i2c bus! HDMI won't be available!\n");
++	}
++}
++
++
++void video_apply_changes()
++{
++  dyn_video_revert.vsync_adjust = cfg.vsync_adjust;
++  dyn_video_revert.vscale_mode = cfg.vscale_mode;
++  dyn_video_revert.direct_video = cfg.direct_video;
++  strcpy(dyn_video_revert.vmode_str, cfg.video_conf);
++
++  cfg.vsync_adjust = dyn_video_new.vsync_adjust;
++  cfg.vscale_mode = dyn_video_new.vscale_mode;
++  cfg.direct_video = dyn_video_new.direct_video;
++  if (dyn_video_new.video_mode != -1)
++    snprintf(cfg.video_conf, sizeof(cfg.video_conf), "%d", dyn_video_new.video_mode);
++
++  dyn_video_timer = GetTimer(20000);
++
++  if (cfg.direct_video != dyn_video_revert.direct_video)
++  {
++    power_down_hdmi();
++    video_init();
++  }
++  video_mode_load();
++	video_set_mode(&v_def, 0);
++	user_io_send_buttons(1);
++  video_mode_adjust(true);
++  adjust_force = true;
++}
++
++
++void video_revert_changes()
++{
++  bool dv_changed = cfg.direct_video != dyn_video_revert.direct_video;
++  cfg.vsync_adjust = dyn_video_revert.vsync_adjust;
++  cfg.vscale_mode = dyn_video_revert.vscale_mode;
++  cfg.direct_video = dyn_video_revert.direct_video;
++  strcpy(cfg.video_conf, dyn_video_revert.vmode_str);
++
++  dyn_video_new.vsync_adjust = dyn_video_revert.vsync_adjust;
++  dyn_video_new.vscale_mode = dyn_video_revert.vscale_mode;
++  dyn_video_new.direct_video = dyn_video_revert.direct_video;
++  dyn_video_new.video_mode =  -1;
++
++
++  if (dv_changed)
++  {
++    power_down_hdmi();
++    video_init();
++  }
++  video_mode_load();
++	video_set_mode(&v_def, 0);
++	user_io_send_buttons(1);
++  video_mode_adjust(true);
++  adjust_force = true;
++  dyn_video_timer = 0;
++}
++
++int video_check_revert_timer()
++{
++  if (!dyn_video_timer)
++    return -2;
++
++  unsigned long cur_time = GetTimer(0);
++  if (cur_time >= dyn_video_timer)
++  {
++    video_revert_changes();
++    return -1;
++  }
++
++  return dyn_video_timer - cur_time;
++}
++
++void video_accept_changes()
++{
++  dyn_video_timer = 0;
++}
++
++
+diff --git a/video.h b/video.h
+index 50f10e9..969d8be 100644
+--- a/video.h
++++ b/video.h
+@@ -53,9 +53,24 @@ void  video_loadPreset(char *name, bool save);
+ int   video_get_rotated();
+ float video_get_vtime_ms();
+ 
++void video_set_vsync_adjust(int value);
++void video_set_vscale_mode(int value);
++void video_set_direct_video(int value);
++int  video_get_vsync_adjust();
++int  video_get_vscale_mode();
++int  video_get_direct_video();
++void video_apply_changes();
++void video_revert_changes();
++int video_check_revert_timer();
++void video_accept_changes();
++void video_start_reconfig();
++int video_get_vmode();
++void video_get_vmode_description(int vmode, char *res, size_t res_size);
++void video_set_vmode(int value);
++
+ void video_cfg_reset();
+ 
+-void  video_mode_adjust();
++void  video_mode_adjust(bool force_reconfig = false);
+ 
+ int   hasAPI1_5();
+ 
+-- 
+2.49.0
+
