@@ -1,7 +1,7 @@
-From 24946d6b105e53441c290d3dd712b5adb7e23962 Mon Sep 17 00:00:00 2001
+From 438fc200600935f6d58002c03e31e475f8f8e9b8 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 31 Mar 2025 04:54:52 -0400
-Subject: [PATCH 9/9] 0009
+Date: Sat, 26 Apr 2025 01:39:53 -0400
+Subject: [PATCH 09/10] 0009
 
 ---
  cfg.cpp       |   7 +++
@@ -54,7 +54,7 @@ index fb7706d..4f3fd10 100644
  	char vfilter_interlace_default[1023];
  } cfg_t;
 diff --git a/file_io.cpp b/file_io.cpp
-index e7f7297..4b0ff32 100644
+index da6f899..beebd47 100644
 --- a/file_io.cpp
 +++ b/file_io.cpp
 @@ -838,7 +838,7 @@ void FileGenerateScreenshotName(const char *name, char *out_name, int buflen)
@@ -67,7 +67,7 @@ index e7f7297..4b0ff32 100644
  		if( p )
  		{
 diff --git a/input.cpp b/input.cpp
-index 94f9ada..9f46b82 100644
+index 16da700..87958d4 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -1827,6 +1827,7 @@ static void uinp_send_key(uint16_t key, int press)
@@ -79,7 +79,7 @@ index 94f9ada..9f46b82 100644
  	{
  		if (!grabbed)
 diff --git a/menu.cpp b/menu.cpp
-index a6ceca0..5ee2fe7 100644
+index 44b2969..191bb1f 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -44,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -363,7 +363,7 @@ index 919d31a..7b3323f 100644
  		}
  
 diff --git a/user_io.cpp b/user_io.cpp
-index de93482..0bfb7b9 100644
+index ce5c38e..80de2c6 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -9,11 +9,14 @@
@@ -381,7 +381,7 @@ index de93482..0bfb7b9 100644
  #include "user_io.h"
  #include "debug.h"
  #include "spi.h"
-@@ -4305,8 +4308,34 @@ void ss_menu_save()
+@@ -4306,8 +4309,34 @@ void ss_menu_save()
    if (!cfg.ss_save_bit[0]) return;
  
    ss_save_pending = true;

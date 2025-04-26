@@ -1,7 +1,7 @@
-From 98dd62e55f31afd84d60a1fa6eb338ff54b3d717 Mon Sep 17 00:00:00 2001
+From 7ae1aec861478431a89840923058659cd8eb3d43 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 31 Mar 2025 04:54:38 -0400
-Subject: [PATCH 7/9] 0007
+Date: Sat, 26 Apr 2025 01:39:38 -0400
+Subject: [PATCH 07/10] 0007
 
 ---
  cfg.cpp     |   3 ++
@@ -41,7 +41,7 @@ index 8b2db0c..1eb3297 100644
  	char vfilter_interlace_default[1023];
  } cfg_t;
 diff --git a/menu.cpp b/menu.cpp
-index 15deb96..a6ceca0 100644
+index 6be321c..44b2969 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -211,7 +211,11 @@ enum MENU
@@ -291,7 +291,7 @@ index b69bdfb..beb62cd 100644
  int menu_present();
  
 diff --git a/user_io.cpp b/user_io.cpp
-index 55e50de..de93482 100644
+index 5cb2566..ce5c38e 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -39,6 +39,10 @@
@@ -305,7 +305,7 @@ index 55e50de..de93482 100644
  static char core_path[1024] = {};
  static char rbf_path[1024] = {};
  
-@@ -1881,6 +1885,7 @@ int process_ss(const char *rom_name, int enable)
+@@ -1882,6 +1886,7 @@ int process_ss(const char *rom_name, int enable)
  
  		FileGenerateSavestatePath(rom_name, ss_name, 1);
  		ss_sufx = ss_name + strlen(ss_name) - 4;
@@ -313,7 +313,7 @@ index 55e50de..de93482 100644
  		return 1;
  	}
  
-@@ -1907,12 +1912,19 @@ int process_ss(const char *rom_name, int enable)
+@@ -1908,12 +1913,19 @@ int process_ss(const char *rom_name, int enable)
  					MenuHide();
  					Info("Saving the state", 500);
  
@@ -336,7 +336,7 @@ index 55e50de..de93482 100644
  					}
  					else
  					{
-@@ -4000,10 +4012,10 @@ void user_io_kbd(uint16_t key, int press)
+@@ -4001,10 +4013,10 @@ void user_io_kbd(uint16_t key, int press)
  			{
  				if (is_menu() && !video_fb_state()) printf("PS2 code(make)%s for core: %d(0x%X)\n", (code & EXT) ? "(ext)" : "", code & 255, code & 255);
  				if (!osd_is_visible && !is_menu() && key == KEY_MENU && press == 3) open_joystick_setup();
@@ -349,7 +349,7 @@ index 55e50de..de93482 100644
  				}
  				else if (osd_is_visible)
  				{
-@@ -4221,3 +4233,80 @@ void user_io_screenshot_cmd(const char *cmd)
+@@ -4222,3 +4234,80 @@ void user_io_screenshot_cmd(const char *cmd)
  
  	user_io_screenshot(cmd,0);
  }
