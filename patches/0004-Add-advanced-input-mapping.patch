@@ -539,7 +539,7 @@ index 5770ab1..0808df1 100644
 +	}
 +	abs->last_pressed = abs->pressed;
 +
-+	if (pnum >= 0)
++	if (pnum >= 0 && abs->pressed)
 +	{	
 +		joy[pnum] |= abm->button_mask;
 +	}
