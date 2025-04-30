@@ -1,18 +1,75 @@
-From 9fa46116ddc7d5ab770c4a92eb14f1336d9d653f Mon Sep 17 00:00:00 2001
+From 4df56107165f83d4c1731b36a3b946985eca844e Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 30 Apr 2025 18:07:39 -0400
+Date: Wed, 30 Apr 2025 18:30:22 -0400
 Subject: [PATCH 05/10] 0005
 
 ---
- input.cpp  | 104 +++++++++++++++++++++++++++++++++++++++++++++++++++--
- input.h    |  13 ++++++-
- menu.cpp   |  66 ++++++++++++++++++++++++++++++++--
- scaler.cpp |  26 ++++++++++++++
- scaler.h   |   4 ++-
- video.cpp  |   5 +++
- video.h    |   1 +
- 7 files changed, 212 insertions(+), 7 deletions(-)
+ frame_timer.cpp |  40 +++++++++++++++++++
+ frame_timer.h   |   1 +
+ input.cpp       | 104 ++++++++++++++++++++++++++++++++++++++++++++++--
+ input.h         |  13 +++++-
+ menu.cpp        |  66 +++++++++++++++++++++++++++++-
+ scaler.cpp      |  26 ++++++++++++
+ scaler.h        |   4 +-
+ video.cpp       |   5 +++
+ video.h         |   1 +
+ 9 files changed, 253 insertions(+), 7 deletions(-)
+ create mode 100644 frame_timer.cpp
+ create mode 100644 frame_timer.h
 
+diff --git a/frame_timer.cpp b/frame_timer.cpp
+new file mode 100644
+index 0000000..0803b15
+--- /dev/null
++++ b/frame_timer.cpp
+@@ -0,0 +1,40 @@
++
++#include "hardware.h"
++#include "scaler.h"
++#include "video.h"
++
++static int current_frame = -1;
++static unsigned long current_timer = 0;
++static mister_scaler *scaler_inst = NULL;
++
++int GetCurrentFrame()
++{
++
++  if (!scaler_inst)
++  {
++    scaler_inst = mister_scaler_init();
++  }
++  if (current_frame == -1)
++  {
++    current_frame = mister_scaler_frame_counter(scaler_inst);
++    return current_frame;
++  }
++
++  //Don't start using the timer until we've seen at least one frame transition.
++
++
++  if (CheckTimer(current_timer))
++  {
++    int frame_num = mister_scaler_frame_counter(scaler_inst);
++    if (frame_num != current_frame)
++    {
++      float frame_ms = video_get_vtime_ms();
++      //Try 80% of frame time...
++      frame_ms*=0.80;
++      current_timer = GetTimer((unsigned long)frame_ms); 
++      current_frame = frame_num;
++    }
++  }
++  return current_frame;
++
++}
+diff --git a/frame_timer.h b/frame_timer.h
+new file mode 100644
+index 0000000..e1b0717
+--- /dev/null
++++ b/frame_timer.h
+@@ -0,0 +1 @@
++int GetCurrentFrame();
 diff --git a/input.cpp b/input.cpp
 index da023c8..554bc10 100644
 --- a/input.cpp
