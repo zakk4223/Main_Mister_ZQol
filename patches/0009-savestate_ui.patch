@@ -1,6 +1,6 @@
-From 438fc200600935f6d58002c03e31e475f8f8e9b8 Mon Sep 17 00:00:00 2001
+From a1c3073737d79d157f165eba5c1152e371877621 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sat, 26 Apr 2025 01:39:53 -0400
+Date: Wed, 30 Apr 2025 18:08:22 -0400
 Subject: [PATCH 09/10] 0009
 
 ---
@@ -67,10 +67,10 @@ index da6f899..beebd47 100644
  		if( p )
  		{
 diff --git a/input.cpp b/input.cpp
-index 16da700..87958d4 100644
+index 87c7013..95dcbe2 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -1827,6 +1827,7 @@ static void uinp_send_key(uint16_t key, int press)
+@@ -1831,6 +1831,7 @@ static void uinp_send_key(uint16_t key, int press)
  
  static void uinp_check_key()
  {
@@ -79,7 +79,7 @@ index 16da700..87958d4 100644
  	{
  		if (!grabbed)
 diff --git a/menu.cpp b/menu.cpp
-index 44b2969..191bb1f 100644
+index 5ec88fa..233a23e 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -44,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -258,7 +258,7 @@ index 44b2969..191bb1f 100644
  			if (mgl->state == 1) mgl->state = 2;
  		}
  		break;
-@@ -7852,6 +7933,9 @@ void HandleUI(void)
+@@ -7851,6 +7932,9 @@ void HandleUI(void)
  
    case MENU_SAVE_STATE1:
     {
@@ -268,7 +268,7 @@ index 44b2969..191bb1f 100644
  					menustate = MENU_SAVE_STATE2;
  					parentstate = MENU_SAVE_STATE1;
  					OsdSetTitle("Save States", 0);
-@@ -7875,10 +7959,20 @@ void HandleUI(void)
+@@ -7874,10 +7958,20 @@ void HandleUI(void)
            MenuWrite(n, " Save", menusub == n, 0); n++;
  					MenuWrite(n, " Load", menusub == n, 0); n++;
  					for (int i = n; i < OsdGetSize() - 1; i++) MenuWrite(i, "", 0, 0);
@@ -289,7 +289,7 @@ index 44b2969..191bb1f 100644
       if (select || minus || plus || left || right)
       {
         menustate = MENU_SAVE_STATE1;
-@@ -7910,9 +8004,10 @@ void HandleUI(void)
+@@ -7909,9 +8003,10 @@ void HandleUI(void)
          case 3:
             if (select)
             {
@@ -302,7 +302,7 @@ index 44b2969..191bb1f 100644
             break;
         }
       }
-@@ -8217,6 +8312,18 @@ void PrintDirectory(int expand)
+@@ -8216,6 +8311,18 @@ void PrintDirectory(int expand)
  	}
  }
  
@@ -321,7 +321,7 @@ index 44b2969..191bb1f 100644
  static void set_text(const char *message, unsigned char code)
  {
  	char s[40];
-@@ -8380,16 +8487,3 @@ void ProgressMessage(const char* title, const char* text, int current, int max,
+@@ -8379,16 +8486,3 @@ void ProgressMessage(const char* title, const char* text, int current, int max,
  	}
  }
  

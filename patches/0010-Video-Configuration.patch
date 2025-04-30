@@ -1,6 +1,6 @@
-From 7a0f93c7478d498b83fcac592e8c58f0c43b9e10 Mon Sep 17 00:00:00 2001
+From b9d75361f79dcaf1107f59b464c50a764bdde920 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sat, 26 Apr 2025 01:39:59 -0400
+Date: Wed, 30 Apr 2025 18:08:29 -0400
 Subject: [PATCH 10/10] 0010
 
 ---
@@ -10,7 +10,7 @@ Subject: [PATCH 10/10] 0010
  3 files changed, 332 insertions(+), 12 deletions(-)
 
 diff --git a/menu.cpp b/menu.cpp
-index 191bb1f..e0a8c1a 100644
+index 233a23e..8a2d8b3 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -216,7 +216,10 @@ enum MENU
@@ -38,7 +38,7 @@ index 191bb1f..e0a8c1a 100644
  const char *config_tos_wrprot[] = { "None", "A:", "B:", "A: and B:" };
  
  const char *config_scanlines_msg[] = { "Off", "HQ2x", "CRT 25%" , "CRT 50%" , "CRT 75%" };
-@@ -3021,7 +3028,12 @@ void HandleUI(void)
+@@ -3023,7 +3030,12 @@ void HandleUI(void)
  				menustate = sharpmz_default_ui_state();
  				break;
  			}
@@ -52,7 +52,7 @@ index 191bb1f..e0a8c1a 100644
  		else if (minus || plus)
  		{
  			if (menusub == 10 && audio_filter_en())
-@@ -8032,6 +8044,107 @@ void HandleUI(void)
+@@ -8031,6 +8043,107 @@ void HandleUI(void)
        }
        }
        break;

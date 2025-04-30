@@ -1,6 +1,6 @@
-From 7ae1aec861478431a89840923058659cd8eb3d43 Mon Sep 17 00:00:00 2001
+From 9d765ed77ece9685b07591851d9485dca7321531 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sat, 26 Apr 2025 01:39:38 -0400
+Date: Wed, 30 Apr 2025 18:08:04 -0400
 Subject: [PATCH 07/10] 0007
 
 ---
@@ -41,7 +41,7 @@ index 8b2db0c..1eb3297 100644
  	char vfilter_interlace_default[1023];
  } cfg_t;
 diff --git a/menu.cpp b/menu.cpp
-index 6be321c..44b2969 100644
+index 737b04f..5ec88fa 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -211,7 +211,11 @@ enum MENU
@@ -120,7 +120,7 @@ index 6be321c..44b2969 100644
  			// Within the menu the esc key acts as the menu key. problem:
  			// if the menu is left with a press of ESC, then the follwing
  			// break code for the ESC key when the key is released will
-@@ -7814,6 +7849,94 @@ void HandleUI(void)
+@@ -7813,6 +7848,94 @@ void HandleUI(void)
  		  }
  			break;
  
@@ -215,7 +215,7 @@ index 6be321c..44b2969 100644
  		/******************************************************************/
  		/* we should never come here                                      */
  		/******************************************************************/
-@@ -8123,9 +8246,9 @@ static void set_text(const char *message, unsigned char code)
+@@ -8122,9 +8245,9 @@ static void set_text(const char *message, unsigned char code)
  	while (l <= 7) OsdWrite(l++, "", 0, 0);
  }
  
@@ -227,7 +227,7 @@ index 6be321c..44b2969 100644
  	{
  		if (menustate != MENU_INFO)
  		{
-@@ -8136,7 +8259,7 @@ void InfoMessage(const char *message, int timeout, const char *title)
+@@ -8135,7 +8258,7 @@ void InfoMessage(const char *message, int timeout, const char *title)
  		set_text(message, 0);
  
  		menu_timer = GetTimer(timeout);
@@ -236,7 +236,7 @@ index 6be321c..44b2969 100644
  		HandleUI();
  		OsdUpdate();
  	}
-@@ -8225,7 +8348,7 @@ static char pchar[] = { 0x8C, 0x8E, 0x8F, 0x90, 0x91, 0x7F };
+@@ -8224,7 +8347,7 @@ static char pchar[] = { 0x8C, 0x8E, 0x8F, 0x90, 0x91, 0x7F };
  #define PROGRESS_CHARS  (int)(sizeof(pchar)/sizeof(pchar[0]))
  #define PROGRESS_MAX    ((PROGRESS_CHARS*PROGRESS_CNT)-1)
  
@@ -245,7 +245,7 @@ index 6be321c..44b2969 100644
  {
  	static int progress;
  	if (!current && !max)
-@@ -8253,6 +8376,20 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
+@@ -8252,6 +8375,20 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
  		for (int i = 0; i <= new_progress; i++) buf[i] = (i < new_progress) ? 0x7F : c;
  		buf[PROGRESS_CNT] = 0;
  
