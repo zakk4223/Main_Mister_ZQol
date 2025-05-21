@@ -1,7 +1,7 @@
-From 9499212a8cc7f3fe5eea1e62e8937a31d2595bb6 Mon Sep 17 00:00:00 2001
+From 285cff7756d46ae5dc184255024d78849ab73ee1 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 30 Apr 2025 18:30:38 -0400
-Subject: [PATCH 08/10] 0008
+Date: Tue, 20 May 2025 22:06:52 -0400
+Subject: [PATCH 08/11] SOCD-cleaner
 
 ---
  cfg.cpp   | 19 +++++++++++++++++++

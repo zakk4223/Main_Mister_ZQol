@@ -1,7 +1,7 @@
-From be3e56aa40ad35abfc9feca7eda10dae28c5b792 Mon Sep 17 00:00:00 2001
+From 5c4ce0ce43e2dff44968fc137196507ff7171021 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 30 Apr 2025 18:29:55 -0400
-Subject: [PATCH 03/10] 0003
+Date: Tue, 20 May 2025 22:06:51 -0400
+Subject: [PATCH 03/11] Add-nvram-disable-config-setting
 
 ---
  cfg.cpp                       | 1 +

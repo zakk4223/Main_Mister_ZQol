@@ -1,7 +1,7 @@
-From 4df56107165f83d4c1731b36a3b946985eca844e Mon Sep 17 00:00:00 2001
+From 7c3ecc081aab456f5440058a15ef0e26b2c64578 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 30 Apr 2025 18:30:22 -0400
-Subject: [PATCH 05/10] 0005
+Date: Tue, 20 May 2025 22:06:52 -0400
+Subject: [PATCH 05/11] Add-advanced-autofire
 
 ---
  frame_timer.cpp |  40 +++++++++++++++++++
@@ -417,10 +417,10 @@ index 3eb4084..e8f86d9 100644
  
  #endif
 diff --git a/video.cpp b/video.cpp
-index 0878034..47462c0 100644
+index 07d063c..3a4f4bb 100644
 --- a/video.cpp
 +++ b/video.cpp
-@@ -3928,4 +3928,9 @@ int video_get_rotated()
+@@ -3930,4 +3930,9 @@ int video_get_rotated()
    return current_video_info.rotated;
  }
  

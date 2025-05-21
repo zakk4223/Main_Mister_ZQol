@@ -1,0 +1,51 @@
+From bdfe444b50c7925ffb7fc73086bbfebc9dd198c8 Mon Sep 17 00:00:00 2001
+From: Zakk <zakk@rsdio.com>
+Date: Tue, 20 May 2025 22:18:37 -0400
+Subject: [PATCH 11/11] suppress info popups
+
+---
+ cfg.cpp  | 1 +
+ cfg.h    | 1 +
+ menu.cpp | 2 ++
+ 3 files changed, 4 insertions(+)
+
+diff --git a/cfg.cpp b/cfg.cpp
+index 42851ac..1c2f1c6 100644
+--- a/cfg.cpp
++++ b/cfg.cpp
+@@ -137,6 +137,7 @@ static const ini_var_t ini_vars[] =
+ 	{ "SOCD_UD", (void*)(&(cfg.socd_ud)), STRING, 0, sizeof(cfg.socd_ud) - 1 },
+ 	{ "SOCD_LR", (void*)(&(cfg.socd_lr)), STRING, 0, sizeof(cfg.socd_lr) - 1 },
+ 	{ "EXTERNAL_SAVE_STATE_UI", (void *)(&(cfg.external_save_state_ui)), STRING, 0, sizeof(cfg.external_save_state_ui) - 1},
++	{ "SUPPRESS_INFO", (void *)(&(cfg.suppress_info)), UINT8, 0, 1 },
+ 	{ "MAIN", (void*)(&(cfg.main)), STRING, 0, sizeof(cfg.main) - 1 },
+ 	{"VFILTER_INTERLACE_DEFAULT", (void*)(&(cfg.vfilter_interlace_default)), STRING, 0, sizeof(cfg.vfilter_interlace_default) - 1 },
+ };
+diff --git a/cfg.h b/cfg.h
+index 4f3fd10..b271e75 100644
+--- a/cfg.h
++++ b/cfg.h
+@@ -117,6 +117,7 @@ typedef struct {
+ 	uint8_t socd_lr_int;
+ 	char external_save_state_ui[256];
+ 	uint8_t use_external_save_state_ui;
++  uint8_t suppress_info;
+ 	char main[1024];
+ 	char vfilter_interlace_default[1023];
+ } cfg_t;
+diff --git a/menu.cpp b/menu.cpp
+index 8a2d8b3..30b2c68 100644
+--- a/menu.cpp
++++ b/menu.cpp
+@@ -8497,6 +8497,8 @@ int menu_present()
+ 
+ void Info(const char *message, int timeout, int width, int height, int frame)
+ {
++  if (cfg.suppress_info) return;
++
+ 	if (menustate <= MENU_INFO)
+ 	{
+ 		OSD_PrintInfo(message, &width, &height, frame);
+-- 
+2.49.0
+

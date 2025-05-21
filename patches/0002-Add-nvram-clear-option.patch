@@ -1,7 +1,7 @@
-From e2c363b04b55c3f0aa296eb187cc701b417cc2f8 Mon Sep 17 00:00:00 2001
+From 48fd36490ecdab038843b4c1bb180c3799979cce Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 30 Apr 2025 18:29:49 -0400
-Subject: [PATCH 02/10] 0002
+Date: Tue, 20 May 2025 22:06:51 -0400
+Subject: [PATCH 02/11] Add-nvram-clear-option
 
 ---
  support/arcade/mra_loader.cpp | 21 +++++++++++++++++++++

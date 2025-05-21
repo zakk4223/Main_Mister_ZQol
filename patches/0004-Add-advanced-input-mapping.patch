@@ -1,7 +1,7 @@
-From 3f5845fb28106c5fda0fa872cbd8febc2d62f780 Mon Sep 17 00:00:00 2001
+From dcd8a4e5cf58cb15b32eda6615486aa306a2400a Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 30 Apr 2025 18:30:02 -0400
-Subject: [PATCH 04/10] 0004
+Date: Tue, 20 May 2025 22:06:51 -0400
+Subject: [PATCH 04/11] Add-advanced-input-mapping
 
 ---
  gamecontroller_db.cpp |  14 +-

@@ -1,7 +1,7 @@
-From 8208388a1afdabcb793b04edd07d2a35637f0661 Mon Sep 17 00:00:00 2001
+From 6db9682e02555016e0bdc2b95bedaf1458bf8901 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 30 Apr 2025 18:30:55 -0400
-Subject: [PATCH 10/10] 0010
+Date: Tue, 20 May 2025 22:06:52 -0400
+Subject: [PATCH 10/11] Video-Configuration
 
 ---
  menu.cpp  | 117 +++++++++++++++++++++++++++++-
@@ -161,10 +161,10 @@ index 233a23e..8a2d8b3 100644
  		/* we should never come here                                      */
  		/******************************************************************/
 diff --git a/video.cpp b/video.cpp
-index 47462c0..6053aa6 100644
+index 3a4f4bb..5aea378 100644
 --- a/video.cpp
 +++ b/video.cpp
-@@ -2544,6 +2544,7 @@ static bool get_video_info(bool force, VideoInfo *video_info)
+@@ -2546,6 +2546,7 @@ static bool get_video_info(bool force, VideoInfo *video_info)
  		video_info->vtime = spi_w(0) | (spi_w(0) << 16);
  		video_info->ptime = spi_w(0) | (spi_w(0) << 16);
  		video_info->vtimeh = spi_w(0) | (spi_w(0) << 16);
@@ -172,7 +172,7 @@ index 47462c0..6053aa6 100644
  		video_info->ctime = spi_w(0) | (spi_w(0) << 16);
  		video_info->pixrep = spi_w(0);
  		video_info->de_h = spi_w(0);
-@@ -2887,15 +2888,15 @@ static void set_yc_mode()
+@@ -2889,15 +2890,15 @@ static void set_yc_mode()
  	}
  }
  
@@ -193,7 +193,7 @@ index 47462c0..6053aa6 100644
  	{
  		current_video_info = video_info;
  		show_video_info(&video_info, &v_cur);
-@@ -2903,7 +2904,8 @@ void video_mode_adjust()
+@@ -2905,7 +2906,8 @@ void video_mode_adjust()
  		if (cfg.direct_video) spd_config_dv();
  		//else if(use_vrr != VRR_FREESYNC) spd_config_hdmi();
  	}
@@ -203,7 +203,7 @@ index 47462c0..6053aa6 100644
  
  	if (cfg.direct_video)
  	{
-@@ -2913,7 +2915,7 @@ void video_mode_adjust()
+@@ -2915,7 +2917,7 @@ void video_mode_adjust()
  		menu = menu_now;
  	}
  
@@ -212,7 +212,7 @@ index 47462c0..6053aa6 100644
  	{
  		if (cfg_has_video_sections())
  		{
-@@ -2961,13 +2963,13 @@ void video_mode_adjust()
+@@ -2963,13 +2965,13 @@ void video_mode_adjust()
  
  			video_set_mode(v, Fpix);
  			user_io_send_buttons(1);
@@ -228,7 +228,7 @@ index 47462c0..6053aa6 100644
  		}
  		else
  		{
-@@ -3934,3 +3936,193 @@ float video_get_vtime_ms()
+@@ -3936,3 +3938,193 @@ float video_get_vtime_ms()
  }
  
  
