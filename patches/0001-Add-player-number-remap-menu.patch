@@ -1,7 +1,7 @@
-From f234308c4fc9f1571b1cee1513c77f2a198b94da Mon Sep 17 00:00:00 2001
+From 817c40b520fb3f51a9e973a2163f138b40c09ebd Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 20 May 2025 22:06:51 -0400
-Subject: [PATCH 01/11] Add-player-number-remap-menu
+Date: Wed, 23 Jul 2025 03:24:53 -0400
+Subject: [PATCH 01/11] 0001
 
 ---
  input.cpp | 143 ++++++++++++++++++++++++++++++++++++++++++++
@@ -241,7 +241,7 @@ index 892cbf1..e89dc98 100644
  uint32_t get_key_mod();
  uint32_t get_ps2_code(uint16_t key);
 diff --git a/menu.cpp b/menu.cpp
-index ba4d739..771a2b6 100644
+index aeeec61..2a789f8 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -110,6 +110,7 @@ enum MENU
@@ -446,5 +446,5 @@ index ba4d739..771a2b6 100644
  		helptext_idx = 0;
  		menumask = 1;
 -- 
-2.49.0
+2.50.1
 

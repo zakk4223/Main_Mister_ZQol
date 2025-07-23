@@ -1,7 +1,7 @@
-From 5de3acd90b10a5a2b2f7c0c5d52b2b74919eae9a Mon Sep 17 00:00:00 2001
+From 697260cc37b23bd9bf92959f689a517731ceb9e5 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 20 May 2025 22:06:52 -0400
-Subject: [PATCH 07/11] Expanded-Savestates
+Date: Wed, 23 Jul 2025 03:30:53 -0400
+Subject: [PATCH 07/11] 0007
 
 ---
  cfg.cpp     |   3 ++
@@ -41,7 +41,7 @@ index 8b2db0c..1eb3297 100644
  	char vfilter_interlace_default[1023];
  } cfg_t;
 diff --git a/menu.cpp b/menu.cpp
-index 737b04f..5ec88fa 100644
+index 6823f88..f1e321d 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -211,7 +211,11 @@ enum MENU
@@ -69,8 +69,8 @@ index 737b04f..5ec88fa 100644
  		else if (CheckTimer(repeat))
  		{
  			repeat = GetTimer(REPEATRATE);
--			if (GetASCIIKey(c1) || ((menustate == MENU_COMMON2) && (menusub == 17)) || ((menustate == MENU_SYSTEM2) && (menusub == 5)))
-+			if (GetASCIIKey(c1) || ((menustate == MENU_COMMON2) && (menusub == 17)) || ((menustate == MENU_SYSTEM2) && (menusub == 5)) || (menustate == MENU_SAVE_STATE3))
+-			if (GetASCIIKey(c1) || menustate == MENU_FILE_SELECT2 || ((menustate == MENU_COMMON2) && (menusub == 17)) || ((menustate == MENU_SYSTEM2) && (menusub == 5)))
++			if (GetASCIIKey(c1) || menustate == MENU_FILE_SELECT2 || ((menustate == MENU_COMMON2) && (menusub == 17)) || ((menustate == MENU_SYSTEM2) && (menusub == 5)) || menustate == MENU_SAVE_STATE3) 
  			{
  				c = c1;
  				hold_cnt++;
@@ -120,7 +120,7 @@ index 737b04f..5ec88fa 100644
  			// Within the menu the esc key acts as the menu key. problem:
  			// if the menu is left with a press of ESC, then the follwing
  			// break code for the ESC key when the key is released will
-@@ -7813,6 +7848,94 @@ void HandleUI(void)
+@@ -7819,6 +7854,94 @@ void HandleUI(void)
  		  }
  			break;
  
@@ -215,7 +215,7 @@ index 737b04f..5ec88fa 100644
  		/******************************************************************/
  		/* we should never come here                                      */
  		/******************************************************************/
-@@ -8122,9 +8245,9 @@ static void set_text(const char *message, unsigned char code)
+@@ -8128,9 +8251,9 @@ static void set_text(const char *message, unsigned char code)
  	while (l <= 7) OsdWrite(l++, "", 0, 0);
  }
  
@@ -227,7 +227,7 @@ index 737b04f..5ec88fa 100644
  	{
  		if (menustate != MENU_INFO)
  		{
-@@ -8135,7 +8258,7 @@ void InfoMessage(const char *message, int timeout, const char *title)
+@@ -8141,7 +8264,7 @@ void InfoMessage(const char *message, int timeout, const char *title)
  		set_text(message, 0);
  
  		menu_timer = GetTimer(timeout);
@@ -236,7 +236,7 @@ index 737b04f..5ec88fa 100644
  		HandleUI();
  		OsdUpdate();
  	}
-@@ -8224,7 +8347,7 @@ static char pchar[] = { 0x8C, 0x8E, 0x8F, 0x90, 0x91, 0x7F };
+@@ -8230,7 +8353,7 @@ static char pchar[] = { 0x8C, 0x8E, 0x8F, 0x90, 0x91, 0x7F };
  #define PROGRESS_CHARS  (int)(sizeof(pchar)/sizeof(pchar[0]))
  #define PROGRESS_MAX    ((PROGRESS_CHARS*PROGRESS_CNT)-1)
  
@@ -245,7 +245,7 @@ index 737b04f..5ec88fa 100644
  {
  	static int progress;
  	if (!current && !max)
-@@ -8252,6 +8375,20 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
+@@ -8258,6 +8381,20 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
  		for (int i = 0; i <= new_progress; i++) buf[i] = (i < new_progress) ? 0x7F : c;
  		buf[PROGRESS_CNT] = 0;
  
@@ -452,5 +452,5 @@ index 6802160..038a37d 100644
  #define CoreName user_io_get_core_name()
  #define CoreName2 user_io_get_core_name2()
 -- 
-2.49.0
+2.50.1
 

@@ -1,7 +1,7 @@
-From dcd8a4e5cf58cb15b32eda6615486aa306a2400a Mon Sep 17 00:00:00 2001
+From 2c36d92b00e6d666bd697d7a375c39002740d9a2 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 20 May 2025 22:06:51 -0400
-Subject: [PATCH 04/11] Add-advanced-input-mapping
+Date: Wed, 23 Jul 2025 03:26:26 -0400
+Subject: [PATCH 04/11] 0004
 
 ---
  gamecontroller_db.cpp |  14 +-
@@ -1053,7 +1053,7 @@ index 9ded4c7..1ec8553 100644
              pState->read_buf_size = MZ_MIN(pState->file_stat.m_comp_size, MZ_ZIP_MAX_IO_BUF_SIZE);
              if (NULL == (pState->pRead_buf = pZip->m_pAlloc(pZip->m_pAlloc_opaque, 1, (size_t)pState->read_buf_size)))
 diff --git a/menu.cpp b/menu.cpp
-index 771a2b6..8355fce 100644
+index 2a789f8..4c2dd0a 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -64,6 +64,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -1495,7 +1495,7 @@ index 771a2b6..8355fce 100644
  			menusub = 3;
  		}
  		break;
-@@ -7061,6 +7320,437 @@ void HandleUI(void)
+@@ -7067,6 +7326,437 @@ void HandleUI(void)
  		SelectFile("", 0, SCANO_CORES, MENU_CORE_FILE_SELECTED1, cp_MenuCancel);
  		break;
  
@@ -1998,5 +1998,5 @@ index 7cab093..6802160 100644
  void user_io_r_analog_joystick(unsigned char, char, char);
  void user_io_set_joyswap(int swap);
 -- 
-2.49.0
+2.50.1
 

@@ -1,7 +1,7 @@
-From 6db9682e02555016e0bdc2b95bedaf1458bf8901 Mon Sep 17 00:00:00 2001
+From 0a0514754c3b2339ac332181f66cdfb8d1d875cc Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 20 May 2025 22:06:52 -0400
-Subject: [PATCH 10/11] Video-Configuration
+Date: Wed, 23 Jul 2025 03:31:44 -0400
+Subject: [PATCH 10/11] 0010
 
 ---
  menu.cpp  | 117 +++++++++++++++++++++++++++++-
@@ -10,7 +10,7 @@ Subject: [PATCH 10/11] Video-Configuration
  3 files changed, 332 insertions(+), 12 deletions(-)
 
 diff --git a/menu.cpp b/menu.cpp
-index 233a23e..8a2d8b3 100644
+index fe92f0d..96c4ce9 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -216,7 +216,10 @@ enum MENU
@@ -52,7 +52,7 @@ index 233a23e..8a2d8b3 100644
  		else if (minus || plus)
  		{
  			if (menusub == 10 && audio_filter_en())
-@@ -8031,6 +8043,107 @@ void HandleUI(void)
+@@ -8037,6 +8049,107 @@ void HandleUI(void)
        }
        }
        break;
@@ -453,5 +453,5 @@ index 50f10e9..969d8be 100644
  int   hasAPI1_5();
  
 -- 
-2.49.0
+2.50.1
 

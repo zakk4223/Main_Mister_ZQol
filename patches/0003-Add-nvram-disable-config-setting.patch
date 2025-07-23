@@ -1,7 +1,7 @@
-From 5c4ce0ce43e2dff44968fc137196507ff7171021 Mon Sep 17 00:00:00 2001
+From 06f9a0da1d8201b0412187cad817706b8ebe332d Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 20 May 2025 22:06:51 -0400
-Subject: [PATCH 03/11] Add-nvram-disable-config-setting
+Date: Wed, 23 Jul 2025 03:26:08 -0400
+Subject: [PATCH 03/11] 0003
 
 ---
  cfg.cpp                       | 1 +
@@ -64,5 +64,5 @@ index 3dc9696..d21b306 100644
  		char path[256] = "nvram/";
  		uint8_t *buf = new uint8_t[nvram_size];
 -- 
-2.49.0
+2.50.1
 
