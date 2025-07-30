@@ -1,6 +1,6 @@
-From 66c0948b3aa82410e59ed09543fbea6690b8ac07 Mon Sep 17 00:00:00 2001
+From cb4a32e34bb3e050044726dcb6fa6b0de67faf0f Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 23 Jul 2025 03:27:38 -0400
+Date: Wed, 30 Jul 2025 01:37:40 -0400
 Subject: [PATCH 05/11] 0005
 
 ---
@@ -71,7 +71,7 @@ index 0000000..e1b0717
 @@ -0,0 +1 @@
 +int GetCurrentFrame();
 diff --git a/input.cpp b/input.cpp
-index da023c8..554bc10 100644
+index 23c13fb..b44ba04 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -31,6 +31,7 @@
@@ -107,11 +107,10 @@ index da023c8..554bc10 100644
  	if (pnum >= 0)
  	{
  		joy_sav = joy[pnum];
-@@ -6313,6 +6318,93 @@ static void process_abm_entry(advancedButtonMap *abm, advancedButtonState *abs,
+@@ -6310,6 +6315,93 @@ static void process_abm_entry(advancedButtonMap *abm, advancedButtonState *abs,
  	}
  }
  
-+
 +static void input_advanced_framecheck()
 +{
 +
@@ -198,10 +197,11 @@ index da023c8..554bc10 100644
 +    }
 +  }
 +}
- //TODO:
- //any way to shorten/cleanup this function and process_abm_entry
- //same for the menu functions
-@@ -6415,6 +6507,9 @@ bool update_advanced_state(int devnum, uint16_t evcode, int evstate, int osd_eve
++
+ bool update_advanced_state(int devnum, uint16_t evcode, int evstate, int osd_event)
+ {
+ 	bool allow_keysend = true;
+@@ -6389,6 +6481,9 @@ bool update_advanced_state(int devnum, uint16_t evcode, int evstate, int osd_eve
  
  		if (abs->pressed != abs->last_pressed) 
  		{
@@ -211,7 +211,7 @@ index da023c8..554bc10 100644
    		process_abm_entry(abm, abs, devnum, pnum);
        if (pnum >= 0)
        {
-@@ -6431,9 +6526,12 @@ bool update_advanced_state(int devnum, uint16_t evcode, int evstate, int osd_eve
+@@ -6405,9 +6500,12 @@ bool update_advanced_state(int devnum, uint16_t evcode, int evstate, int osd_eve
          send_autofire_msg(pnum, abs->autofire);
  				osd_inhibit_next_release = true;
  			}

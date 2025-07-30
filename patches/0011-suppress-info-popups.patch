@@ -1,6 +1,6 @@
-From cc56f800aa26a5447a0c0d7a84c7ff3db6e5c404 Mon Sep 17 00:00:00 2001
+From 7068406d324be6738b0e32d0658f752f2041766b Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 23 Jul 2025 03:31:51 -0400
+Date: Wed, 30 Jul 2025 01:38:19 -0400
 Subject: [PATCH 11/11] 0011
 
 ---
@@ -10,29 +10,29 @@ Subject: [PATCH 11/11] 0011
  3 files changed, 4 insertions(+)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 42851ac..1c2f1c6 100644
+index 101c3d6..7a0b31a 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -137,6 +137,7 @@ static const ini_var_t ini_vars[] =
+@@ -139,6 +139,7 @@ static const ini_var_t ini_vars[] =
  	{ "SOCD_UD", (void*)(&(cfg.socd_ud)), STRING, 0, sizeof(cfg.socd_ud) - 1 },
  	{ "SOCD_LR", (void*)(&(cfg.socd_lr)), STRING, 0, sizeof(cfg.socd_lr) - 1 },
  	{ "EXTERNAL_SAVE_STATE_UI", (void *)(&(cfg.external_save_state_ui)), STRING, 0, sizeof(cfg.external_save_state_ui) - 1},
 +	{ "SUPPRESS_INFO", (void *)(&(cfg.suppress_info)), UINT8, 0, 1 },
- 	{ "MAIN", (void*)(&(cfg.main)), STRING, 0, sizeof(cfg.main) - 1 },
  	{"VFILTER_INTERLACE_DEFAULT", (void*)(&(cfg.vfilter_interlace_default)), STRING, 0, sizeof(cfg.vfilter_interlace_default) - 1 },
  };
+ 
 diff --git a/cfg.h b/cfg.h
-index 4f3fd10..b271e75 100644
+index d61ce0a..972371d 100644
 --- a/cfg.h
 +++ b/cfg.h
-@@ -117,6 +117,7 @@ typedef struct {
+@@ -119,6 +119,7 @@ typedef struct {
  	uint8_t socd_lr_int;
  	char external_save_state_ui[256];
  	uint8_t use_external_save_state_ui;
 +  uint8_t suppress_info;
- 	char main[1024];
  	char vfilter_interlace_default[1023];
  } cfg_t;
+ 
 diff --git a/menu.cpp b/menu.cpp
 index 96c4ce9..61dff77 100644
 --- a/menu.cpp

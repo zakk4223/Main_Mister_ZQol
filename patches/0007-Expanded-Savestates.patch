@@ -1,6 +1,6 @@
-From 697260cc37b23bd9bf92959f689a517731ceb9e5 Mon Sep 17 00:00:00 2001
+From 0cbcef1acac1ed2bc0647b4fd7346c67f8fbac7a Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 23 Jul 2025 03:30:53 -0400
+Date: Wed, 30 Jul 2025 01:37:58 -0400
 Subject: [PATCH 07/11] 0007
 
 ---
@@ -13,33 +13,33 @@ Subject: [PATCH 07/11] 0007
  6 files changed, 258 insertions(+), 15 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index a710257..f5c83cf 100644
+index 7ffaf76..7601081 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -131,6 +131,9 @@ static const ini_var_t ini_vars[] =
- 	{ "OSD_LOCK", (void*)(&(cfg.osd_lock)), STRING, 0, sizeof(cfg.osd_lock) - 1 },
- 	{ "OSD_LOCK_TIME", (void*)(&(cfg.osd_lock_time)), UINT16, 0, 60 },
+@@ -133,6 +133,9 @@ static const ini_var_t ini_vars[] =
  	{ "DEBUG", (void *)(&(cfg.debug)), UINT8, 0, 1 },
+ 	{ "LOOKAHEAD", (void *)(&(cfg.lookahead)), UINT8, 0, 3 },
+ 	{ "MAIN", (void*)(&(cfg.main)), STRING, 0, sizeof(cfg.main) - 1 },
 +	{ "SS_LOAD_BIT", (void *)(&(cfg.ss_load_bit)), STRING, 0, sizeof(cfg.ss_load_bit) - 1},
 +	{ "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
 +	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
- 	{ "MAIN", (void*)(&(cfg.main)), STRING, 0, sizeof(cfg.main) - 1 },
  	{"VFILTER_INTERLACE_DEFAULT", (void*)(&(cfg.vfilter_interlace_default)), STRING, 0, sizeof(cfg.vfilter_interlace_default) - 1 },
  };
+ 
 diff --git a/cfg.h b/cfg.h
-index 8b2db0c..1eb3297 100644
+index 6200c80..aafb5f1 100644
 --- a/cfg.h
 +++ b/cfg.h
-@@ -99,6 +99,9 @@ typedef struct {
- 	char osd_lock[25];
- 	uint16_t osd_lock_time;
+@@ -101,6 +101,9 @@ typedef struct {
  	char debug;
+ 	uint8_t lookahead;
+ 	char main[1024];
 +	char ss_load_bit[8];
 +	char ss_save_bit[8];
 +	char ss_current_slot[15];
- 	char main[1024];
  	char vfilter_interlace_default[1023];
  } cfg_t;
+ 
 diff --git a/menu.cpp b/menu.cpp
 index 6823f88..f1e321d 100644
 --- a/menu.cpp

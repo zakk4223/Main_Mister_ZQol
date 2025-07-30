@@ -1,6 +1,6 @@
-From ccc92e7d5f8d437505e6fcd64da295ac0864c1bd Mon Sep 17 00:00:00 2001
+From 0eef2beda1912676991fa4a92ff8d3c143a3bd5f Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 23 Jul 2025 03:31:29 -0400
+Date: Wed, 30 Jul 2025 01:38:08 -0400
 Subject: [PATCH 09/11] 0009
 
 ---
@@ -16,18 +16,18 @@ Subject: [PATCH 09/11] 0009
  9 files changed, 160 insertions(+), 23 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 6011252..42851ac 100644
+index 8af9734..101c3d6 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -136,6 +136,7 @@ static const ini_var_t ini_vars[] =
+@@ -138,6 +138,7 @@ static const ini_var_t ini_vars[] =
  	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
  	{ "SOCD_UD", (void*)(&(cfg.socd_ud)), STRING, 0, sizeof(cfg.socd_ud) - 1 },
  	{ "SOCD_LR", (void*)(&(cfg.socd_lr)), STRING, 0, sizeof(cfg.socd_lr) - 1 },
 +	{ "EXTERNAL_SAVE_STATE_UI", (void *)(&(cfg.external_save_state_ui)), STRING, 0, sizeof(cfg.external_save_state_ui) - 1},
- 	{ "MAIN", (void*)(&(cfg.main)), STRING, 0, sizeof(cfg.main) - 1 },
  	{"VFILTER_INTERLACE_DEFAULT", (void*)(&(cfg.vfilter_interlace_default)), STRING, 0, sizeof(cfg.vfilter_interlace_default) - 1 },
  };
-@@ -629,6 +630,12 @@ void cfg_parse()
+ 
+@@ -631,6 +632,12 @@ void cfg_parse()
      if (!strcasecmp(cfg.socd_lr, "right")) cfg.socd_lr_int = SOCD_LR_RIGHT;
    }
  
@@ -41,20 +41,20 @@ index 6011252..42851ac 100644
  
  bool cfg_has_video_sections()
 diff --git a/cfg.h b/cfg.h
-index fb7706d..4f3fd10 100644
+index 9ab10d8..d61ce0a 100644
 --- a/cfg.h
 +++ b/cfg.h
-@@ -115,6 +115,8 @@ typedef struct {
+@@ -117,6 +117,8 @@ typedef struct {
  	char socd_lr[16];
  	uint8_t socd_ud_int;
  	uint8_t socd_lr_int;
 +	char external_save_state_ui[256];
 +	uint8_t use_external_save_state_ui;
- 	char main[1024];
  	char vfilter_interlace_default[1023];
  } cfg_t;
+ 
 diff --git a/file_io.cpp b/file_io.cpp
-index 774a732..7c5d040 100644
+index 929381a..a0c866f 100644
 --- a/file_io.cpp
 +++ b/file_io.cpp
 @@ -838,7 +838,7 @@ void FileGenerateScreenshotName(const char *name, char *out_name, int buflen)
@@ -67,7 +67,7 @@ index 774a732..7c5d040 100644
  		if( p )
  		{
 diff --git a/input.cpp b/input.cpp
-index 87c7013..95dcbe2 100644
+index 42b9634..5fc36e7 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -1831,6 +1831,7 @@ static void uinp_send_key(uint16_t key, int press)

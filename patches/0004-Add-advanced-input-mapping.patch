@@ -1,18 +1,18 @@
-From 2c36d92b00e6d666bd697d7a375c39002740d9a2 Mon Sep 17 00:00:00 2001
+From 8f7d07db87b8ac9d347dcaf57ef0a4ef52d660f9 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 23 Jul 2025 03:26:26 -0400
+Date: Wed, 30 Jul 2025 01:36:52 -0400
 Subject: [PATCH 04/11] 0004
 
 ---
  gamecontroller_db.cpp |  14 +-
  gamecontroller_db.h   |   1 +
- input.cpp             | 638 +++++++++++++++++++++++++++++++----
+ input.cpp             | 612 +++++++++++++++++++++++++++++----
  input.h               |  36 ++
  lib/miniz/miniz.c     |   1 +
  menu.cpp              | 766 +++++++++++++++++++++++++++++++++++++++---
  user_io.cpp           |  15 +-
  user_io.h             |   2 +-
- 8 files changed, 1351 insertions(+), 122 deletions(-)
+ 8 files changed, 1325 insertions(+), 122 deletions(-)
 
 diff --git a/gamecontroller_db.cpp b/gamecontroller_db.cpp
 index fab15ec..d229820 100644
@@ -75,7 +75,7 @@ index 0010c58..42540aa 100644
  
  
 diff --git a/input.cpp b/input.cpp
-index 5770ab1..da023c8 100644
+index 5770ab1..23c13fb 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -37,6 +37,9 @@
@@ -580,7 +580,7 @@ index 5770ab1..da023c8 100644
  		}
  	}
  
-@@ -6161,3 +6255,407 @@ void parse_buttons()
+@@ -6161,3 +6255,381 @@ void parse_buttons()
  		joy_bcount++;
  	}
  }
@@ -617,11 +617,8 @@ index 5770ab1..da023c8 100644
 +		joy[pnum] = 0;
 +	}
 +	abs->last_pressed = abs->pressed;
-+
 +	if (pnum >= 0 && abs->pressed)
-+	{	
 +		joy[pnum] |= abm->button_mask;
-+	}
 +
 +	for (uint k = 0; k < sizeof(abm->output_codes)/sizeof(abm->output_codes[0]); k++)
 +	{
@@ -641,14 +638,6 @@ index 5770ab1..da023c8 100644
 +		joy[pnum] = joy_sav;
 +	}
 +}
-+
-+//TODO:
-+//any way to shorten/cleanup this function and process_abm_entry
-+//same for the menu functions
-+//Figure out how to deal with stupid dualsense generating a button AND analog for triggers.
-+//What to do if advanced map is full?
-+
-+
 +
 +bool update_advanced_state(int devnum, uint16_t evcode, int evstate, int osd_event)
 +{
@@ -681,6 +670,7 @@ index 5770ab1..da023c8 100644
 +
 +		int code_cnt = 0;
 +		int pressed_cnt = 0;
++
 +		for (unsigned int j = 0; j < sizeof(abm->input_codes)/sizeof(abm->input_codes[0]); j++)
 +		{
 +			if (!abm->input_codes[j])
@@ -689,11 +679,9 @@ index 5770ab1..da023c8 100644
 +			if (abm->input_codes[j] == evcode)
 +			{
 +				if (evstate)
-+				{
 +					abs->input_state |= 1<<j;
-+				} else {
++				else
 +					abs->input_state &= ~(1<<j);
-+				}
 +			}
 +			code_cnt++;
 +			if (abs->input_state & 1<<j) pressed_cnt++; 
@@ -704,39 +692,25 @@ index 5770ab1..da023c8 100644
 +		if (code_cnt != pressed_cnt)
 +			is_pressed = false;
 +
-+		//Hack here: if a chord contains the OSD button(s) they have to be first, otherwise it might
++		//if a chord contains the OSD button(s) they have to be first, otherwise it might
 +		//interfere with autofire chording. 
 +		if (code_is_osd_btn && evstate && chord_has_osd && pressed_cnt > 1)
 +			is_pressed = false;
 +
-+		if (is_pressed)
++		if (is_pressed || (is_pressed != abs->last_pressed))
 +		{
 +			for(size_t cidx = 0; cidx < sizeof(abm->input_codes)/sizeof(abm->input_codes[0]); cidx++)
 +			{
-+  			input_event ev;
-+				ev.value = 0;
++				if (!is_pressed && !(abs->input_state & 1<<cidx))
++					continue;
++				input_event ev;
++				ev.value = !is_pressed;
 +				ev.code = abm->input_codes[cidx];
 +				ev.type = EV_KEY;
 +				input_cb(&ev, NULL, devnum, true);
 +			}
-+		} else {
-+			//Chords have to turn on the other button(s) when one of them is released
-+			if (abs->last_pressed)
-+			{
-+				for(size_t cidx = 0; cidx < sizeof(abm->input_codes)/sizeof(abm->input_codes[0]); cidx++)
-+				{
-+					if (abs->input_state & 1<<cidx)
-+					{
-+						struct input_event ev;
-+						ev.type = EV_KEY;
-+						ev.value = 1;
-+						ev.code = abm->input_codes[cidx];
-+						input_cb(&ev, 0, devnum, true);
-+					}
-+				}
-+			}
-+
 +		}
++
 +		abs->last_pressed = abs->pressed;
 +		abs->pressed = is_pressed; 
 +
