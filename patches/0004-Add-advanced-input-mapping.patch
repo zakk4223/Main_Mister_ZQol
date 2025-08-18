@@ -1,6 +1,6 @@
-From 8f7d07db87b8ac9d347dcaf57ef0a4ef52d660f9 Mon Sep 17 00:00:00 2001
+From 2e469bca70ba4e607fc58978f2acc65bfec2368c Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 30 Jul 2025 01:36:52 -0400
+Date: Mon, 18 Aug 2025 01:14:44 -0400
 Subject: [PATCH 04/11] 0004
 
 ---
@@ -1027,7 +1027,7 @@ index 9ded4c7..1ec8553 100644
              pState->read_buf_size = MZ_MIN(pState->file_stat.m_comp_size, MZ_ZIP_MAX_IO_BUF_SIZE);
              if (NULL == (pState->pRead_buf = pZip->m_pAlloc(pZip->m_pAlloc_opaque, 1, (size_t)pState->read_buf_size)))
 diff --git a/menu.cpp b/menu.cpp
-index 2a789f8..4c2dd0a 100644
+index 18cd588..dd95977 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -64,6 +64,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -1038,7 +1038,7 @@ index 2a789f8..4c2dd0a 100644
  
  /*menu states*/
  enum MENU
-@@ -200,6 +201,17 @@ enum MENU
+@@ -202,6 +203,17 @@ enum MENU
  	// MT32-pi
  	MENU_MT32PI_MAIN1,
  	MENU_MT32PI_MAIN2,
@@ -1056,7 +1056,7 @@ index 2a789f8..4c2dd0a 100644
  };
  
  static uint32_t menustate = MENU_NONE1;
-@@ -293,6 +305,12 @@ static uint32_t fs_Options;
+@@ -295,6 +307,12 @@ static uint32_t fs_Options;
  static uint32_t fs_MenuSelect;
  static uint32_t fs_MenuCancel;
  
@@ -1069,7 +1069,7 @@ index 2a789f8..4c2dd0a 100644
  static char* GetExt(char *ext)
  {
  	static char extlist[32];
-@@ -469,6 +487,36 @@ void SelectINI()
+@@ -471,6 +489,36 @@ void SelectINI()
  	select_ini = 1;
  }
  
@@ -1106,7 +1106,7 @@ index 2a789f8..4c2dd0a 100644
  /* the Atari core handles OSD keys competely inside the core */
  static uint32_t menu_key = 0;
  
-@@ -925,6 +973,55 @@ static int gun_idx = 0;
+@@ -927,6 +975,55 @@ static int gun_idx = 0;
  static int32_t gun_pos[4] = {};
  static int page = 0;
  
@@ -1162,7 +1162,7 @@ index 2a789f8..4c2dd0a 100644
  void HandleUI(void)
  {
  	PROFILE_FUNCTION();
-@@ -988,6 +1085,7 @@ void HandleUI(void)
+@@ -990,6 +1087,7 @@ void HandleUI(void)
  	static int old_volume = 0;
  	static uint32_t lock_pass_timeout = 0;
  	static uint32_t menu_timeout = 0;
@@ -1170,7 +1170,7 @@ index 2a789f8..4c2dd0a 100644
  
  	static char	cp_MenuCancel;
  
-@@ -1128,9 +1226,9 @@ void HandleUI(void)
+@@ -1130,9 +1228,9 @@ void HandleUI(void)
  	{
  		switch (c)
  		{
@@ -1182,7 +1182,7 @@ index 2a789f8..4c2dd0a 100644
  			if(video_fb_state()) video_menu_bg(user_io_status_get("[3:1]"));
  			video_fb_enable(0);
  			break;
-@@ -2423,8 +2521,10 @@ void HandleUI(void)
+@@ -2425,8 +2523,10 @@ void HandleUI(void)
  					if (is_n64())
  					{
  						uint32_t n64_crc;
@@ -1195,7 +1195,7 @@ index 2a789f8..4c2dd0a 100644
  					}
  					else
  					{
-@@ -2668,7 +2768,8 @@ void HandleUI(void)
+@@ -2670,7 +2770,8 @@ void HandleUI(void)
  				break;
  
  			case 3:
@@ -1205,7 +1205,7 @@ index 2a789f8..4c2dd0a 100644
  				menustate = MENU_JOYKBDMAP;
  				menusub = 0;
  				break;
-@@ -4193,72 +4294,230 @@ void HandleUI(void)
+@@ -4195,72 +4296,230 @@ void HandleUI(void)
  		break;
  
  	case MENU_JOYKBDMAP:
@@ -1469,7 +1469,7 @@ index 2a789f8..4c2dd0a 100644
  			menusub = 3;
  		}
  		break;
-@@ -7067,6 +7326,437 @@ void HandleUI(void)
+@@ -7069,6 +7328,437 @@ void HandleUI(void)
  		SelectFile("", 0, SCANO_CORES, MENU_CORE_FILE_SELECTED1, cp_MenuCancel);
  		break;
  
@@ -1908,10 +1908,10 @@ index 2a789f8..4c2dd0a 100644
  		/* we should never come here                                      */
  		/******************************************************************/
 diff --git a/user_io.cpp b/user_io.cpp
-index 01cc54e..5cb2566 100644
+index 307991c..f05d668 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
-@@ -1705,23 +1705,22 @@ void user_io_r_analog_joystick(unsigned char joystick, char valueX, char valueY)
+@@ -1710,23 +1710,22 @@ void user_io_r_analog_joystick(unsigned char joystick, char valueX, char valueY)
  	}
  }
  
@@ -1940,7 +1940,7 @@ index 01cc54e..5cb2566 100644
  	}
  }
  
-@@ -3991,7 +3990,7 @@ void user_io_kbd(uint16_t key, int press)
+@@ -4001,7 +4000,7 @@ void user_io_kbd(uint16_t key, int press)
  				if (key == KEY_MENU) key = KEY_F12;
  				if (key != KEY_F12 || !block_F12)
  				{
@@ -1949,7 +1949,7 @@ index 01cc54e..5cb2566 100644
  
  					// these modifiers should be passed to core even if OSD is open or they will get stuck!
  					if (!osd_is_visible || key == KEY_LEFTALT || key == KEY_RIGHTALT || key == KEY_LEFTMETA || key == KEY_RIGHTMETA) send_keycode(key, press);
-@@ -4004,7 +4003,7 @@ void user_io_kbd(uint16_t key, int press)
+@@ -4014,7 +4013,7 @@ void user_io_kbd(uint16_t key, int press)
  				if (!osd_is_visible && !is_menu() && key == KEY_MENU && press == 3) open_joystick_setup();
  				else if ((has_menu() || osd_is_visible || (get_key_mod() & (LALT | RALT | RGUI | LGUI))) && (((key == KEY_F12) && ((!is_x86() && !is_pcxt() && !is_archie()) || (get_key_mod() & (RGUI | LGUI)))) || key == KEY_MENU))
  				{

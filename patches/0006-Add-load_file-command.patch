@@ -1,6 +1,6 @@
-From 56de1e809a2a55882fef95b8e9dd0c61855f586d Mon Sep 17 00:00:00 2001
+From d259f1537e9c0b2b96080e00eac854abae58a072 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 30 Jul 2025 01:37:53 -0400
+Date: Mon, 18 Aug 2025 02:01:05 -0400
 Subject: [PATCH 06/11] 0006
 
 ---
@@ -8,7 +8,7 @@ Subject: [PATCH 06/11] 0006
  1 file changed, 211 insertions(+)
 
 diff --git a/input.cpp b/input.cpp
-index b44ba04..93c41e3 100644
+index f9c244d..47c73e9 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -17,6 +17,7 @@
@@ -19,9 +19,9 @@ index b44ba04..93c41e3 100644
  
  #include "input.h"
  #include "user_io.h"
-@@ -33,6 +34,7 @@
+@@ -32,6 +33,7 @@
+ #include "profiling.h"
  #include "gamecontroller_db.h"
- #include "frame_timer.h"
  #include "str_util.h"
 +#include "cheats.h"
  

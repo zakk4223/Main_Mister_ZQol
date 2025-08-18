@@ -1,6 +1,6 @@
-From 0eef2beda1912676991fa4a92ff8d3c143a3bd5f Mon Sep 17 00:00:00 2001
+From 9576d2d29e8d647181ab7050a496f66cccd827f1 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 30 Jul 2025 01:38:08 -0400
+Date: Mon, 18 Aug 2025 02:01:31 -0400
 Subject: [PATCH 09/11] 0009
 
 ---
@@ -16,10 +16,10 @@ Subject: [PATCH 09/11] 0009
  9 files changed, 160 insertions(+), 23 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 8af9734..101c3d6 100644
+index 8766aa6..7fe46b2 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -138,6 +138,7 @@ static const ini_var_t ini_vars[] =
+@@ -139,6 +139,7 @@ static const ini_var_t ini_vars[] =
  	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
  	{ "SOCD_UD", (void*)(&(cfg.socd_ud)), STRING, 0, sizeof(cfg.socd_ud) - 1 },
  	{ "SOCD_LR", (void*)(&(cfg.socd_lr)), STRING, 0, sizeof(cfg.socd_lr) - 1 },
@@ -27,7 +27,7 @@ index 8af9734..101c3d6 100644
  	{"VFILTER_INTERLACE_DEFAULT", (void*)(&(cfg.vfilter_interlace_default)), STRING, 0, sizeof(cfg.vfilter_interlace_default) - 1 },
  };
  
-@@ -631,6 +632,12 @@ void cfg_parse()
+@@ -633,6 +634,12 @@ void cfg_parse()
      if (!strcasecmp(cfg.socd_lr, "right")) cfg.socd_lr_int = SOCD_LR_RIGHT;
    }
  
@@ -41,10 +41,10 @@ index 8af9734..101c3d6 100644
  
  bool cfg_has_video_sections()
 diff --git a/cfg.h b/cfg.h
-index 9ab10d8..d61ce0a 100644
+index 5c7d5a8..487c09d 100644
 --- a/cfg.h
 +++ b/cfg.h
-@@ -117,6 +117,8 @@ typedef struct {
+@@ -118,6 +118,8 @@ typedef struct {
  	char socd_lr[16];
  	uint8_t socd_ud_int;
  	uint8_t socd_lr_int;
@@ -67,7 +67,7 @@ index 929381a..a0c866f 100644
  		if( p )
  		{
 diff --git a/input.cpp b/input.cpp
-index 42b9634..5fc36e7 100644
+index 07f7af0..b59a92a 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -1831,6 +1831,7 @@ static void uinp_send_key(uint16_t key, int press)
@@ -79,7 +79,7 @@ index 42b9634..5fc36e7 100644
  	{
  		if (!grabbed)
 diff --git a/menu.cpp b/menu.cpp
-index f1e321d..fe92f0d 100644
+index 90c5b3c..840c2d2 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -44,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -90,7 +90,7 @@ index f1e321d..fe92f0d 100644
  
  #include "file_io.h"
  #include "osd.h"
-@@ -218,6 +219,7 @@ enum MENU
+@@ -220,6 +221,7 @@ enum MENU
  
  };
  
@@ -98,7 +98,7 @@ index f1e321d..fe92f0d 100644
  static uint32_t menustate = MENU_NONE1;
  static uint32_t parentstate;
  static uint32_t menusub = 0;
-@@ -232,6 +234,9 @@ static bool osd_unlocked = 1;
+@@ -234,6 +236,9 @@ static bool osd_unlocked = 1;
  static char osd_code_entry[32];
  static uint32_t osd_lock_timer = 0;
  
@@ -108,7 +108,7 @@ index f1e321d..fe92f0d 100644
  
  extern const char *version;
  
-@@ -787,6 +792,27 @@ static void MenuWrite(unsigned char n, const char *s = "", unsigned char invert
+@@ -789,6 +794,27 @@ static void MenuWrite(unsigned char n, const char *s = "", unsigned char invert
  {
  	int row = n - firstmenu;
  
@@ -136,7 +136,7 @@ index f1e321d..fe92f0d 100644
  	if (row < 0)
  	{
  		if (invert) adjvisible = row;
-@@ -821,9 +847,10 @@ const char* get_rbf_name_bootcore(char *str)
+@@ -823,9 +849,10 @@ const char* get_rbf_name_bootcore(char *str)
  	return p + 1;
  }
  
@@ -149,7 +149,7 @@ index f1e321d..fe92f0d 100644
  	{
  		EnableOsd_on(OSD_VGA);
  		OsdSetSize(16);
-@@ -848,7 +875,7 @@ static void vga_nag()
+@@ -850,7 +877,7 @@ static void vga_nag()
  	}
  
  	OsdDisable();
@@ -158,7 +158,7 @@ index f1e321d..fe92f0d 100644
  }
  
  void process_addon(char *ext, uint8_t idx)
-@@ -1027,8 +1054,58 @@ static void menu_parse_buttons()
+@@ -1029,8 +1056,58 @@ static void menu_parse_buttons()
    }
  }
  
@@ -217,7 +217,7 @@ index f1e321d..fe92f0d 100644
  	PROFILE_FUNCTION();
  
  	if (bt_timer >= 0)
-@@ -1074,7 +1151,6 @@ void HandleUI(void)
+@@ -1076,7 +1153,6 @@ void HandleUI(void)
  	static uint32_t cheatsub = 0;
  	static uint8_t card_cid[32];
  	static uint32_t hdmask = 0;
@@ -225,7 +225,7 @@ index f1e321d..fe92f0d 100644
  	static int has_fb_terminal = 0;
  	static unsigned long flash_timer = 0;
  	static int flash_state = 0;
-@@ -1226,8 +1302,9 @@ void HandleUI(void)
+@@ -1228,8 +1304,9 @@ void HandleUI(void)
  		}
  	}
  
@@ -236,7 +236,7 @@ index f1e321d..fe92f0d 100644
  	{
  		switch (c)
  		{
-@@ -1516,6 +1593,7 @@ void HandleUI(void)
+@@ -1518,6 +1595,7 @@ void HandleUI(void)
  		menustate = MENU_NONE2;
  		firstmenu = 0;
  		vga_nag();
@@ -244,7 +244,7 @@ index f1e321d..fe92f0d 100644
  		OsdSetSize(8);
  		break;
  
-@@ -1571,8 +1649,11 @@ void HandleUI(void)
+@@ -1573,8 +1651,11 @@ void HandleUI(void)
  				}
  			}
  			OsdClear();
@@ -258,7 +258,7 @@ index f1e321d..fe92f0d 100644
  			if (mgl->state == 1) mgl->state = 2;
  		}
  		break;
-@@ -7857,6 +7938,9 @@ void HandleUI(void)
+@@ -7859,6 +7940,9 @@ void HandleUI(void)
  
    case MENU_SAVE_STATE1:
     {
@@ -268,7 +268,7 @@ index f1e321d..fe92f0d 100644
  					menustate = MENU_SAVE_STATE2;
  					parentstate = MENU_SAVE_STATE1;
  					OsdSetTitle("Save States", 0);
-@@ -7880,10 +7964,20 @@ void HandleUI(void)
+@@ -7882,10 +7966,20 @@ void HandleUI(void)
            MenuWrite(n, " Save", menusub == n, 0); n++;
  					MenuWrite(n, " Load", menusub == n, 0); n++;
  					for (int i = n; i < OsdGetSize() - 1; i++) MenuWrite(i, "", 0, 0);
@@ -289,7 +289,7 @@ index f1e321d..fe92f0d 100644
       if (select || minus || plus || left || right)
       {
         menustate = MENU_SAVE_STATE1;
-@@ -7915,9 +8009,10 @@ void HandleUI(void)
+@@ -7917,9 +8011,10 @@ void HandleUI(void)
          case 3:
             if (select)
             {
@@ -302,7 +302,7 @@ index f1e321d..fe92f0d 100644
             break;
         }
       }
-@@ -8222,6 +8317,18 @@ void PrintDirectory(int expand)
+@@ -8224,6 +8319,18 @@ void PrintDirectory(int expand)
  	}
  }
  
@@ -321,7 +321,7 @@ index f1e321d..fe92f0d 100644
  static void set_text(const char *message, unsigned char code)
  {
  	char s[40];
-@@ -8385,16 +8492,3 @@ void ProgressMessage(const char* title, const char* text, int current, int max,
+@@ -8387,16 +8494,3 @@ void ProgressMessage(const char* title, const char* text, int current, int max,
  	}
  }
  
@@ -363,7 +363,7 @@ index 919d31a..7b3323f 100644
  		}
  
 diff --git a/user_io.cpp b/user_io.cpp
-index ce5c38e..80de2c6 100644
+index 19e1799..33b399d 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -9,11 +9,14 @@
@@ -381,7 +381,7 @@ index ce5c38e..80de2c6 100644
  #include "user_io.h"
  #include "debug.h"
  #include "spi.h"
-@@ -4306,8 +4309,34 @@ void ss_menu_save()
+@@ -4316,8 +4319,34 @@ void ss_menu_save()
    if (!cfg.ss_save_bit[0]) return;
  
    ss_save_pending = true;

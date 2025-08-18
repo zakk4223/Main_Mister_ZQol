@@ -1,6 +1,6 @@
-From d8923d40b196a4877cd6e02c3ec7ffe29d34add3 Mon Sep 17 00:00:00 2001
+From 1945372c80f4304c67250419fa6d4410ba4fcafa Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 30 Jul 2025 01:38:14 -0400
+Date: Mon, 18 Aug 2025 02:01:38 -0400
 Subject: [PATCH 10/11] 0010
 
 ---
@@ -10,10 +10,10 @@ Subject: [PATCH 10/11] 0010
  3 files changed, 332 insertions(+), 12 deletions(-)
 
 diff --git a/menu.cpp b/menu.cpp
-index fe92f0d..96c4ce9 100644
+index 840c2d2..7b66448 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -216,7 +216,10 @@ enum MENU
+@@ -218,7 +218,10 @@ enum MENU
    MENU_SAVE_STATE1,
    MENU_SAVE_STATE2,
    MENU_SAVE_STATE3,
@@ -25,7 +25,7 @@ index fe92f0d..96c4ce9 100644
  };
  
  static bool menu_using_fb = false;
-@@ -238,8 +241,12 @@ static pid_t ttypid = 0;
+@@ -240,8 +243,12 @@ static pid_t ttypid = 0;
  static int ttypipe[2];
  static bool menu_did_write;
  
@@ -38,7 +38,7 @@ index fe92f0d..96c4ce9 100644
  const char *config_tos_wrprot[] = { "None", "A:", "B:", "A: and B:" };
  
  const char *config_scanlines_msg[] = { "Off", "HQ2x", "CRT 25%" , "CRT 50%" , "CRT 75%" };
-@@ -3023,7 +3030,12 @@ void HandleUI(void)
+@@ -3025,7 +3032,12 @@ void HandleUI(void)
  				menustate = sharpmz_default_ui_state();
  				break;
  			}
@@ -52,7 +52,7 @@ index fe92f0d..96c4ce9 100644
  		else if (minus || plus)
  		{
  			if (menusub == 10 && audio_filter_en())
-@@ -8037,6 +8049,107 @@ void HandleUI(void)
+@@ -8039,6 +8051,107 @@ void HandleUI(void)
        }
        }
        break;
@@ -161,7 +161,7 @@ index fe92f0d..96c4ce9 100644
  		/* we should never come here                                      */
  		/******************************************************************/
 diff --git a/video.cpp b/video.cpp
-index 3a4f4bb..5aea378 100644
+index 749ae89..d2f0d84 100644
 --- a/video.cpp
 +++ b/video.cpp
 @@ -2546,6 +2546,7 @@ static bool get_video_info(bool force, VideoInfo *video_info)
@@ -172,7 +172,7 @@ index 3a4f4bb..5aea378 100644
  		video_info->ctime = spi_w(0) | (spi_w(0) << 16);
  		video_info->pixrep = spi_w(0);
  		video_info->de_h = spi_w(0);
-@@ -2889,15 +2890,15 @@ static void set_yc_mode()
+@@ -2906,15 +2907,15 @@ static void set_yc_mode()
  	}
  }
  
@@ -193,7 +193,7 @@ index 3a4f4bb..5aea378 100644
  	{
  		current_video_info = video_info;
  		show_video_info(&video_info, &v_cur);
-@@ -2905,7 +2906,8 @@ void video_mode_adjust()
+@@ -2922,7 +2923,8 @@ void video_mode_adjust()
  		if (cfg.direct_video) spd_config_dv();
  		//else if(use_vrr != VRR_FREESYNC) spd_config_hdmi();
  	}
@@ -203,7 +203,7 @@ index 3a4f4bb..5aea378 100644
  
  	if (cfg.direct_video)
  	{
-@@ -2915,7 +2917,7 @@ void video_mode_adjust()
+@@ -2932,7 +2934,7 @@ void video_mode_adjust()
  		menu = menu_now;
  	}
  
@@ -212,7 +212,7 @@ index 3a4f4bb..5aea378 100644
  	{
  		if (cfg_has_video_sections())
  		{
-@@ -2963,13 +2965,13 @@ void video_mode_adjust()
+@@ -2980,13 +2982,13 @@ void video_mode_adjust()
  
  			video_set_mode(v, Fpix);
  			user_io_send_buttons(1);
@@ -228,7 +228,7 @@ index 3a4f4bb..5aea378 100644
  		}
  		else
  		{
-@@ -3936,3 +3938,193 @@ float video_get_vtime_ms()
+@@ -3953,3 +3955,193 @@ float video_get_vtime_ms()
  }
  
  

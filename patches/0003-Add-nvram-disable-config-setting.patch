@@ -1,6 +1,6 @@
-From fa2ff9f133d7a15bdc335a6f966d56ba45ae93ca Mon Sep 17 00:00:00 2001
+From b9ce6f8f0a7babfb25ac331cd9c3ad04ad7612e3 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 30 Jul 2025 01:29:35 -0400
+Date: Mon, 18 Aug 2025 01:14:36 -0400
 Subject: [PATCH 03/11] 0003
 
 ---
@@ -10,7 +10,7 @@ Subject: [PATCH 03/11] 0003
  3 files changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 6134a36..7ffaf76 100644
+index fe00eef..a6d46af 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
 @@ -35,6 +35,7 @@ typedef struct
@@ -22,7 +22,7 @@ index 6134a36..7ffaf76 100644
  	{ "COMPOSITE_SYNC", (void*)(&(cfg.csync)), UINT8, 0, 1 },
  	{ "FORCED_SCANDOUBLER", (void*)(&(cfg.forced_scandoubler)), UINT8, 0, 1 },
 diff --git a/cfg.h b/cfg.h
-index 11906cf..6200c80 100644
+index 8d330dc..2395a42 100644
 --- a/cfg.h
 +++ b/cfg.h
 @@ -9,6 +9,7 @@
