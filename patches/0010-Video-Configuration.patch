@@ -1,6 +1,6 @@
-From 1945372c80f4304c67250419fa6d4410ba4fcafa Mon Sep 17 00:00:00 2001
+From f42c0e4dd76679866deb23843e16a96fc93e9928 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 18 Aug 2025 02:01:38 -0400
+Date: Mon, 18 Aug 2025 08:40:28 -0400
 Subject: [PATCH 10/11] 0010
 
 ---
@@ -10,10 +10,10 @@ Subject: [PATCH 10/11] 0010
  3 files changed, 332 insertions(+), 12 deletions(-)
 
 diff --git a/menu.cpp b/menu.cpp
-index 840c2d2..7b66448 100644
+index eef609a..1ac4ed4 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -218,7 +218,10 @@ enum MENU
+@@ -220,7 +220,10 @@ enum MENU
    MENU_SAVE_STATE1,
    MENU_SAVE_STATE2,
    MENU_SAVE_STATE3,
@@ -25,7 +25,7 @@ index 840c2d2..7b66448 100644
  };
  
  static bool menu_using_fb = false;
-@@ -240,8 +243,12 @@ static pid_t ttypid = 0;
+@@ -242,8 +245,12 @@ static pid_t ttypid = 0;
  static int ttypipe[2];
  static bool menu_did_write;
  
@@ -38,7 +38,7 @@ index 840c2d2..7b66448 100644
  const char *config_tos_wrprot[] = { "None", "A:", "B:", "A: and B:" };
  
  const char *config_scanlines_msg[] = { "Off", "HQ2x", "CRT 25%" , "CRT 50%" , "CRT 75%" };
-@@ -3025,7 +3032,12 @@ void HandleUI(void)
+@@ -3030,7 +3037,12 @@ void HandleUI(void)
  				menustate = sharpmz_default_ui_state();
  				break;
  			}
@@ -52,7 +52,7 @@ index 840c2d2..7b66448 100644
  		else if (minus || plus)
  		{
  			if (menusub == 10 && audio_filter_en())
-@@ -8039,6 +8051,107 @@ void HandleUI(void)
+@@ -8082,6 +8094,107 @@ void HandleUI(void)
        }
        }
        break;

@@ -1,6 +1,6 @@
-From feb584c424109d52721cf55e5072981191b2ec76 Mon Sep 17 00:00:00 2001
+From e1564eec127f300b2cb36faae32d01109f516e70 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 18 Aug 2025 02:01:14 -0400
+Date: Mon, 18 Aug 2025 08:35:21 -0400
 Subject: [PATCH 07/11] 0007
 
 ---
@@ -41,10 +41,10 @@ index 2395a42..0c2345f 100644
  } cfg_t;
  
 diff --git a/menu.cpp b/menu.cpp
-index 8855a82..90c5b3c 100644
+index c000978..8db2181 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -213,7 +213,11 @@ enum MENU
+@@ -215,7 +215,11 @@ enum MENU
  	MENU_ADVANCED_MAP_EDIT4,
  	MENU_ADVANCED_MAP_CAPTURE1,
  	MENU_ADVANCED_MAP_KEYCAPTURE1,
@@ -57,7 +57,7 @@ index 8855a82..90c5b3c 100644
  };
  
  static uint32_t menustate = MENU_NONE1;
-@@ -519,6 +523,7 @@ void build_advanced_map_code_str(uint16_t *abm_codes, size_t abm_size, char *cod
+@@ -521,6 +525,7 @@ void build_advanced_map_code_str(uint16_t *abm_codes, size_t abm_size, char *cod
  }
  
  
@@ -65,7 +65,7 @@ index 8855a82..90c5b3c 100644
  /* the Atari core handles OSD keys competely inside the core */
  static uint32_t menu_key = 0;
  
-@@ -565,7 +570,7 @@ static uint32_t menu_key_get(void)
+@@ -567,7 +572,7 @@ static uint32_t menu_key_get(void)
  		else if (CheckTimer(repeat))
  		{
  			repeat = GetTimer(REPEATRATE);
@@ -74,7 +74,7 @@ index 8855a82..90c5b3c 100644
  			{
  				c = c1;
  				hold_cnt++;
-@@ -1230,7 +1235,7 @@ void HandleUI(void)
+@@ -1234,7 +1239,7 @@ void HandleUI(void)
  		{
  		case KEY_F12 | UPSTROKE:
  			menu = true;
@@ -83,7 +83,7 @@ index 8855a82..90c5b3c 100644
  			if(video_fb_state()) video_menu_bg(user_io_status_get("[3:1]"));
  			video_fb_enable(0);
  			break;
-@@ -1271,6 +1276,36 @@ void HandleUI(void)
+@@ -1275,6 +1280,36 @@ void HandleUI(void)
  			}
  			break;
  
@@ -120,7 +120,7 @@ index 8855a82..90c5b3c 100644
  			// Within the menu the esc key acts as the menu key. problem:
  			// if the menu is left with a press of ESC, then the follwing
  			// break code for the ESC key when the key is released will
-@@ -7821,6 +7856,94 @@ void HandleUI(void)
+@@ -7863,6 +7898,94 @@ void HandleUI(void)
  		  }
  			break;
  
@@ -215,7 +215,7 @@ index 8855a82..90c5b3c 100644
  		/******************************************************************/
  		/* we should never come here                                      */
  		/******************************************************************/
-@@ -8130,9 +8253,9 @@ static void set_text(const char *message, unsigned char code)
+@@ -8172,9 +8295,9 @@ static void set_text(const char *message, unsigned char code)
  	while (l <= 7) OsdWrite(l++, "", 0, 0);
  }
  
@@ -227,7 +227,7 @@ index 8855a82..90c5b3c 100644
  	{
  		if (menustate != MENU_INFO)
  		{
-@@ -8143,7 +8266,7 @@ void InfoMessage(const char *message, int timeout, const char *title)
+@@ -8185,7 +8308,7 @@ void InfoMessage(const char *message, int timeout, const char *title)
  		set_text(message, 0);
  
  		menu_timer = GetTimer(timeout);
@@ -236,7 +236,7 @@ index 8855a82..90c5b3c 100644
  		HandleUI();
  		OsdUpdate();
  	}
-@@ -8232,7 +8355,7 @@ static char pchar[] = { 0x8C, 0x8E, 0x8F, 0x90, 0x91, 0x7F };
+@@ -8274,7 +8397,7 @@ static char pchar[] = { 0x8C, 0x8E, 0x8F, 0x90, 0x91, 0x7F };
  #define PROGRESS_CHARS  (int)(sizeof(pchar)/sizeof(pchar[0]))
  #define PROGRESS_MAX    ((PROGRESS_CHARS*PROGRESS_CNT)-1)
  
@@ -245,7 +245,7 @@ index 8855a82..90c5b3c 100644
  {
  	static int progress;
  	if (!current && !max)
-@@ -8260,6 +8383,20 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
+@@ -8302,6 +8425,20 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
  		for (int i = 0; i <= new_progress; i++) buf[i] = (i < new_progress) ? 0x7F : c;
  		buf[PROGRESS_CNT] = 0;
  

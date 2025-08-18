@@ -1,6 +1,6 @@
-From 2e469bca70ba4e607fc58978f2acc65bfec2368c Mon Sep 17 00:00:00 2001
+From 0daa72893aab46f97d8e69f2da23d53540a1f3f4 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 18 Aug 2025 01:14:44 -0400
+Date: Mon, 18 Aug 2025 08:34:58 -0400
 Subject: [PATCH 04/11] 0004
 
 ---
@@ -1027,7 +1027,7 @@ index 9ded4c7..1ec8553 100644
              pState->read_buf_size = MZ_MIN(pState->file_stat.m_comp_size, MZ_ZIP_MAX_IO_BUF_SIZE);
              if (NULL == (pState->pRead_buf = pZip->m_pAlloc(pZip->m_pAlloc_opaque, 1, (size_t)pState->read_buf_size)))
 diff --git a/menu.cpp b/menu.cpp
-index 18cd588..dd95977 100644
+index 31b02b3..a4886a0 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -64,6 +64,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -1038,7 +1038,7 @@ index 18cd588..dd95977 100644
  
  /*menu states*/
  enum MENU
-@@ -202,6 +203,17 @@ enum MENU
+@@ -204,6 +205,17 @@ enum MENU
  	// MT32-pi
  	MENU_MT32PI_MAIN1,
  	MENU_MT32PI_MAIN2,
@@ -1056,7 +1056,7 @@ index 18cd588..dd95977 100644
  };
  
  static uint32_t menustate = MENU_NONE1;
-@@ -295,6 +307,12 @@ static uint32_t fs_Options;
+@@ -297,6 +309,12 @@ static uint32_t fs_Options;
  static uint32_t fs_MenuSelect;
  static uint32_t fs_MenuCancel;
  
@@ -1069,7 +1069,7 @@ index 18cd588..dd95977 100644
  static char* GetExt(char *ext)
  {
  	static char extlist[32];
-@@ -471,6 +489,36 @@ void SelectINI()
+@@ -473,6 +491,36 @@ void SelectINI()
  	select_ini = 1;
  }
  
@@ -1106,7 +1106,7 @@ index 18cd588..dd95977 100644
  /* the Atari core handles OSD keys competely inside the core */
  static uint32_t menu_key = 0;
  
-@@ -927,6 +975,55 @@ static int gun_idx = 0;
+@@ -930,6 +978,55 @@ static int gun_idx = 0;
  static int32_t gun_pos[4] = {};
  static int page = 0;
  
@@ -1162,7 +1162,7 @@ index 18cd588..dd95977 100644
  void HandleUI(void)
  {
  	PROFILE_FUNCTION();
-@@ -990,6 +1087,7 @@ void HandleUI(void)
+@@ -994,6 +1091,7 @@ void HandleUI(void)
  	static int old_volume = 0;
  	static uint32_t lock_pass_timeout = 0;
  	static uint32_t menu_timeout = 0;
@@ -1170,7 +1170,7 @@ index 18cd588..dd95977 100644
  
  	static char	cp_MenuCancel;
  
-@@ -1130,9 +1228,9 @@ void HandleUI(void)
+@@ -1134,9 +1232,9 @@ void HandleUI(void)
  	{
  		switch (c)
  		{
@@ -1182,7 +1182,7 @@ index 18cd588..dd95977 100644
  			if(video_fb_state()) video_menu_bg(user_io_status_get("[3:1]"));
  			video_fb_enable(0);
  			break;
-@@ -2425,8 +2523,10 @@ void HandleUI(void)
+@@ -2429,8 +2527,10 @@ void HandleUI(void)
  					if (is_n64())
  					{
  						uint32_t n64_crc;
@@ -1195,7 +1195,7 @@ index 18cd588..dd95977 100644
  					}
  					else
  					{
-@@ -2670,7 +2770,8 @@ void HandleUI(void)
+@@ -2674,7 +2774,8 @@ void HandleUI(void)
  				break;
  
  			case 3:
@@ -1205,7 +1205,7 @@ index 18cd588..dd95977 100644
  				menustate = MENU_JOYKBDMAP;
  				menusub = 0;
  				break;
-@@ -4195,72 +4296,230 @@ void HandleUI(void)
+@@ -4236,72 +4337,230 @@ void HandleUI(void)
  		break;
  
  	case MENU_JOYKBDMAP:
@@ -1330,7 +1330,10 @@ index 18cd588..dd95977 100644
  			}
 -			else
 +			if (abm)
-+			{
+ 			{
+-				OsdWrite(1, "   Press button to map to", 0, 0);
+-				OsdWrite(2, "      on the same pad", 0, 0);
+-				OsdWrite(3, "    or key on a keyboard", 0, 0);
 +	      memcpy(abm, &abm_edit_map, sizeof(abm_edit_map));
 +			} else {
 +			  menu_timeout = GetTimer(1000);
@@ -1353,10 +1356,7 @@ index 18cd588..dd95977 100644
 +		{
 +			int exit_status = 0;
 +      if (pressed && !abm_clear_timer && is_osd)
- 			{
--				OsdWrite(1, "   Press button to map to", 0, 0);
--				OsdWrite(2, "      on the same pad", 0, 0);
--				OsdWrite(3, "    or key on a keyboard", 0, 0);
++			{
 +			  abm_clear_timer = GetTimer(5000);
 +			} else if (pressed && CheckTimer(abm_clear_timer) && is_osd) {
 +        //User cleared
@@ -1469,7 +1469,7 @@ index 18cd588..dd95977 100644
  			menusub = 3;
  		}
  		break;
-@@ -7069,6 +7328,437 @@ void HandleUI(void)
+@@ -7111,6 +7370,437 @@ void HandleUI(void)
  		SelectFile("", 0, SCANO_CORES, MENU_CORE_FILE_SELECTED1, cp_MenuCancel);
  		break;
  
