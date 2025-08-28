@@ -1,6 +1,6 @@
-From 0daa72893aab46f97d8e69f2da23d53540a1f3f4 Mon Sep 17 00:00:00 2001
+From 0b34e7b5c11eef1b33c863a12cb1b1bc126c8af6 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 18 Aug 2025 08:34:58 -0400
+Date: Thu, 28 Aug 2025 12:49:54 -0400
 Subject: [PATCH 04/11] 0004
 
 ---
@@ -1027,7 +1027,7 @@ index 9ded4c7..1ec8553 100644
              pState->read_buf_size = MZ_MIN(pState->file_stat.m_comp_size, MZ_ZIP_MAX_IO_BUF_SIZE);
              if (NULL == (pState->pRead_buf = pZip->m_pAlloc(pZip->m_pAlloc_opaque, 1, (size_t)pState->read_buf_size)))
 diff --git a/menu.cpp b/menu.cpp
-index 31b02b3..a4886a0 100644
+index 9fc22cc..1e7ca75 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -64,6 +64,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -1182,7 +1182,7 @@ index 31b02b3..a4886a0 100644
  			if(video_fb_state()) video_menu_bg(user_io_status_get("[3:1]"));
  			video_fb_enable(0);
  			break;
-@@ -2429,8 +2527,10 @@ void HandleUI(void)
+@@ -2430,8 +2528,10 @@ void HandleUI(void)
  					if (is_n64())
  					{
  						uint32_t n64_crc;
@@ -1193,9 +1193,9 @@ index 31b02b3..a4886a0 100644
 +						else if (user_io_use_cheats() && !store_name) 
 +                cheats_init(selPath, n64_crc);
  					}
- 					else
+ 					else if (is_c64() || is_c128())
  					{
-@@ -2674,7 +2774,8 @@ void HandleUI(void)
+@@ -2684,7 +2784,8 @@ void HandleUI(void)
  				break;
  
  			case 3:
@@ -1205,7 +1205,7 @@ index 31b02b3..a4886a0 100644
  				menustate = MENU_JOYKBDMAP;
  				menusub = 0;
  				break;
-@@ -4236,72 +4337,230 @@ void HandleUI(void)
+@@ -4246,72 +4347,230 @@ void HandleUI(void)
  		break;
  
  	case MENU_JOYKBDMAP:
@@ -1469,7 +1469,7 @@ index 31b02b3..a4886a0 100644
  			menusub = 3;
  		}
  		break;
-@@ -7111,6 +7370,437 @@ void HandleUI(void)
+@@ -7121,6 +7380,437 @@ void HandleUI(void)
  		SelectFile("", 0, SCANO_CORES, MENU_CORE_FILE_SELECTED1, cp_MenuCancel);
  		break;
  
@@ -1908,7 +1908,7 @@ index 31b02b3..a4886a0 100644
  		/* we should never come here                                      */
  		/******************************************************************/
 diff --git a/user_io.cpp b/user_io.cpp
-index 307991c..f05d668 100644
+index 1fd30ea..d9f8cb4 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -1710,23 +1710,22 @@ void user_io_r_analog_joystick(unsigned char joystick, char valueX, char valueY)
@@ -1940,7 +1940,7 @@ index 307991c..f05d668 100644
  	}
  }
  
-@@ -4001,7 +4000,7 @@ void user_io_kbd(uint16_t key, int press)
+@@ -4006,7 +4005,7 @@ void user_io_kbd(uint16_t key, int press)
  				if (key == KEY_MENU) key = KEY_F12;
  				if (key != KEY_F12 || !block_F12)
  				{
@@ -1949,7 +1949,7 @@ index 307991c..f05d668 100644
  
  					// these modifiers should be passed to core even if OSD is open or they will get stuck!
  					if (!osd_is_visible || key == KEY_LEFTALT || key == KEY_RIGHTALT || key == KEY_LEFTMETA || key == KEY_RIGHTMETA) send_keycode(key, press);
-@@ -4014,7 +4013,7 @@ void user_io_kbd(uint16_t key, int press)
+@@ -4019,7 +4018,7 @@ void user_io_kbd(uint16_t key, int press)
  				if (!osd_is_visible && !is_menu() && key == KEY_MENU && press == 3) open_joystick_setup();
  				else if ((has_menu() || osd_is_visible || (get_key_mod() & (LALT | RALT | RGUI | LGUI))) && (((key == KEY_F12) && ((!is_x86() && !is_pcxt() && !is_archie()) || (get_key_mod() & (RGUI | LGUI)))) || key == KEY_MENU))
  				{
@@ -1959,7 +1959,7 @@ index 307991c..f05d668 100644
  				}
  				else if (osd_is_visible)
 diff --git a/user_io.h b/user_io.h
-index 7cab093..6802160 100644
+index d3ee5cd..772da55 100644
 --- a/user_io.h
 +++ b/user_io.h
 @@ -203,7 +203,7 @@ void user_io_mouse(unsigned char b, int16_t x, int16_t y, int16_t w);
@@ -1972,5 +1972,5 @@ index 7cab093..6802160 100644
  void user_io_r_analog_joystick(unsigned char, char, char);
  void user_io_set_joyswap(int swap);
 -- 
-2.50.1
+2.51.0
 

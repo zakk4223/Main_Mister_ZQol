@@ -1,6 +1,6 @@
-From cac1121e8d4377c77132a3310e606106b3fa3dc9 Mon Sep 17 00:00:00 2001
+From 89b3b16fed58ecc48c815a4eb96ca50c27777993 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 18 Aug 2025 08:40:15 -0400
+Date: Thu, 28 Aug 2025 12:50:56 -0400
 Subject: [PATCH 09/11] 0009
 
 ---
@@ -79,7 +79,7 @@ index 07f7af0..b59a92a 100644
  	{
  		if (!grabbed)
 diff --git a/menu.cpp b/menu.cpp
-index 8db2181..eef609a 100644
+index 93fe10c..d840b6d 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -44,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -250,7 +250,7 @@ index 8db2181..eef609a 100644
  			if (mgl->state == 1) mgl->state = 2;
  		}
  		break;
-@@ -7901,6 +7983,9 @@ void HandleUI(void)
+@@ -7911,6 +7993,9 @@ void HandleUI(void)
  
    case MENU_SAVE_STATE1:
     {
@@ -260,7 +260,7 @@ index 8db2181..eef609a 100644
  					menustate = MENU_SAVE_STATE2;
  					parentstate = MENU_SAVE_STATE1;
  					OsdSetTitle("Save States", 0);
-@@ -7924,10 +8009,20 @@ void HandleUI(void)
+@@ -7934,10 +8019,20 @@ void HandleUI(void)
            MenuWrite(n, " Save", menusub == n, 0); n++;
  					MenuWrite(n, " Load", menusub == n, 0); n++;
  					for (int i = n; i < OsdGetSize() - 1; i++) MenuWrite(i, "", 0, 0);
@@ -281,7 +281,7 @@ index 8db2181..eef609a 100644
       if (select || minus || plus || left || right)
       {
         menustate = MENU_SAVE_STATE1;
-@@ -7959,9 +8054,10 @@ void HandleUI(void)
+@@ -7969,9 +8064,10 @@ void HandleUI(void)
          case 3:
             if (select)
             {
@@ -294,7 +294,7 @@ index 8db2181..eef609a 100644
             break;
         }
       }
-@@ -8266,6 +8362,18 @@ void PrintDirectory(int expand)
+@@ -8276,6 +8372,18 @@ void PrintDirectory(int expand)
  	}
  }
  
@@ -313,7 +313,7 @@ index 8db2181..eef609a 100644
  static void set_text(const char *message, unsigned char code)
  {
  	char s[40];
-@@ -8429,16 +8537,3 @@ void ProgressMessage(const char* title, const char* text, int current, int max,
+@@ -8439,16 +8547,3 @@ void ProgressMessage(const char* title, const char* text, int current, int max,
  	}
  }
  
@@ -355,7 +355,7 @@ index 919d31a..7b3323f 100644
  		}
  
 diff --git a/user_io.cpp b/user_io.cpp
-index 19e1799..33b399d 100644
+index 67fe287..8029513 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -9,11 +9,14 @@
@@ -373,7 +373,7 @@ index 19e1799..33b399d 100644
  #include "user_io.h"
  #include "debug.h"
  #include "spi.h"
-@@ -4316,8 +4319,34 @@ void ss_menu_save()
+@@ -4321,8 +4324,34 @@ void ss_menu_save()
    if (!cfg.ss_save_bit[0]) return;
  
    ss_save_pending = true;
@@ -409,10 +409,10 @@ index 19e1799..33b399d 100644
 +}
 +
 diff --git a/user_io.h b/user_io.h
-index 038a37d..4998ab4 100644
+index c585447..a6afa41 100644
 --- a/user_io.h
 +++ b/user_io.h
-@@ -288,8 +288,10 @@ char is_uneon();
+@@ -289,8 +289,10 @@ char is_uneon();
  
  
  void ss_menu_load();
@@ -424,5 +424,5 @@ index 038a37d..4998ab4 100644
  int ss_menu_get_descr(char *descr, int descr_sz);
  bool core_has_save_states();
 -- 
-2.50.1
+2.51.0
 

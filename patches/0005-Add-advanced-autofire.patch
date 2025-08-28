@@ -1,6 +1,6 @@
-From 73424c014fa0fa009d1db048c66e6741c96cd997 Mon Sep 17 00:00:00 2001
+From e7d53fb4317836bcd0ea6f9b75efd58d5127d383 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 18 Aug 2025 08:35:05 -0400
+Date: Thu, 28 Aug 2025 12:49:59 -0400
 Subject: [PATCH 05/11] 0005
 
 ---
@@ -243,10 +243,10 @@ index 16f7187..fe2611b 100644
  	uint8_t last_pressed : 1;
  	uint8_t autofire : 1;
 diff --git a/menu.cpp b/menu.cpp
-index a4886a0..c000978 100644
+index 1e7ca75..6c5b27d 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -7491,6 +7491,7 @@ void HandleUI(void)
+@@ -7501,6 +7501,7 @@ void HandleUI(void)
  					advancedButtonMap *edit_abm = abms+abm_edit_idx;
  					int mapped_button_cnt = 0;
  					int first_map_idx = -1;
@@ -254,7 +254,7 @@ index a4886a0..c000978 100644
  				  bool dev_kbd = device_is_keyboard(abm_dev_num);
  					for (uint bn = 0; bn < sizeof(edit_abm->button_mask)*8; bn++)
  					{
-@@ -7535,6 +7536,26 @@ void HandleUI(void)
+@@ -7545,6 +7546,26 @@ void HandleUI(void)
  					MenuWrite(n, s, menusub == n, 0);
  				  menumask |= 1 << n++; 
  
@@ -281,7 +281,7 @@ index a4886a0..c000978 100644
  					MenuWrite(n, " Delete", menusub == n, 0);
  				  menumask |= 1 << n++; 
  					MenuWrite(n, " Done", menusub == n, 0);
-@@ -7550,6 +7571,7 @@ void HandleUI(void)
+@@ -7560,6 +7581,7 @@ void HandleUI(void)
  						menustate = MENU_ADVANCED_MAP_EDIT1;
  						advancedButtonMap *abms = get_advanced_map_defs(abm_dev_num);
  						advancedButtonMap *edit_abm = abms+abm_edit_idx;
@@ -289,7 +289,7 @@ index a4886a0..c000978 100644
              char bname[32] = {0};
  						switch(menusub)
  							{
-@@ -7620,7 +7642,47 @@ void HandleUI(void)
+@@ -7630,7 +7652,47 @@ void HandleUI(void)
  									}
  									break;
  								
@@ -338,7 +338,7 @@ index a4886a0..c000978 100644
  									if (select)
  									{
  										menustate = MENU_ADVANCED_MAP_LIST1;
-@@ -7630,7 +7692,7 @@ void HandleUI(void)
+@@ -7640,7 +7702,7 @@ void HandleUI(void)
  										input_advanced_save(abm_dev_num);
  									}
  									break;
@@ -374,5 +374,5 @@ index e8e7cb7..50f10e9 100644
  void video_cfg_reset();
  
 -- 
-2.50.1
+2.51.0
 

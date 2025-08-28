@@ -1,6 +1,6 @@
-From e1564eec127f300b2cb36faae32d01109f516e70 Mon Sep 17 00:00:00 2001
+From 9c3755f5d48835f15a10a5b5947654e6fb5349bd Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 18 Aug 2025 08:35:21 -0400
+Date: Thu, 28 Aug 2025 12:50:37 -0400
 Subject: [PATCH 07/11] 0007
 
 ---
@@ -41,7 +41,7 @@ index 2395a42..0c2345f 100644
  } cfg_t;
  
 diff --git a/menu.cpp b/menu.cpp
-index c000978..8db2181 100644
+index 6c5b27d..93fe10c 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -215,7 +215,11 @@ enum MENU
@@ -120,7 +120,7 @@ index c000978..8db2181 100644
  			// Within the menu the esc key acts as the menu key. problem:
  			// if the menu is left with a press of ESC, then the follwing
  			// break code for the ESC key when the key is released will
-@@ -7863,6 +7898,94 @@ void HandleUI(void)
+@@ -7873,6 +7908,94 @@ void HandleUI(void)
  		  }
  			break;
  
@@ -215,7 +215,7 @@ index c000978..8db2181 100644
  		/******************************************************************/
  		/* we should never come here                                      */
  		/******************************************************************/
-@@ -8172,9 +8295,9 @@ static void set_text(const char *message, unsigned char code)
+@@ -8182,9 +8305,9 @@ static void set_text(const char *message, unsigned char code)
  	while (l <= 7) OsdWrite(l++, "", 0, 0);
  }
  
@@ -227,7 +227,7 @@ index c000978..8db2181 100644
  	{
  		if (menustate != MENU_INFO)
  		{
-@@ -8185,7 +8308,7 @@ void InfoMessage(const char *message, int timeout, const char *title)
+@@ -8195,7 +8318,7 @@ void InfoMessage(const char *message, int timeout, const char *title)
  		set_text(message, 0);
  
  		menu_timer = GetTimer(timeout);
@@ -236,7 +236,7 @@ index c000978..8db2181 100644
  		HandleUI();
  		OsdUpdate();
  	}
-@@ -8274,7 +8397,7 @@ static char pchar[] = { 0x8C, 0x8E, 0x8F, 0x90, 0x91, 0x7F };
+@@ -8284,7 +8407,7 @@ static char pchar[] = { 0x8C, 0x8E, 0x8F, 0x90, 0x91, 0x7F };
  #define PROGRESS_CHARS  (int)(sizeof(pchar)/sizeof(pchar[0]))
  #define PROGRESS_MAX    ((PROGRESS_CHARS*PROGRESS_CNT)-1)
  
@@ -245,7 +245,7 @@ index c000978..8db2181 100644
  {
  	static int progress;
  	if (!current && !max)
-@@ -8302,6 +8425,20 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
+@@ -8312,6 +8435,20 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
  		for (int i = 0; i <= new_progress; i++) buf[i] = (i < new_progress) ? 0x7F : c;
  		buf[PROGRESS_CNT] = 0;
  
@@ -291,7 +291,7 @@ index b69bdfb..beb62cd 100644
  int menu_present();
  
 diff --git a/user_io.cpp b/user_io.cpp
-index f05d668..19e1799 100644
+index d9f8cb4..67fe287 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -39,6 +39,10 @@
@@ -336,7 +336,7 @@ index f05d668..19e1799 100644
  					}
  					else
  					{
-@@ -4011,10 +4023,10 @@ void user_io_kbd(uint16_t key, int press)
+@@ -4016,10 +4028,10 @@ void user_io_kbd(uint16_t key, int press)
  			{
  				if (is_menu() && !video_fb_state()) printf("PS2 code(make)%s for core: %d(0x%X)\n", (code & EXT) ? "(ext)" : "", code & 255, code & 255);
  				if (!osd_is_visible && !is_menu() && key == KEY_MENU && press == 3) open_joystick_setup();
@@ -349,7 +349,7 @@ index f05d668..19e1799 100644
  				}
  				else if (osd_is_visible)
  				{
-@@ -4232,3 +4244,80 @@ void user_io_screenshot_cmd(const char *cmd)
+@@ -4237,3 +4249,80 @@ void user_io_screenshot_cmd(const char *cmd)
  
  	user_io_screenshot(cmd,0);
  }
@@ -431,10 +431,10 @@ index f05d668..19e1799 100644
 +
 +
 diff --git a/user_io.h b/user_io.h
-index 6802160..038a37d 100644
+index 772da55..c585447 100644
 --- a/user_io.h
 +++ b/user_io.h
-@@ -286,6 +286,16 @@ char is_pcxt();
+@@ -287,6 +287,16 @@ char is_pcxt();
  char is_n64();
  char is_uneon();
  
@@ -452,5 +452,5 @@ index 6802160..038a37d 100644
  #define CoreName user_io_get_core_name()
  #define CoreName2 user_io_get_core_name2()
 -- 
-2.50.1
+2.51.0
 
