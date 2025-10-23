@@ -1,6 +1,6 @@
-From 7f45695849667f157acd2081490ca9a2ad850ea9 Mon Sep 17 00:00:00 2001
+From 8945606d2cee1cf38a9c862a4250c157d3fe9af2 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 28 Aug 2025 12:51:11 -0400
+Date: Thu, 23 Oct 2025 11:20:29 -0400
 Subject: [PATCH 11/11] 0011
 
 ---
@@ -10,10 +10,10 @@ Subject: [PATCH 11/11] 0011
  3 files changed, 4 insertions(+)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 7fe46b2..4180115 100644
+index 2c960d7..1212fdf 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -140,6 +140,7 @@ static const ini_var_t ini_vars[] =
+@@ -139,6 +139,7 @@ static const ini_var_t ini_vars[] =
  	{ "SOCD_UD", (void*)(&(cfg.socd_ud)), STRING, 0, sizeof(cfg.socd_ud) - 1 },
  	{ "SOCD_LR", (void*)(&(cfg.socd_lr)), STRING, 0, sizeof(cfg.socd_lr) - 1 },
  	{ "EXTERNAL_SAVE_STATE_UI", (void *)(&(cfg.external_save_state_ui)), STRING, 0, sizeof(cfg.external_save_state_ui) - 1},
@@ -22,10 +22,10 @@ index 7fe46b2..4180115 100644
  };
  
 diff --git a/cfg.h b/cfg.h
-index 487c09d..ee80bf1 100644
+index d61ce0a..972371d 100644
 --- a/cfg.h
 +++ b/cfg.h
-@@ -120,6 +120,7 @@ typedef struct {
+@@ -119,6 +119,7 @@ typedef struct {
  	uint8_t socd_lr_int;
  	char external_save_state_ui[256];
  	uint8_t use_external_save_state_ui;
@@ -34,10 +34,10 @@ index 487c09d..ee80bf1 100644
  } cfg_t;
  
 diff --git a/menu.cpp b/menu.cpp
-index 3c7d838..4b2558d 100644
+index b86a6d3..ad48dd4 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -8558,6 +8558,8 @@ int menu_present()
+@@ -8588,6 +8588,8 @@ int menu_present()
  
  void Info(const char *message, int timeout, int width, int height, int frame)
  {
@@ -47,5 +47,5 @@ index 3c7d838..4b2558d 100644
  	{
  		OSD_PrintInfo(message, &width, &height, frame);
 -- 
-2.51.0
+2.51.1.dirty
 

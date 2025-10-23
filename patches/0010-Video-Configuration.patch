@@ -1,6 +1,6 @@
-From 60664fed2ce3f2c28680b2d38e8a208b3e2403ef Mon Sep 17 00:00:00 2001
+From 9a9fd30c2daca494e89b5b0319b3fcbe1ec4e80e Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 28 Aug 2025 12:51:05 -0400
+Date: Thu, 23 Oct 2025 11:20:22 -0400
 Subject: [PATCH 10/11] 0010
 
 ---
@@ -10,7 +10,7 @@ Subject: [PATCH 10/11] 0010
  3 files changed, 332 insertions(+), 12 deletions(-)
 
 diff --git a/menu.cpp b/menu.cpp
-index d840b6d..3c7d838 100644
+index bb7fe56..b86a6d3 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -220,7 +220,10 @@ enum MENU
@@ -38,7 +38,7 @@ index d840b6d..3c7d838 100644
  const char *config_tos_wrprot[] = { "None", "A:", "B:", "A: and B:" };
  
  const char *config_scanlines_msg[] = { "Off", "HQ2x", "CRT 25%" , "CRT 50%" , "CRT 75%" };
-@@ -3040,7 +3047,12 @@ void HandleUI(void)
+@@ -3059,7 +3066,12 @@ void HandleUI(void)
  				menustate = sharpmz_default_ui_state();
  				break;
  			}
@@ -52,7 +52,7 @@ index d840b6d..3c7d838 100644
  		else if (minus || plus)
  		{
  			if (menusub == 10 && audio_filter_en())
-@@ -8092,6 +8104,107 @@ void HandleUI(void)
+@@ -8122,6 +8134,107 @@ void HandleUI(void)
        }
        }
        break;
@@ -161,10 +161,10 @@ index d840b6d..3c7d838 100644
  		/* we should never come here                                      */
  		/******************************************************************/
 diff --git a/video.cpp b/video.cpp
-index 749ae89..d2f0d84 100644
+index 2553bb4..74820bf 100644
 --- a/video.cpp
 +++ b/video.cpp
-@@ -2546,6 +2546,7 @@ static bool get_video_info(bool force, VideoInfo *video_info)
+@@ -2721,6 +2721,7 @@ static bool get_video_info(bool force, VideoInfo *video_info)
  		video_info->vtime = spi_w(0) | (spi_w(0) << 16);
  		video_info->ptime = spi_w(0) | (spi_w(0) << 16);
  		video_info->vtimeh = spi_w(0) | (spi_w(0) << 16);
@@ -172,7 +172,7 @@ index 749ae89..d2f0d84 100644
  		video_info->ctime = spi_w(0) | (spi_w(0) << 16);
  		video_info->pixrep = spi_w(0);
  		video_info->de_h = spi_w(0);
-@@ -2906,15 +2907,15 @@ static void set_yc_mode()
+@@ -3081,15 +3082,15 @@ static void set_yc_mode()
  	}
  }
  
@@ -193,7 +193,7 @@ index 749ae89..d2f0d84 100644
  	{
  		current_video_info = video_info;
  		show_video_info(&video_info, &v_cur);
-@@ -2922,7 +2923,8 @@ void video_mode_adjust()
+@@ -3097,7 +3098,8 @@ void video_mode_adjust()
  		if (cfg.direct_video) spd_config_dv();
  		//else if(use_vrr != VRR_FREESYNC) spd_config_hdmi();
  	}
@@ -203,7 +203,7 @@ index 749ae89..d2f0d84 100644
  
  	if (cfg.direct_video)
  	{
-@@ -2932,7 +2934,7 @@ void video_mode_adjust()
+@@ -3107,7 +3109,7 @@ void video_mode_adjust()
  		menu = menu_now;
  	}
  
@@ -212,7 +212,7 @@ index 749ae89..d2f0d84 100644
  	{
  		if (cfg_has_video_sections())
  		{
-@@ -2980,13 +2982,13 @@ void video_mode_adjust()
+@@ -3155,13 +3157,13 @@ void video_mode_adjust()
  
  			video_set_mode(v, Fpix);
  			user_io_send_buttons(1);
@@ -228,7 +228,7 @@ index 749ae89..d2f0d84 100644
  		}
  		else
  		{
-@@ -3953,3 +3955,193 @@ float video_get_vtime_ms()
+@@ -4128,3 +4130,193 @@ float video_get_vtime_ms()
  }
  
  
@@ -453,5 +453,5 @@ index 50f10e9..969d8be 100644
  int   hasAPI1_5();
  
 -- 
-2.51.0
+2.51.1.dirty
 

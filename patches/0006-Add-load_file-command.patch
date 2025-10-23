@@ -1,6 +1,6 @@
-From 4ea596b8190d65e72b8e0e4d6b5b999089d869d5 Mon Sep 17 00:00:00 2001
+From a0d7e4ef98a5a906380909f58dafe6310815d1bd Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 28 Aug 2025 12:50:10 -0400
+Date: Thu, 23 Oct 2025 11:19:52 -0400
 Subject: [PATCH 06/11] 0006
 
 ---
@@ -8,7 +8,7 @@ Subject: [PATCH 06/11] 0006
  1 file changed, 211 insertions(+)
 
 diff --git a/input.cpp b/input.cpp
-index f9c244d..47c73e9 100644
+index a26909f..8b8f2ce 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -17,6 +17,7 @@
@@ -251,5 +251,5 @@ index f9c244d..47c73e9 100644
  					else if (!strncmp(cmd, "volume ", 7))
  					{
 -- 
-2.51.0
+2.51.1.dirty
 

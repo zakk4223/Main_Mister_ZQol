@@ -1,6 +1,6 @@
-From 9c3755f5d48835f15a10a5b5947654e6fb5349bd Mon Sep 17 00:00:00 2001
+From 614e11e7d3fcb877441131e4279f323c4cc8705f Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 28 Aug 2025 12:50:37 -0400
+Date: Thu, 23 Oct 2025 11:20:01 -0400
 Subject: [PATCH 07/11] 0007
 
 ---
@@ -13,10 +13,10 @@ Subject: [PATCH 07/11] 0007
  6 files changed, 258 insertions(+), 15 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index a6d46af..2548611 100644
+index a91ab01..e77d630 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -134,6 +134,9 @@ static const ini_var_t ini_vars[] =
+@@ -133,6 +133,9 @@ static const ini_var_t ini_vars[] =
  	{ "DEBUG", (void *)(&(cfg.debug)), UINT8, 0, 1 },
  	{ "LOOKAHEAD", (void *)(&(cfg.lookahead)), UINT8, 0, 3 },
  	{ "MAIN", (void*)(&(cfg.main)), STRING, 0, sizeof(cfg.main) - 1 },
@@ -27,10 +27,10 @@ index a6d46af..2548611 100644
  };
  
 diff --git a/cfg.h b/cfg.h
-index 2395a42..0c2345f 100644
+index 6200c80..aafb5f1 100644
 --- a/cfg.h
 +++ b/cfg.h
-@@ -102,6 +102,9 @@ typedef struct {
+@@ -101,6 +101,9 @@ typedef struct {
  	char debug;
  	uint8_t lookahead;
  	char main[1024];
@@ -41,7 +41,7 @@ index 2395a42..0c2345f 100644
  } cfg_t;
  
 diff --git a/menu.cpp b/menu.cpp
-index 6c5b27d..93fe10c 100644
+index 3e50aa0..d14a0f4 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -215,7 +215,11 @@ enum MENU
@@ -120,7 +120,7 @@ index 6c5b27d..93fe10c 100644
  			// Within the menu the esc key acts as the menu key. problem:
  			// if the menu is left with a press of ESC, then the follwing
  			// break code for the ESC key when the key is released will
-@@ -7873,6 +7908,94 @@ void HandleUI(void)
+@@ -7903,6 +7938,94 @@ void HandleUI(void)
  		  }
  			break;
  
@@ -215,7 +215,7 @@ index 6c5b27d..93fe10c 100644
  		/******************************************************************/
  		/* we should never come here                                      */
  		/******************************************************************/
-@@ -8182,9 +8305,9 @@ static void set_text(const char *message, unsigned char code)
+@@ -8212,9 +8335,9 @@ static void set_text(const char *message, unsigned char code)
  	while (l <= 7) OsdWrite(l++, "", 0, 0);
  }
  
@@ -227,7 +227,7 @@ index 6c5b27d..93fe10c 100644
  	{
  		if (menustate != MENU_INFO)
  		{
-@@ -8195,7 +8318,7 @@ void InfoMessage(const char *message, int timeout, const char *title)
+@@ -8225,7 +8348,7 @@ void InfoMessage(const char *message, int timeout, const char *title)
  		set_text(message, 0);
  
  		menu_timer = GetTimer(timeout);
@@ -236,7 +236,7 @@ index 6c5b27d..93fe10c 100644
  		HandleUI();
  		OsdUpdate();
  	}
-@@ -8284,7 +8407,7 @@ static char pchar[] = { 0x8C, 0x8E, 0x8F, 0x90, 0x91, 0x7F };
+@@ -8314,7 +8437,7 @@ static char pchar[] = { 0x8C, 0x8E, 0x8F, 0x90, 0x91, 0x7F };
  #define PROGRESS_CHARS  (int)(sizeof(pchar)/sizeof(pchar[0]))
  #define PROGRESS_MAX    ((PROGRESS_CHARS*PROGRESS_CNT)-1)
  
@@ -245,7 +245,7 @@ index 6c5b27d..93fe10c 100644
  {
  	static int progress;
  	if (!current && !max)
-@@ -8312,6 +8435,20 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
+@@ -8342,6 +8465,20 @@ void ProgressMessage(const char* title, const char* text, int current, int max)
  		for (int i = 0; i <= new_progress; i++) buf[i] = (i < new_progress) ? 0x7F : c;
  		buf[PROGRESS_CNT] = 0;
  
@@ -291,7 +291,7 @@ index b69bdfb..beb62cd 100644
  int menu_present();
  
 diff --git a/user_io.cpp b/user_io.cpp
-index d9f8cb4..67fe287 100644
+index 5bdbb52..69035bb 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -39,6 +39,10 @@
@@ -305,7 +305,7 @@ index d9f8cb4..67fe287 100644
  static char core_path[1024] = {};
  static char rbf_path[1024] = {};
  
-@@ -1887,6 +1891,7 @@ int process_ss(const char *rom_name, int enable)
+@@ -1890,6 +1894,7 @@ int process_ss(const char *rom_name, int enable)
  
  		FileGenerateSavestatePath(rom_name, ss_name, 1);
  		ss_sufx = ss_name + strlen(ss_name) - 4;
@@ -313,7 +313,7 @@ index d9f8cb4..67fe287 100644
  		return 1;
  	}
  
-@@ -1913,12 +1918,19 @@ int process_ss(const char *rom_name, int enable)
+@@ -1916,12 +1921,19 @@ int process_ss(const char *rom_name, int enable)
  					MenuHide();
  					Info("Saving the state", 500);
  
@@ -336,7 +336,7 @@ index d9f8cb4..67fe287 100644
  					}
  					else
  					{
-@@ -4016,10 +4028,10 @@ void user_io_kbd(uint16_t key, int press)
+@@ -4070,10 +4082,10 @@ void user_io_kbd(uint16_t key, int press)
  			{
  				if (is_menu() && !video_fb_state()) printf("PS2 code(make)%s for core: %d(0x%X)\n", (code & EXT) ? "(ext)" : "", code & 255, code & 255);
  				if (!osd_is_visible && !is_menu() && key == KEY_MENU && press == 3) open_joystick_setup();
@@ -349,7 +349,7 @@ index d9f8cb4..67fe287 100644
  				}
  				else if (osd_is_visible)
  				{
-@@ -4237,3 +4249,80 @@ void user_io_screenshot_cmd(const char *cmd)
+@@ -4291,3 +4303,80 @@ void user_io_screenshot_cmd(const char *cmd)
  
  	user_io_screenshot(cmd,0);
  }
@@ -431,10 +431,10 @@ index d9f8cb4..67fe287 100644
 +
 +
 diff --git a/user_io.h b/user_io.h
-index 772da55..c585447 100644
+index 3e10233..35b4bf8 100644
 --- a/user_io.h
 +++ b/user_io.h
-@@ -287,6 +287,16 @@ char is_pcxt();
+@@ -288,6 +288,16 @@ char is_pcxt();
  char is_n64();
  char is_uneon();
  
@@ -452,5 +452,5 @@ index 772da55..c585447 100644
  #define CoreName user_io_get_core_name()
  #define CoreName2 user_io_get_core_name2()
 -- 
-2.51.0
+2.51.1.dirty
 

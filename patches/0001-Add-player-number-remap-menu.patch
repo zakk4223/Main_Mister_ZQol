@@ -1,6 +1,6 @@
-From 0aa2af84cd0d042a2bd48ba2b620ab479d57aeba Mon Sep 17 00:00:00 2001
+From 64b53f61bf18268c4819deae0b8b3f7c5880f379 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 28 Aug 2025 12:49:31 -0400
+Date: Thu, 23 Oct 2025 11:19:14 -0400
 Subject: [PATCH 01/11] 0001
 
 ---
@@ -10,7 +10,7 @@ Subject: [PATCH 01/11] 0001
  3 files changed, 323 insertions(+), 3 deletions(-)
 
 diff --git a/input.cpp b/input.cpp
-index 1fc63d7..5770ab1 100644
+index dc08225..49cbf0d 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -1406,6 +1406,75 @@ static int tmp_axis_n = 0;
@@ -241,7 +241,7 @@ index 892cbf1..e89dc98 100644
  uint32_t get_key_mod();
  uint32_t get_ps2_code(uint16_t key);
 diff --git a/menu.cpp b/menu.cpp
-index 70eb396..9fc22cc 100644
+index a748665..446a242 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -111,6 +111,7 @@ enum MENU
@@ -252,7 +252,7 @@ index 70eb396..9fc22cc 100644
  	MENU_KBDMAP,
  	MENU_KBDMAP1,
  	MENU_KBDMAP2,
-@@ -2558,7 +2559,7 @@ void HandleUI(void)
+@@ -2577,7 +2578,7 @@ void HandleUI(void)
  				s[28] = 0;
  				MenuWrite(n++, s, menusub == 2, 0);
  				MenuWrite(n++, " Button/Key remap          \x16", menusub == 3, 0);
@@ -261,7 +261,7 @@ index 70eb396..9fc22cc 100644
  
  				if (user_io_get_uart_mode())
  				{
-@@ -2689,8 +2690,9 @@ void HandleUI(void)
+@@ -2708,8 +2709,9 @@ void HandleUI(void)
  				break;
  
  			case 4:
@@ -273,7 +273,7 @@ index 70eb396..9fc22cc 100644
  				break;
  
  			case 5:
-@@ -4078,6 +4080,171 @@ void HandleUI(void)
+@@ -4097,6 +4099,171 @@ void HandleUI(void)
  		}
  		break;
  
@@ -446,5 +446,5 @@ index 70eb396..9fc22cc 100644
  		helptext_idx = 0;
  		menumask = 1;
 -- 
-2.51.0
+2.51.1.dirty
 

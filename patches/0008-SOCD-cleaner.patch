@@ -1,6 +1,6 @@
-From 963ae619110786d161707cc63c494f695a3c665c Mon Sep 17 00:00:00 2001
+From 47285779c7884e7c2d0e2ae06123d6f2aa3f3eb5 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 28 Aug 2025 12:50:45 -0400
+Date: Thu, 23 Oct 2025 11:20:07 -0400
 Subject: [PATCH 08/11] 0008
 
 ---
@@ -10,10 +10,10 @@ Subject: [PATCH 08/11] 0008
  3 files changed, 69 insertions(+)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 2548611..8766aa6 100644
+index e77d630..30a7a00 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -137,6 +137,8 @@ static const ini_var_t ini_vars[] =
+@@ -136,6 +136,8 @@ static const ini_var_t ini_vars[] =
  	{ "SS_LOAD_BIT", (void *)(&(cfg.ss_load_bit)), STRING, 0, sizeof(cfg.ss_load_bit) - 1},
  	{ "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
  	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
@@ -22,9 +22,9 @@ index 2548611..8766aa6 100644
  	{"VFILTER_INTERLACE_DEFAULT", (void*)(&(cfg.vfilter_interlace_default)), STRING, 0, sizeof(cfg.vfilter_interlace_default) - 1 },
  };
  
-@@ -614,6 +616,23 @@ void cfg_parse()
- 		if (!strcasecmp(cfg.vga_mode, "svideo")) cfg.vga_mode_int = 2;
- 		if (!strcasecmp(cfg.vga_mode, "cvbs")) cfg.vga_mode_int = 3;
+@@ -619,6 +621,23 @@ void cfg_parse()
+ 			cfg.forced_scandoubler = 0;
+ 		}
  	}
 +
 +  if (strlen(cfg.socd_ud))
@@ -47,7 +47,7 @@ index 2548611..8766aa6 100644
  
  bool cfg_has_video_sections()
 diff --git a/cfg.h b/cfg.h
-index 0c2345f..5c7d5a8 100644
+index aafb5f1..9ab10d8 100644
 --- a/cfg.h
 +++ b/cfg.h
 @@ -7,6 +7,15 @@
@@ -66,7 +66,7 @@ index 0c2345f..5c7d5a8 100644
  //// type definitions ////
  typedef struct {
  	uint8_t  disable_nvram;
-@@ -105,6 +114,10 @@ typedef struct {
+@@ -104,6 +113,10 @@ typedef struct {
  	char ss_load_bit[8];
  	char ss_save_bit[8];
  	char ss_current_slot[15];
@@ -78,7 +78,7 @@ index 0c2345f..5c7d5a8 100644
  } cfg_t;
  
 diff --git a/input.cpp b/input.cpp
-index 47c73e9..07f7af0 100644
+index 8b8f2ce..1a81df6 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -6279,7 +6279,9 @@ int input_poll(int getchar)
@@ -134,5 +134,5 @@ index 47c73e9..07f7af0 100644
   			{
  				user_io_digital_joystick(i, send_comb, newdir);
 -- 
-2.51.0
+2.51.1.dirty
 

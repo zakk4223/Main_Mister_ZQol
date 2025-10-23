@@ -1,6 +1,6 @@
-From 89b3b16fed58ecc48c815a4eb96ca50c27777993 Mon Sep 17 00:00:00 2001
+From 047aa81d4cb8716907d2e208d0fba197576d79d2 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 28 Aug 2025 12:50:56 -0400
+Date: Thu, 23 Oct 2025 11:20:15 -0400
 Subject: [PATCH 09/11] 0009
 
 ---
@@ -16,10 +16,10 @@ Subject: [PATCH 09/11] 0009
  9 files changed, 160 insertions(+), 22 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 8766aa6..7fe46b2 100644
+index 30a7a00..2c960d7 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -139,6 +139,7 @@ static const ini_var_t ini_vars[] =
+@@ -138,6 +138,7 @@ static const ini_var_t ini_vars[] =
  	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
  	{ "SOCD_UD", (void*)(&(cfg.socd_ud)), STRING, 0, sizeof(cfg.socd_ud) - 1 },
  	{ "SOCD_LR", (void*)(&(cfg.socd_lr)), STRING, 0, sizeof(cfg.socd_lr) - 1 },
@@ -27,7 +27,7 @@ index 8766aa6..7fe46b2 100644
  	{"VFILTER_INTERLACE_DEFAULT", (void*)(&(cfg.vfilter_interlace_default)), STRING, 0, sizeof(cfg.vfilter_interlace_default) - 1 },
  };
  
-@@ -633,6 +634,12 @@ void cfg_parse()
+@@ -638,6 +639,12 @@ void cfg_parse()
      if (!strcasecmp(cfg.socd_lr, "right")) cfg.socd_lr_int = SOCD_LR_RIGHT;
    }
  
@@ -41,10 +41,10 @@ index 8766aa6..7fe46b2 100644
  
  bool cfg_has_video_sections()
 diff --git a/cfg.h b/cfg.h
-index 5c7d5a8..487c09d 100644
+index 9ab10d8..d61ce0a 100644
 --- a/cfg.h
 +++ b/cfg.h
-@@ -118,6 +118,8 @@ typedef struct {
+@@ -117,6 +117,8 @@ typedef struct {
  	char socd_lr[16];
  	uint8_t socd_ud_int;
  	uint8_t socd_lr_int;
@@ -54,7 +54,7 @@ index 5c7d5a8..487c09d 100644
  } cfg_t;
  
 diff --git a/file_io.cpp b/file_io.cpp
-index 929381a..a0c866f 100644
+index 0a62242..a52f8a4 100644
 --- a/file_io.cpp
 +++ b/file_io.cpp
 @@ -838,7 +838,7 @@ void FileGenerateScreenshotName(const char *name, char *out_name, int buflen)
@@ -67,7 +67,7 @@ index 929381a..a0c866f 100644
  		if( p )
  		{
 diff --git a/input.cpp b/input.cpp
-index 07f7af0..b59a92a 100644
+index 1a81df6..8a068d2 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -1831,6 +1831,7 @@ static void uinp_send_key(uint16_t key, int press)
@@ -79,7 +79,7 @@ index 07f7af0..b59a92a 100644
  	{
  		if (!grabbed)
 diff --git a/menu.cpp b/menu.cpp
-index 93fe10c..d840b6d 100644
+index d14a0f4..bb7fe56 100644
 --- a/menu.cpp
 +++ b/menu.cpp
 @@ -44,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -250,7 +250,7 @@ index 93fe10c..d840b6d 100644
  			if (mgl->state == 1) mgl->state = 2;
  		}
  		break;
-@@ -7911,6 +7993,9 @@ void HandleUI(void)
+@@ -7941,6 +8023,9 @@ void HandleUI(void)
  
    case MENU_SAVE_STATE1:
     {
@@ -260,7 +260,7 @@ index 93fe10c..d840b6d 100644
  					menustate = MENU_SAVE_STATE2;
  					parentstate = MENU_SAVE_STATE1;
  					OsdSetTitle("Save States", 0);
-@@ -7934,10 +8019,20 @@ void HandleUI(void)
+@@ -7964,10 +8049,20 @@ void HandleUI(void)
            MenuWrite(n, " Save", menusub == n, 0); n++;
  					MenuWrite(n, " Load", menusub == n, 0); n++;
  					for (int i = n; i < OsdGetSize() - 1; i++) MenuWrite(i, "", 0, 0);
@@ -281,7 +281,7 @@ index 93fe10c..d840b6d 100644
       if (select || minus || plus || left || right)
       {
         menustate = MENU_SAVE_STATE1;
-@@ -7969,9 +8064,10 @@ void HandleUI(void)
+@@ -7999,9 +8094,10 @@ void HandleUI(void)
          case 3:
             if (select)
             {
@@ -294,7 +294,7 @@ index 93fe10c..d840b6d 100644
             break;
         }
       }
-@@ -8276,6 +8372,18 @@ void PrintDirectory(int expand)
+@@ -8306,6 +8402,18 @@ void PrintDirectory(int expand)
  	}
  }
  
@@ -313,7 +313,7 @@ index 93fe10c..d840b6d 100644
  static void set_text(const char *message, unsigned char code)
  {
  	char s[40];
-@@ -8439,16 +8547,3 @@ void ProgressMessage(const char* title, const char* text, int current, int max,
+@@ -8469,16 +8577,3 @@ void ProgressMessage(const char* title, const char* text, int current, int max,
  	}
  }
  
@@ -355,7 +355,7 @@ index 919d31a..7b3323f 100644
  		}
  
 diff --git a/user_io.cpp b/user_io.cpp
-index 67fe287..8029513 100644
+index 69035bb..1bcabd5 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -9,11 +9,14 @@
@@ -373,7 +373,7 @@ index 67fe287..8029513 100644
  #include "user_io.h"
  #include "debug.h"
  #include "spi.h"
-@@ -4321,8 +4324,34 @@ void ss_menu_save()
+@@ -4375,8 +4378,34 @@ void ss_menu_save()
    if (!cfg.ss_save_bit[0]) return;
  
    ss_save_pending = true;
@@ -409,10 +409,10 @@ index 67fe287..8029513 100644
 +}
 +
 diff --git a/user_io.h b/user_io.h
-index c585447..a6afa41 100644
+index 35b4bf8..f456e66 100644
 --- a/user_io.h
 +++ b/user_io.h
-@@ -289,8 +289,10 @@ char is_uneon();
+@@ -290,8 +290,10 @@ char is_uneon();
  
  
  void ss_menu_load();
@@ -424,5 +424,5 @@ index c585447..a6afa41 100644
  int ss_menu_get_descr(char *descr, int descr_sz);
  bool core_has_save_states();
 -- 
-2.51.0
+2.51.1.dirty
 
