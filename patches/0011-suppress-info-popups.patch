@@ -1,6 +1,6 @@
-From 8945606d2cee1cf38a9c862a4250c157d3fe9af2 Mon Sep 17 00:00:00 2001
+From 38dd9b223b9c2149a4746005064099961404ae25 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 23 Oct 2025 11:20:29 -0400
+Date: Wed, 12 Nov 2025 15:44:15 -0500
 Subject: [PATCH 11/11] 0011
 
 ---
@@ -47,5 +47,5 @@ index b86a6d3..ad48dd4 100644
  	{
  		OSD_PrintInfo(message, &width, &height, frame);
 -- 
-2.51.1.dirty
+2.51.2
 

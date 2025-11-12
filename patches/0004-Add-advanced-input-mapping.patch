@@ -1,18 +1,17 @@
-From 85909774ace082fbc65cc1c4b1d719939ada09b8 Mon Sep 17 00:00:00 2001
+From 884682ddea6aa0c07b5dc4ffafb4abf643551975 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 23 Oct 2025 11:19:37 -0400
+Date: Wed, 12 Nov 2025 15:43:24 -0500
 Subject: [PATCH 04/11] 0004
 
 ---
  gamecontroller_db.cpp |  14 +-
  gamecontroller_db.h   |   1 +
- input.cpp             | 612 +++++++++++++++++++++++++++++----
+ input.cpp             | 716 +++++++++++++++++++++++++++++++++++----
  input.h               |  36 ++
- lib/miniz/miniz.c     |   1 +
  menu.cpp              | 766 +++++++++++++++++++++++++++++++++++++++---
  user_io.cpp           |  15 +-
  user_io.h             |   2 +-
- 8 files changed, 1325 insertions(+), 122 deletions(-)
+ 7 files changed, 1428 insertions(+), 122 deletions(-)
 
 diff --git a/gamecontroller_db.cpp b/gamecontroller_db.cpp
 index fab15ec..d229820 100644
@@ -75,7 +74,7 @@ index 0010c58..42540aa 100644
  
  
 diff --git a/input.cpp b/input.cpp
-index 49cbf0d..3d10d83 100644
+index 49cbf0d..e08adac 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -37,6 +37,9 @@
@@ -580,7 +579,7 @@ index 49cbf0d..3d10d83 100644
  		}
  	}
  
-@@ -6161,3 +6255,381 @@ void parse_buttons()
+@@ -6161,3 +6255,485 @@ void parse_buttons()
  		joy_bcount++;
  	}
  }
@@ -608,6 +607,49 @@ index 49cbf0d..3d10d83 100644
 +}
 +
 +
++/*
++* Advanced button mapping
++* advanced button mapping augments the 'button/key remap' functionality with more features.
++* - chording (up to 4 buttons can be mapped to up to 4 outputs)
++* - controller button(s) -> controller button(s) (same controller)
++* - controller button(s) -> keyboard key(s)
++* - controller button(s) -> core button(s).
++* - keyboard key(s) -> keyboard key(s)
++* - keyboard key(s) -> core button(s) (if the core has enabled keyboard controller emulation)
++*
++* There is an additional mapping mode, accessed by holding down menu OK.
++* This mode allows mapping buttons/keys directly to the buttons defined in the core's
++* config string. 
++*
++* The OSD is now triggered on negative edge/release. This allows the OSD button(s) to be 
++* part of a chord. The OSD button(s) must be the _first_ button(s) pressed in the chord; this 
++* preserves the mister's autofire functionality.
++*
++* Advanced maps react to mister's autofire like any "normal" mapped button. 
++* Hold the chord and then press the OSD button(s) to enable autofire.
++*
++* Interaction with normal mister button mapping:
++*
++* Advanced maps override normal maps:
++* Normal mapping: button A -> core button 3
++* Advanced mapping: buttons A+B -> core button 5
++* If you have A held and then press B, button 3 will release and button 5 will activate.
++* If you then release button B, button 3 will now activate.
++*
++* Non-autofire buttons always win over autofire. If you have two mappings (normal or advanced)
++* mapped to the same button, but one is autofire and the other is not when pressed simultaneously you will get a steady button press.
++* If you release the non-autofire button autofire will resume for those buttons.
++*
++*
++*/
++
++//Called when an advanced button entry's 'pressed' state changes.
++//current_mask tracks which core buttons are activated when this entry is in a pressed state.
++//physical buttons can change core button state, so this function saves a copy of the current
++//core button state and then zeros it out to capture all possible changes even through physical
++//button maps.
++//Can't just set the mask directly once because of autofire
++//(advanced map buttons can be autofired like "normal" buttons and there can be overlap with non-autofire maps)
 +static void process_abm_entry(advancedButtonMap *abm, advancedButtonState *abs, int devnum, int pnum)
 +{
 +	uint64_t joy_sav = 0;
@@ -617,9 +659,11 @@ index 49cbf0d..3d10d83 100644
 +		joy[pnum] = 0;
 +	}
 +	abs->last_pressed = abs->pressed;
++
 +	if (pnum >= 0 && abs->pressed)
 +		joy[pnum] |= abm->button_mask;
 +
++	//Inject press/release events for every "physical" button/key this entry is mapped to
 +	for (uint k = 0; k < sizeof(abm->output_codes)/sizeof(abm->output_codes[0]); k++)
 +	{
 +		if (abm->output_codes[k])
@@ -639,11 +683,25 @@ index 49cbf0d..3d10d83 100644
 +	}
 +}
 +
++//Called anytime there is an input event, unless the event was a fake one sent by
++//the advanced mapping state code. (input_cb -> reinjected==true)
++//In this function we eventually reassert the state of _all_ advanced map entries for this input device.
++//This is because the final state needs to be the logical or of all the entries' current_mask values.
++//Entries can potentially overlap, so if one of them gets released the other (still pressed one) needs 
++//to ensure any buttons it maps to are still pressed.
++//This function determines if any advanced maps are pressed, and does some housekeeping
++//for some of the autofire masks.
++
 +bool update_advanced_state(int devnum, uint16_t evcode, int evstate, int osd_event)
 +{
 +	bool allow_keysend = true;
 +	bool code_is_osd_btn = (evcode == input[devnum].mmap[SYS_BTN_OSD_KTGL+1] || evcode == input[devnum].mmap[SYS_BTN_OSD_KTGL+2]);
 +
++	//input dev 'num' is the player number: it is the 'natural' number. so player 1 -> num=1, player 2 -> num=2 etc.
++	//the core<->hps controller interface is zero-index based, so the 'real' player number is num-1.
++	//Keyboards are sent as num=0
++	//A core confstr can control if the core wants raw keyboard events, or if keyboards can just emulate a controller.
++	//There's a keyboard shortcut to change the keyboard between p1/p2 and that's what this check is doing.
 +	int pnum = input[devnum].num -1;
 +	if (!input[devnum].num) {
 +		int kbd_emu = user_io_get_kbdemu();
@@ -653,12 +711,27 @@ index 49cbf0d..3d10d83 100644
 +			pnum = 1;
 +	}
 +
++	//'raw' keyboards don't have an entry in the joy_X and af/autofire_X arrays.
++	//So every time they need referencing/saving you have to check that pnum is valid...
 +	if (pnum >= 0)
 +	{
 +		joy_adv[pnum] = 0;
 +		joy_adv_af[pnum] = 0;
 +	}
 +
++
++	//The logic here starts with the assumption the button is pressed, and then flips the state if 
++	//the entry doesn't satisfy all the 'is pressed' conditions.
++	//The main condition is that the number of pressed buttons is equal to the number of valid input_codes set in the entry.
++	//There is a separate (not saved to disk) 'advanced button state' structure that tracks various things to help
++	//with runtime calculations.
++	//One of these is the input_state var, which is a mask that tracks if each input_code entry is pressed or not.
++	//Tracking the state means for any given input event, we can determine if the entry is pressed or not without additional
++	//lookups needed.
++	//An alternative approach would be to either have each input device track it's own state, or ask the kernel for the input device's
++	//full state. The former involves each input[] entry needing to store an additional ~96 bytes; latter requires an additional ioctl() round trip every
++	//input. Seems more efficient to just track an additional byte per entry..
++	
 +	for (uint i = 0; i < ADVANCED_MAP_MAX; i++)
 +	{
 +		advancedButtonMap *abm = &input[devnum].advanced_map[i];
@@ -697,6 +770,17 @@ index 49cbf0d..3d10d83 100644
 +		if (code_is_osd_btn && evstate && chord_has_osd && pressed_cnt > 1)
 +			is_pressed = false;
 +
++		//Advanced maps override normal maps. This means if an advanced mapping is pressed, we need to 'turn off'
++		//any of the buttons that are part of the advanced input buttons, and turn them back on when the advanced map 
++		//is not pressed.
++		//Example: User has used the normal mister mapping to map button A to core button 3
++		//There is also an advanced map that maps buttons A+B to core button 5
++		//If the user is holding button A, and then presses button B, the end result should be that just button 5 is pressed.
++		//So when the abm entry flips to pressed, this loop reinjects a release event for all the input buttons of the map
++		//This causes the 'normal' mapping to get released.
++		//When the advanced map is released (any of the input buttons are released) it reinjects a pressed event
++		//for all the remaining pressed buttons in it's input. Which turns them back on for 'normal' mapping.
++		//This also applies for button->keyboard maps, and keyboard->keyboard maps
 +		if (is_pressed || (is_pressed != abs->last_pressed))
 +		{
 +			for(size_t cidx = 0; cidx < sizeof(abm->input_codes)/sizeof(abm->input_codes[0]); cidx++)
@@ -714,8 +798,23 @@ index 49cbf0d..3d10d83 100644
 +		abs->last_pressed = abs->pressed;
 +		abs->pressed = is_pressed; 
 +
++		
 +		if (abs->pressed && !abs->last_pressed) allow_keysend = false;
 +
++		//Autofire trickery.
++		//Normal mapping use a few arrays to track autofire functionality.
++		//af_lastcode
++		//af_lastmask
++		//autofirecodes
++		//af_* track the last pressed button code and core button mask for that code.
++		//when the osd button is pressed if these are set it turns on autofire for that button.
++		//autofirecodes tracks what button codes have had autofire  activated.
++		//All of these operate on single buttons, so they can't be used as-is for advanced
++		//chord maps. 
++		//This code repurposes af_* to track the last pressed advanced map and then handles
++		//the OSD button event to enable autofire for that advanced map.
++		//The 0x8000 mask is just a way to make a quick check that this is an advanced entry and not a keycodes
++		//(keycodes don't go that high)
 +		if (abs->pressed != abs->last_pressed) 
 +		{
 +  		process_abm_entry(abm, abs, devnum, pnum);
@@ -739,6 +838,10 @@ index 49cbf0d..3d10d83 100644
 +        joy_adv_af[pnum] |= abs->current_mask; 
 +		}
 +	}
++
++	//If this return is true input_cb inhibits sending the keyboard event to the core. 
++	//Needed so the core doesn't see a keyboard event for the last key in a chord
++	//(or when a single key has been remapped)
 +	return allow_keysend;
 +}
 +
@@ -1014,18 +1117,6 @@ index e89dc98..16f7187 100644
 +advancedButtonMap *input_advanced_find_match(uint16_t *input_codes, size_t code_count, advancedButtonMap *abm_start, size_t abm_count);
 +
  #endif
-diff --git a/lib/miniz/miniz.c b/lib/miniz/miniz.c
-index 9ded4c7..1ec8553 100644
---- a/lib/miniz/miniz.c
-+++ b/lib/miniz/miniz.c
-@@ -4887,6 +4887,7 @@ mz_zip_reader_extract_iter_state* mz_zip_reader_extract_iter_new(mz_zip_archive
-     {
-         if (!((flags & MZ_ZIP_FLAG_COMPRESSED_DATA) || (!pState->file_stat.m_method)))
-         {
-+        
-             /* Decompression required, therefore intermediate read buffer required */
-             pState->read_buf_size = MZ_MIN(pState->file_stat.m_comp_size, MZ_ZIP_MAX_IO_BUF_SIZE);
-             if (NULL == (pState->pRead_buf = pZip->m_pAlloc(pZip->m_pAlloc_opaque, 1, (size_t)pState->read_buf_size)))
 diff --git a/menu.cpp b/menu.cpp
 index 446a242..2040835 100644
 --- a/menu.cpp
@@ -1972,5 +2063,5 @@ index 3a4e457..3e10233 100644
  void user_io_r_analog_joystick(unsigned char, char, char);
  void user_io_set_joyswap(int swap);
 -- 
-2.51.1.dirty
+2.51.2
 

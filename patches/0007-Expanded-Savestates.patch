@@ -1,6 +1,6 @@
-From 614e11e7d3fcb877441131e4279f323c4cc8705f Mon Sep 17 00:00:00 2001
+From 2bd9687c60a5aabaea93cff430725173c7548bd2 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 23 Oct 2025 11:20:01 -0400
+Date: Wed, 12 Nov 2025 15:43:48 -0500
 Subject: [PATCH 07/11] 0007
 
 ---
@@ -452,5 +452,5 @@ index 3e10233..35b4bf8 100644
  #define CoreName user_io_get_core_name()
  #define CoreName2 user_io_get_core_name2()
 -- 
-2.51.1.dirty
+2.51.2
 

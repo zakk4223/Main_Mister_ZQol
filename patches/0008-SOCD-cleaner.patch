@@ -1,6 +1,6 @@
-From 47285779c7884e7c2d0e2ae06123d6f2aa3f3eb5 Mon Sep 17 00:00:00 2001
+From d75cbc254fb9aae2b58e676a8df07ae598b90ad5 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 23 Oct 2025 11:20:07 -0400
+Date: Wed, 12 Nov 2025 15:43:55 -0500
 Subject: [PATCH 08/11] 0008
 
 ---
@@ -78,7 +78,7 @@ index aafb5f1..9ab10d8 100644
  } cfg_t;
  
 diff --git a/input.cpp b/input.cpp
-index 8b8f2ce..1a81df6 100644
+index 173a92f..7596a2c 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -6279,7 +6279,9 @@ int input_poll(int getchar)
@@ -134,5 +134,5 @@ index 8b8f2ce..1a81df6 100644
   			{
  				user_io_digital_joystick(i, send_comb, newdir);
 -- 
-2.51.1.dirty
+2.51.2
 

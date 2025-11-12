@@ -1,6 +1,6 @@
-From 047aa81d4cb8716907d2e208d0fba197576d79d2 Mon Sep 17 00:00:00 2001
+From cec9f9005b0cd7ea511db0a55b50f57c58cb0b6a Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 23 Oct 2025 11:20:15 -0400
+Date: Wed, 12 Nov 2025 15:44:00 -0500
 Subject: [PATCH 09/11] 0009
 
 ---
@@ -54,7 +54,7 @@ index 9ab10d8..d61ce0a 100644
  } cfg_t;
  
 diff --git a/file_io.cpp b/file_io.cpp
-index 0a62242..a52f8a4 100644
+index d09bb0b..8a739cd 100644
 --- a/file_io.cpp
 +++ b/file_io.cpp
 @@ -838,7 +838,7 @@ void FileGenerateScreenshotName(const char *name, char *out_name, int buflen)
@@ -67,7 +67,7 @@ index 0a62242..a52f8a4 100644
  		if( p )
  		{
 diff --git a/input.cpp b/input.cpp
-index 1a81df6..8a068d2 100644
+index 7596a2c..92b99c7 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -1831,6 +1831,7 @@ static void uinp_send_key(uint16_t key, int press)
@@ -424,5 +424,5 @@ index 35b4bf8..f456e66 100644
  int ss_menu_get_descr(char *descr, int descr_sz);
  bool core_has_save_states();
 -- 
-2.51.1.dirty
+2.51.2
 

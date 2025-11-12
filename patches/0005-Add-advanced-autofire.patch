@@ -1,6 +1,6 @@
-From 847f57ccaa66005ae59080f2eb9d8a5e08bc1b4e Mon Sep 17 00:00:00 2001
+From 57923c9152abf3ecb7296ede7269bd361074b4d1 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Thu, 23 Oct 2025 11:19:43 -0400
+Date: Wed, 12 Nov 2025 15:43:36 -0500
 Subject: [PATCH 05/11] 0005
 
 ---
@@ -12,7 +12,7 @@ Subject: [PATCH 05/11] 0005
  5 files changed, 229 insertions(+), 6 deletions(-)
 
 diff --git a/input.cpp b/input.cpp
-index 3d10d83..a26909f 100644
+index e08adac..f5d87a5 100644
 --- a/input.cpp
 +++ b/input.cpp
 @@ -37,7 +37,9 @@
@@ -33,7 +33,7 @@ index 3d10d83..a26909f 100644
  	if (getchar) return ret;
  
  	uinp_check_key();
-@@ -6282,6 +6285,8 @@ static void advanced_convert_jkmap(int devnum)
+@@ -6325,6 +6328,8 @@ static void advanced_convert_jkmap(int devnum)
  static void process_abm_entry(advancedButtonMap *abm, advancedButtonState *abs, int devnum, int pnum)
  {
  	uint64_t joy_sav = 0;
@@ -42,9 +42,9 @@ index 3d10d83..a26909f 100644
  	if (pnum >= 0)
  	{
  		joy_sav = joy[pnum];
-@@ -6310,6 +6315,93 @@ static void process_abm_entry(advancedButtonMap *abm, advancedButtonState *abs,
- 	}
- }
+@@ -6364,6 +6369,93 @@ static void process_abm_entry(advancedButtonMap *abm, advancedButtonState *abs,
+ //This function determines if any advanced maps are pressed, and does some housekeeping
+ //for some of the autofire masks.
  
 +static void input_advanced_framecheck()
 +{
@@ -136,8 +136,8 @@ index 3d10d83..a26909f 100644
  bool update_advanced_state(int devnum, uint16_t evcode, int evstate, int osd_event)
  {
  	bool allow_keysend = true;
-@@ -6389,6 +6481,9 @@ bool update_advanced_state(int devnum, uint16_t evcode, int evstate, int osd_eve
- 
+@@ -6489,6 +6581,9 @@ bool update_advanced_state(int devnum, uint16_t evcode, int evstate, int osd_eve
+ 		//(keycodes don't go that high)
  		if (abs->pressed != abs->last_pressed) 
  		{
 +      if (abm->delay_frames)
@@ -146,7 +146,7 @@ index 3d10d83..a26909f 100644
    		process_abm_entry(abm, abs, devnum, pnum);
        if (pnum >= 0)
        {
-@@ -6405,9 +6500,12 @@ bool update_advanced_state(int devnum, uint16_t evcode, int evstate, int osd_eve
+@@ -6505,9 +6600,12 @@ bool update_advanced_state(int devnum, uint16_t evcode, int evstate, int osd_eve
          send_autofire_msg(pnum, abs->autofire);
  				osd_inhibit_next_release = true;
  			}
@@ -161,8 +161,8 @@ index 3d10d83..a26909f 100644
 +      }
  		}
  	}
- 	return allow_keysend;
-@@ -6633,3 +6731,49 @@ advancedButtonMap *input_advanced_find_match(uint16_t *input_codes, size_t code_
+ 
+@@ -6737,3 +6835,49 @@ advancedButtonMap *input_advanced_find_match(uint16_t *input_codes, size_t code_
  	return NULL;
  }
  
@@ -348,10 +348,10 @@ index 2040835..3e50aa0 100644
  									{
  										menustate = MENU_ADVANCED_MAP_LIST1;
 diff --git a/video.cpp b/video.cpp
-index 78d93d6..2553bb4 100644
+index 645f9d4..ed11469 100644
 --- a/video.cpp
 +++ b/video.cpp
-@@ -4122,4 +4122,9 @@ int video_get_rotated()
+@@ -4121,4 +4121,9 @@ int video_get_rotated()
    return current_video_info.rotated;
  }
  
@@ -374,5 +374,5 @@ index e8e7cb7..50f10e9 100644
  void video_cfg_reset();
  
 -- 
-2.51.1.dirty
+2.51.2
 
