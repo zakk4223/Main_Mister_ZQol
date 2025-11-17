@@ -1,6 +1,6 @@
-From cbef1ec07b207f4f66484111ad33ac1ea8e6bc1b Mon Sep 17 00:00:00 2001
+From 934589f25486c8bbc1525b6174dbc033aaa35fac Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Wed, 12 Nov 2025 15:44:10 -0500
+Date: Mon, 17 Nov 2025 11:52:43 -0500
 Subject: [PATCH 10/11] 0010
 
 ---
@@ -161,10 +161,10 @@ index bb7fe56..b86a6d3 100644
  		/* we should never come here                                      */
  		/******************************************************************/
 diff --git a/video.cpp b/video.cpp
-index ed11469..c9ef1a6 100644
+index 5c48eed..6cf40cd 100644
 --- a/video.cpp
 +++ b/video.cpp
-@@ -2723,6 +2723,7 @@ static bool get_video_info(bool force, VideoInfo *video_info)
+@@ -2596,6 +2596,7 @@ static bool get_video_info(bool force, VideoInfo *video_info)
  		video_info->vtime = spi_w(0) | (spi_w(0) << 16);
  		video_info->ptime = spi_w(0) | (spi_w(0) << 16);
  		video_info->vtimeh = spi_w(0) | (spi_w(0) << 16);
@@ -172,8 +172,8 @@ index ed11469..c9ef1a6 100644
  		video_info->ctime = spi_w(0) | (spi_w(0) << 16);
  		video_info->pixrep = spi_w(0);
  		video_info->de_h = spi_w(0);
-@@ -3083,15 +3084,15 @@ static void set_yc_mode()
- 	}
+@@ -2992,29 +2993,30 @@ static void spd_config_update()
+ 	hdmi_spd_config(data);
  }
  
 -void video_mode_adjust()
@@ -193,9 +193,8 @@ index ed11469..c9ef1a6 100644
  	{
  		current_video_info = video_info;
  		show_video_info(&video_info, &v_cur);
-@@ -3099,14 +3100,15 @@ void video_mode_adjust()
+ 		set_yc_mode();
  		spd_config_update();
- 		//else if(use_vrr != VRR_FREESYNC) spd_config_hdmi();
  	}
 -	force = false;
 +
@@ -211,7 +210,7 @@ index ed11469..c9ef1a6 100644
  	{
  		if (cfg_has_video_sections())
  		{
-@@ -3154,13 +3156,13 @@ void video_mode_adjust()
+@@ -3062,13 +3064,13 @@ void video_mode_adjust()
  
  			video_set_mode(v, Fpix);
  			user_io_send_buttons(1);
@@ -227,7 +226,7 @@ index ed11469..c9ef1a6 100644
  		}
  		else
  		{
-@@ -4127,3 +4129,193 @@ float video_get_vtime_ms()
+@@ -4035,3 +4037,193 @@ float video_get_vtime_ms()
  }
  
  
