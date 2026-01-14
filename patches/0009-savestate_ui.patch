@@ -1,6 +1,6 @@
-From d5c2ec81413f46777d47106916f5ac1314bbbb36 Mon Sep 17 00:00:00 2001
+From 5b81ffc9f1ab209602978c96a922830255220886 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 17 Nov 2025 11:52:35 -0500
+Date: Wed, 14 Jan 2026 02:52:00 -0500
 Subject: [PATCH 09/11] 0009
 
 ---
@@ -54,7 +54,7 @@ index 9ab10d8..d61ce0a 100644
  } cfg_t;
  
 diff --git a/file_io.cpp b/file_io.cpp
-index d09bb0b..8a739cd 100644
+index 236dcd3..082bf7b 100644
 --- a/file_io.cpp
 +++ b/file_io.cpp
 @@ -838,7 +838,7 @@ void FileGenerateScreenshotName(const char *name, char *out_name, int buflen)
@@ -355,7 +355,7 @@ index 919d31a..7b3323f 100644
  		}
  
 diff --git a/user_io.cpp b/user_io.cpp
-index 69035bb..1bcabd5 100644
+index dea2684..184e961 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -9,11 +9,14 @@
@@ -373,7 +373,7 @@ index 69035bb..1bcabd5 100644
  #include "user_io.h"
  #include "debug.h"
  #include "spi.h"
-@@ -4375,8 +4378,34 @@ void ss_menu_save()
+@@ -4403,8 +4406,34 @@ void ss_menu_save()
    if (!cfg.ss_save_bit[0]) return;
  
    ss_save_pending = true;
@@ -409,10 +409,10 @@ index 69035bb..1bcabd5 100644
 +}
 +
 diff --git a/user_io.h b/user_io.h
-index 35b4bf8..f456e66 100644
+index 4761cda..ba355fa 100644
 --- a/user_io.h
 +++ b/user_io.h
-@@ -290,8 +290,10 @@ char is_uneon();
+@@ -292,8 +292,10 @@ char is_uneon();
  
  
  void ss_menu_load();
@@ -424,5 +424,5 @@ index 35b4bf8..f456e66 100644
  int ss_menu_get_descr(char *descr, int descr_sz);
  bool core_has_save_states();
 -- 
-2.51.2
+2.52.0
 

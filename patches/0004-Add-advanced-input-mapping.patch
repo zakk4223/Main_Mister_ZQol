@@ -1,6 +1,6 @@
-From e230b6c81f27f1b999f7ddc5471449611556b6a3 Mon Sep 17 00:00:00 2001
+From 3be77e4fd52c873c41503f0ba26c0a4c5b47f151 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 17 Nov 2025 11:49:12 -0500
+Date: Wed, 14 Jan 2026 02:42:08 -0500
 Subject: [PATCH 04/11] 0004
 
 ---
@@ -1999,10 +1999,10 @@ index 446a242..2040835 100644
  		/* we should never come here                                      */
  		/******************************************************************/
 diff --git a/user_io.cpp b/user_io.cpp
-index 4022116..5bdbb52 100644
+index 4f108fe..bbce8b5 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
-@@ -1713,23 +1713,22 @@ void user_io_r_analog_joystick(unsigned char joystick, char valueX, char valueY)
+@@ -1735,23 +1735,22 @@ void user_io_r_analog_joystick(unsigned char joystick, char valueX, char valueY)
  	}
  }
  
@@ -2031,7 +2031,7 @@ index 4022116..5bdbb52 100644
  	}
  }
  
-@@ -4060,7 +4059,7 @@ void user_io_kbd(uint16_t key, int press)
+@@ -4088,7 +4087,7 @@ void user_io_kbd(uint16_t key, int press)
  				if (key == KEY_MENU) key = KEY_F12;
  				if (key != KEY_F12 || !block_F12)
  				{
@@ -2040,9 +2040,9 @@ index 4022116..5bdbb52 100644
  
  					// these modifiers should be passed to core even if OSD is open or they will get stuck!
  					if (!osd_is_visible || key == KEY_LEFTALT || key == KEY_RIGHTALT || key == KEY_LEFTMETA || key == KEY_RIGHTMETA) send_keycode(key, press);
-@@ -4073,7 +4072,7 @@ void user_io_kbd(uint16_t key, int press)
+@@ -4101,7 +4100,7 @@ void user_io_kbd(uint16_t key, int press)
  				if (!osd_is_visible && !is_menu() && key == KEY_MENU && press == 3) open_joystick_setup();
- 				else if ((has_menu() || osd_is_visible || (get_key_mod() & (LALT | RALT | RGUI | LGUI))) && (((key == KEY_F12) && ((!is_x86() && !is_pcxt() && !is_archie()) || (get_key_mod() & (RGUI | LGUI)))) || key == KEY_MENU))
+ 				else if ((has_menu() || osd_is_visible || (get_key_mod() & (LALT | RALT | RGUI | LGUI))) && (((key == KEY_F12) && (!is_f12_mod_needed() || (get_key_mod() & (RGUI | LGUI)))) || key == KEY_MENU))
  				{
 -					block_F12 = 1;
 +					//block_F12 = 1;
@@ -2050,10 +2050,10 @@ index 4022116..5bdbb52 100644
  				}
  				else if (osd_is_visible)
 diff --git a/user_io.h b/user_io.h
-index 3a4e457..3e10233 100644
+index 69f04d0..5c31026 100644
 --- a/user_io.h
 +++ b/user_io.h
-@@ -204,7 +204,7 @@ void user_io_mouse(unsigned char b, int16_t x, int16_t y, int16_t w);
+@@ -206,7 +206,7 @@ void user_io_mouse(unsigned char b, int16_t x, int16_t y, int16_t w);
  void user_io_kbd(uint16_t key, int press);
  char* user_io_create_config_name(int with_ver = 0);
  int user_io_get_joy_transl();
@@ -2063,5 +2063,5 @@ index 3a4e457..3e10233 100644
  void user_io_r_analog_joystick(unsigned char, char, char);
  void user_io_set_joyswap(int swap);
 -- 
-2.51.2
+2.52.0
 

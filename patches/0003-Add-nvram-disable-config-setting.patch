@@ -1,6 +1,6 @@
-From c5d745750ecd6ec52d2f54adf7b5e74f074db7c6 Mon Sep 17 00:00:00 2001
+From a8b43ab89284d6f216e74e5000aabffad79871ba Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 17 Nov 2025 11:49:07 -0500
+Date: Wed, 14 Jan 2026 02:42:01 -0500
 Subject: [PATCH 03/11] 0003
 
 ---
@@ -34,7 +34,7 @@ index 11906cf..6200c80 100644
  	uint8_t forced_scandoubler;
  	uint8_t key_menu_as_rgui;
 diff --git a/support/arcade/mra_loader.cpp b/support/arcade/mra_loader.cpp
-index 9cee10b..1d9e4f5 100644
+index 29f913e..b03d52d 100644
 --- a/support/arcade/mra_loader.cpp
 +++ b/support/arcade/mra_loader.cpp
 @@ -15,6 +15,7 @@
@@ -45,7 +45,7 @@ index 9cee10b..1d9e4f5 100644
  
  #include "buffer.h"
  #include "mra_loader.h"
-@@ -85,7 +86,7 @@ void arcade_nvm_clear()
+@@ -86,7 +87,7 @@ void arcade_nvm_clear()
  
  void arcade_nvm_save()
  {
@@ -54,7 +54,7 @@ index 9cee10b..1d9e4f5 100644
  	{
  		char path[256] = CONFIG_DIR"/nvram/";
  		FileCreatePath(path);
-@@ -109,7 +110,7 @@ void arcade_nvm_save()
+@@ -110,7 +111,7 @@ void arcade_nvm_save()
  
  static void arcade_nvm_load()
  {
@@ -64,5 +64,5 @@ index 9cee10b..1d9e4f5 100644
  		char path[256] = "nvram/";
  		uint8_t *buf = new uint8_t[nvram_size];
 -- 
-2.51.2
+2.52.0
 

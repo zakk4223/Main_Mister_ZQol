@@ -1,6 +1,6 @@
-From 934589f25486c8bbc1525b6174dbc033aaa35fac Mon Sep 17 00:00:00 2001
+From 5728d7fde76a3870ec8ab22444579892df3467b8 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 17 Nov 2025 11:52:43 -0500
+Date: Wed, 14 Jan 2026 02:52:06 -0500
 Subject: [PATCH 10/11] 0010
 
 ---
@@ -161,10 +161,10 @@ index bb7fe56..b86a6d3 100644
  		/* we should never come here                                      */
  		/******************************************************************/
 diff --git a/video.cpp b/video.cpp
-index 5c48eed..6cf40cd 100644
+index 1953d11..8b87e8b 100644
 --- a/video.cpp
 +++ b/video.cpp
-@@ -2596,6 +2596,7 @@ static bool get_video_info(bool force, VideoInfo *video_info)
+@@ -2597,6 +2597,7 @@ static bool get_video_info(bool force, VideoInfo *video_info)
  		video_info->vtime = spi_w(0) | (spi_w(0) << 16);
  		video_info->ptime = spi_w(0) | (spi_w(0) << 16);
  		video_info->vtimeh = spi_w(0) | (spi_w(0) << 16);
@@ -172,8 +172,8 @@ index 5c48eed..6cf40cd 100644
  		video_info->ctime = spi_w(0) | (spi_w(0) << 16);
  		video_info->pixrep = spi_w(0);
  		video_info->de_h = spi_w(0);
-@@ -2992,29 +2993,30 @@ static void spd_config_update()
- 	hdmi_spd_config(data);
+@@ -3019,29 +3020,30 @@ static void spd_config_update()
+ 	}
  }
  
 -void video_mode_adjust()
@@ -210,7 +210,7 @@ index 5c48eed..6cf40cd 100644
  	{
  		if (cfg_has_video_sections())
  		{
-@@ -3062,13 +3064,13 @@ void video_mode_adjust()
+@@ -3089,13 +3091,13 @@ void video_mode_adjust()
  
  			video_set_mode(v, Fpix);
  			user_io_send_buttons(1);
@@ -226,7 +226,7 @@ index 5c48eed..6cf40cd 100644
  		}
  		else
  		{
-@@ -4035,3 +4037,193 @@ float video_get_vtime_ms()
+@@ -4062,3 +4064,193 @@ float video_get_vtime_ms()
  }
  
  
@@ -451,5 +451,5 @@ index 50f10e9..969d8be 100644
  int   hasAPI1_5();
  
 -- 
-2.51.2
+2.52.0
 

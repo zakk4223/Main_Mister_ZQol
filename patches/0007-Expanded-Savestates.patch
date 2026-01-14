@@ -1,6 +1,6 @@
-From 01a08f9d1b6a2763287988d2c97d27dc7b345e91 Mon Sep 17 00:00:00 2001
+From b867177d01a09f56727a031deed0ea855ea71f6c Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Mon, 17 Nov 2025 11:49:39 -0500
+Date: Wed, 14 Jan 2026 02:51:46 -0500
 Subject: [PATCH 07/11] 0007
 
 ---
@@ -291,7 +291,7 @@ index b69bdfb..beb62cd 100644
  int menu_present();
  
 diff --git a/user_io.cpp b/user_io.cpp
-index 5bdbb52..69035bb 100644
+index bbce8b5..dea2684 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
 @@ -39,6 +39,10 @@
@@ -305,7 +305,7 @@ index 5bdbb52..69035bb 100644
  static char core_path[1024] = {};
  static char rbf_path[1024] = {};
  
-@@ -1890,6 +1894,7 @@ int process_ss(const char *rom_name, int enable)
+@@ -1912,6 +1916,7 @@ int process_ss(const char *rom_name, int enable)
  
  		FileGenerateSavestatePath(rom_name, ss_name, 1);
  		ss_sufx = ss_name + strlen(ss_name) - 4;
@@ -313,7 +313,7 @@ index 5bdbb52..69035bb 100644
  		return 1;
  	}
  
-@@ -1916,12 +1921,19 @@ int process_ss(const char *rom_name, int enable)
+@@ -1938,12 +1943,19 @@ int process_ss(const char *rom_name, int enable)
  					MenuHide();
  					Info("Saving the state", 500);
  
@@ -336,12 +336,12 @@ index 5bdbb52..69035bb 100644
  					}
  					else
  					{
-@@ -4070,10 +4082,10 @@ void user_io_kbd(uint16_t key, int press)
+@@ -4098,10 +4110,10 @@ void user_io_kbd(uint16_t key, int press)
  			{
  				if (is_menu() && !video_fb_state()) printf("PS2 code(make)%s for core: %d(0x%X)\n", (code & EXT) ? "(ext)" : "", code & 255, code & 255);
  				if (!osd_is_visible && !is_menu() && key == KEY_MENU && press == 3) open_joystick_setup();
--				else if ((has_menu() || osd_is_visible || (get_key_mod() & (LALT | RALT | RGUI | LGUI))) && (((key == KEY_F12) && ((!is_x86() && !is_pcxt() && !is_archie()) || (get_key_mod() & (RGUI | LGUI)))) || key == KEY_MENU))
-+				else if ((has_menu() || osd_is_visible || (get_key_mod() & (LALT | RALT | RGUI | LGUI))) && (((key == KEY_F12 || key == KEY_F8) && ((!is_x86() && !is_pcxt() && !is_archie()) || (get_key_mod() & (RGUI | LGUI)))) || key == KEY_MENU))
+-				else if ((has_menu() || osd_is_visible || (get_key_mod() & (LALT | RALT | RGUI | LGUI))) && (((key == KEY_F12) && (!is_f12_mod_needed() || (get_key_mod() & (RGUI | LGUI)))) || key == KEY_MENU))
++				else if ((has_menu() || osd_is_visible || (get_key_mod() & (LALT | RALT | RGUI | LGUI))) && (((key == KEY_F12 || key == KEY_F8)  && (!is_f12_mod_needed() || (get_key_mod() & (RGUI | LGUI)))) || key == KEY_MENU))
  				{
  					//block_F12 = 1;
 -					if (press == 1) menu_key_set(KEY_F12);
@@ -349,7 +349,7 @@ index 5bdbb52..69035bb 100644
  				}
  				else if (osd_is_visible)
  				{
-@@ -4291,3 +4303,80 @@ void user_io_screenshot_cmd(const char *cmd)
+@@ -4319,3 +4331,80 @@ void user_io_screenshot_cmd(const char *cmd)
  
  	user_io_screenshot(cmd,0);
  }
@@ -431,10 +431,10 @@ index 5bdbb52..69035bb 100644
 +
 +
 diff --git a/user_io.h b/user_io.h
-index 3e10233..35b4bf8 100644
+index 5c31026..4761cda 100644
 --- a/user_io.h
 +++ b/user_io.h
-@@ -288,6 +288,16 @@ char is_pcxt();
+@@ -290,6 +290,16 @@ char is_pcxt();
  char is_n64();
  char is_uneon();
  
@@ -452,5 +452,5 @@ index 3e10233..35b4bf8 100644
  #define CoreName user_io_get_core_name()
  #define CoreName2 user_io_get_core_name2()
 -- 
-2.51.2
+2.52.0
 
