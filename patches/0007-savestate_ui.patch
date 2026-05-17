@@ -1,0 +1,407 @@
+From 2b891299e54a7f5d8723761614bc84602aacd243 Mon Sep 17 00:00:00 2001
+From: Zakk <zakk@rsdio.com>
+Date: Sun, 17 May 2026 14:35:05 -0400
+Subject: [PATCH 7/8] 0007
+
+---
+ cfg.cpp       |   7 +++
+ cfg.h         |   2 +
+ input.cpp     |   1 +
+ menu.cpp      | 137 ++++++++++++++++++++++++++++++++++++++++++--------
+ menu.h        |   1 +
+ scheduler.cpp |   1 +
+ user_io.cpp   |  26 ++++++++++
+ user_io.h     |   3 ++
+ 8 files changed, 157 insertions(+), 21 deletions(-)
+
+diff --git a/cfg.cpp b/cfg.cpp
+index ced5d4f..46efb35 100644
+--- a/cfg.cpp
++++ b/cfg.cpp
+@@ -36,6 +36,7 @@ typedef struct
+ static const ini_var_t ini_vars[] =
+ {
+ 
++	{ "EXTERNAL_SAVE_STATE_UI", (void *)(&(cfg.external_save_state_ui)), STRING, 0, sizeof(cfg.external_save_state_ui) - 1},
+ 	{ "SOCD_UD", (void*)(&(cfg.socd_ud)), STRING, 0, sizeof(cfg.socd_ud) - 1 },
+ 	{ "SOCD_LR", (void*)(&(cfg.socd_lr)), STRING, 0, sizeof(cfg.socd_lr) - 1 },
+ 	{ "SS_LOAD_BIT", (void *)(&(cfg.ss_load_bit)), STRING, 0, sizeof(cfg.ss_load_bit) - 1},
+@@ -455,6 +456,12 @@ static void ini_parse_var(char* buf)
+     if (!strcasecmp(cfg.socd_lr, "right")) cfg.socd_lr_int = SOCD_LR_RIGHT;
+   }
+ 
++	cfg.use_external_save_state_ui = 0;
++	if (strlen(cfg.external_save_state_ui))
++	{
++		cfg.use_external_save_state_ui = 1;
++	}
++
+ }
+ 
+ static void ini_parse(int alt, const char *vmode)
+diff --git a/cfg.h b/cfg.h
+index b7f7b8f..e607646 100644
+--- a/cfg.h
++++ b/cfg.h
+@@ -116,6 +116,8 @@ typedef struct {
+ 	char socd_lr[16];
+ 	uint8_t socd_ud_int;
+ 	uint8_t socd_lr_int;
++	char external_save_state_ui[256];
++	uint8_t use_external_save_state_ui;
+ 	char vfilter_interlace_default[1023];
+ 	char autofire_rates[3072];
+ 	uint8_t autofire_on_directions;
+diff --git a/input.cpp b/input.cpp
+index 3b8322e..5d0e968 100644
+--- a/input.cpp
++++ b/input.cpp
+@@ -2178,6 +2178,7 @@ static void uinp_send_key(uint16_t key, int press)
+ 
+ static void uinp_check_key()
+ {
++	return;
+ 	if (uinp_fd > 0)
+ 	{
+ 		if (!grabbed)
+diff --git a/menu.cpp b/menu.cpp
+index 80a98c4..3030ce2 100644
+--- a/menu.cpp
++++ b/menu.cpp
+@@ -44,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ #include <bluetooth.h>
+ #include <hci.h>
+ #include <hci_lib.h>
++#include <unistd.h>
+ 
+ #include "file_io.h"
+ #include "osd.h"
+@@ -226,6 +227,7 @@ enum MENU
+   MENU_SAVE_STATE3,
+ };
+ 
++static bool menu_using_fb = false;
+ static uint32_t menustate = MENU_NONE1;
+ static uint32_t parentstate;
+ static uint32_t menusub = 0;
+@@ -240,6 +242,9 @@ static bool osd_unlocked = 1;
+ static char osd_code_entry[32];
+ static uint32_t osd_lock_timer = 0;
+ 
++static pid_t ttypid = 0;
++static int ttypipe[2];
++static bool menu_did_write;
+ 
+ extern const char *version;
+ 
+@@ -798,6 +803,27 @@ static void MenuWrite(unsigned char n, const char *s = "", unsigned char invert
+ {
+ 	int row = n - firstmenu;
+ 
++
++
++	if (ttypipe[1])
++	{
++		FILE *fbf = fdopen(ttypipe[1], "w");
++
++		char fb_str[1024] = {0};
++		
++		if (!menu_did_write)
++		{
++			strcpy(fb_str, "<MENUSTART>\n");
++			fputs(fb_str, fbf);
++			fflush(fbf);
++		}
++
++		sprintfz(fb_str, "<MENULINE>%s<%d>%s\n", invert ? "<SELECTED>" : "", n, s);
++		fputs(fb_str, fbf);
++		fflush(fbf);
++	}
++
++	menu_did_write = true;
+ 	if (row < 0)
+ 	{
+ 		if (invert) adjvisible = row;
+@@ -833,9 +859,10 @@ const char* get_rbf_name_bootcore(char *str)
+ }
+ 
+ 
+-static void vga_nag()
++static void vga_nag(bool hdmi_fb = false)
+ {
+-	if (video_fb_state())
++
++	if (video_fb_state() && !hdmi_fb)
+ 	{
+ 		EnableOsd_on(OSD_VGA);
+ 		OsdSetSize(16);
+@@ -860,7 +887,7 @@ static void vga_nag()
+ 	}
+ 
+ 	OsdDisable();
+-	EnableOsd_on(OSD_ALL);
++	EnableOsd_on(hdmi_fb ? OSD_VGA : OSD_ALL);
+ }
+ 
+ void process_addon(char *ext, uint8_t idx)
+@@ -1071,8 +1098,58 @@ void build_advanced_map_summary(advancedButtonMap *abm, char *dest_str, size_t d
+ 	snprintf(dest_str, dest_size, "%s->%s", input_str, output_str);
+ }
+ 
++void closeFBMenu()
++{
++	if (ttypid)
++	{
++		if (ttypipe[1]) close(ttypipe[1]);
++		kill(ttypid, SIGKILL); //Nuke
++													 
++		ttypipe[0] = 0;
++		ttypipe[1] = 0;
++		video_fb_enable(0);
++		if (waitpid(ttypid, 0, 0) > 0)
++		{
++		}
++		ttypid = 0;
++	}
++
++	menu_using_fb = false;
++}
++
++
++void openFBMenu(char *torun)
++{
++
++	if (!ttypid)
++	{
++		 
++		char fdstr[15] = {0};
++ 		video_chvt(2);
++		video_fb_enable(1);
++		pipe(ttypipe);
++		ttypid = fork();
++		if (!ttypid)
++		{
++			close(ttypipe[1]);
++			//execl("/sbin/agetty", "/sbin/agetty", "-a", "root", "-l", "/media/fat/Scripts/screenshots.sh", "--nohostname", "-L", "tty2", "linux", NULL);
++			sprintfz(fdstr, "%d", ttypipe[0]);
++			execl(torun, torun, fdstr, NULL);
++			exit(0); //should never be reached
++		} else {
++			close(ttypipe[0]);
++			fcntl(ttypipe[1], F_SETFL, O_NONBLOCK);
++			vga_nag(true);
++			OsdEnable(DISABLE_KEYBOARD);
++			menu_using_fb = true;
++		}
++	}
++}
++
++
+ void HandleUI(void)
+ {
++	menu_did_write = false;
+ 	PROFILE_FUNCTION();
+ 
+ 	if (bt_timer >= 0)
+@@ -1273,8 +1350,9 @@ void HandleUI(void)
+ 		}
+ 	}
+ 
++	
+ 	//prevent OSD control while script is executing on framebuffer
+-	if ((!video_fb_state() || video_chvt(0) != 2) && !select_ini)
++	if ((!video_fb_state() || video_chvt(0) != 2 || menu_using_fb) && !select_ini)
+ 	{
+ 		switch (c)
+ 		{
+@@ -1577,6 +1655,7 @@ void HandleUI(void)
+ 		menustate = MENU_NONE2;
+ 		firstmenu = 0;
+ 		vga_nag();
++		closeFBMenu();
+ 		OsdSetSize(8);
+ 		break;
+ 
+@@ -1632,8 +1711,11 @@ void HandleUI(void)
+ 				}
+ 			}
+ 			OsdClear();
+-			if (!mgl->done) OsdDisable();
+-			else OsdEnable(DISABLE_KEYBOARD);
++			if (!mgl->done) {
++				OsdDisable();
++			} else {
++				OsdEnable(DISABLE_KEYBOARD);
++			}
+ 			if (mgl->state == 1) mgl->state = 2;
+ 		}
+ 		break;
+@@ -7779,6 +7861,9 @@ void HandleUI(void)
+ 
+   case MENU_SAVE_STATE1:
+    {
++		 			if (cfg.use_external_save_state_ui)
++							openFBMenu(cfg.external_save_state_ui);
++
+ 					menustate = MENU_SAVE_STATE2;
+ 					parentstate = MENU_SAVE_STATE1;
+ 					OsdSetTitle("Save States", 0);
+@@ -7802,10 +7887,20 @@ void HandleUI(void)
+           MenuWrite(n, " Save", menusub == n, 0); n++;
+ 					MenuWrite(n, " Load", menusub == n, 0); n++;
+ 					for (int i = n; i < OsdGetSize() - 1; i++) MenuWrite(i, "", 0, 0);
++					if (cfg.use_external_save_state_ui && ttypid)
++					{
++						if (menu_using_fb && ttypipe[1])
++						{
++							FILE *fbf = fdopen(ttypipe[1], "w");
++							fprintf(fbf, "<MENUIMAGE>%s\n", ss_screenshot_path());
++							fflush(fbf);
++						}
++					}
+    }
+    break;
+   case MENU_SAVE_STATE2:
+    {
++
+      if (select || minus || plus || left || right)
+      {
+        menustate = MENU_SAVE_STATE1;
+@@ -7837,9 +7932,10 @@ void HandleUI(void)
+         case 3:
+            if (select)
+            {
+-             ss_menu_load();
+              menustate = MENU_NONE1;
+-           }
++             ss_menu_load();
++           } else {
++					 }
+            break;
+        }
+      }
+@@ -8144,6 +8240,18 @@ void PrintDirectory(int expand)
+ 	}
+ }
+ 
++void FlipFBGui()
++{
++	if (menu_did_write && menu_using_fb && ttypipe[1]) {
++		FILE *fbf = fdopen(ttypipe[1], "w");
++		char fb_str[16] = {0};
++		strcpy(fb_str, "<MENUDONE>\n");
++		fputs(fb_str, fbf);
++		fflush(fbf);
++	}
++}
++
++
+ static void set_text(const char *message, unsigned char code)
+ {
+ 	char s[40];
+@@ -8307,16 +8415,3 @@ void ProgressMessage(const char* title, const char* text, int current, int max,
+ 	}
+ }
+ 
+-
+-/*
+-void menu_open_savestate_osd()
+-{
+-  if (!user_io_osd_is_visible())
+-  {
+-    menu_open_savestate = true;
+-  } else if (menustate == MENU_SAVE_STATE1 || menustate == MENU_SAVE_STATE2) {
+-    menu_open_savestate = false;
+-    menustate = MENU_NONE1;
+-  }
+-}
+-*/
+diff --git a/menu.h b/menu.h
+index beb62cd..4b2c394 100644
+--- a/menu.h
++++ b/menu.h
+@@ -16,6 +16,7 @@ void InfoMessage(const char *message, int timeout = 2000, const char *title = "M
+ void Info(const char *message, int timeout = 2000, int width = 0, int height = 0, int frame = 0);
+ void MenuHide();
+ void SelectINI();
++void FlipFBGui();
+ 
+ void open_joystick_setup();
+ int menu_lightgun_cb(int idx, uint16_t type, uint16_t code, int value);
+diff --git a/scheduler.cpp b/scheduler.cpp
+index afa29b2..08d2720 100644
+--- a/scheduler.cpp
++++ b/scheduler.cpp
+@@ -46,6 +46,7 @@ static void scheduler_co_ui(void)
+ 		{
+ 			SPIKE_SCOPE("co_ui", 1000);
+ 			HandleUI();
++			FlipFBGui();
+ 			OsdUpdate();
+ 		}
+ 
+diff --git a/user_io.cpp b/user_io.cpp
+index 5fd2921..7264b4b 100644
+--- a/user_io.cpp
++++ b/user_io.cpp
+@@ -4413,8 +4413,34 @@ void ss_menu_save()
+   if (!cfg.ss_save_bit[0]) return;
+ 
+   ss_save_pending = true;
++	char screenshot_name[1024] = {0};
++	char use_rom_name[1024] = {0};
++	strcpy(use_rom_name, ss_rom_name);
++	char *p = strrchr(use_rom_name, '.');
++	if (p) p[0] = 0;
++	p = strrchr(use_rom_name, '/');
++	if (!p) p = use_rom_name;
++	sprintfz(screenshot_name, "/%s/%s_ss_%d.png", CoreName, p, ss_save_slot);
++	request_screenshot(screenshot_name, 0);
+   user_io_status_set(cfg.ss_save_bit, 1);
+   user_io_status_set(cfg.ss_save_bit, 0);
++
+ }
+ 
+ 
++char *ss_screenshot_path()
++{
++
++	static char ss_filename[1024] = {0};
++	char screenshot_name[1024] = {0};
++	char use_rom_name[1024] = {0};
++	strcpy(use_rom_name, ss_rom_name);
++	char *p = strrchr(use_rom_name, '.');
++	if (p) p[0] = 0;
++	p = strrchr(use_rom_name, '/');
++	if (!p) p = use_rom_name;
++	sprintfz(screenshot_name, "/%s/%s_ss_%d.png", CoreName, p, ss_save_slot);
++	FileGenerateScreenshotName(screenshot_name, ss_filename, "png", 1024);
++	return (char *)getFullPath(ss_filename);
++}
++
+diff --git a/user_io.h b/user_io.h
+index e590370..fe19fa3 100644
+--- a/user_io.h
++++ b/user_io.h
+@@ -8,6 +8,7 @@
+ 
+ #include <inttypes.h>
+ #include "file_io.h"
++#include "str_util.h"
+ 
+ #define UIO_STATUS      0x00
+ #define UIO_BUT_SW      0x01
+@@ -297,8 +298,10 @@ char is_3do();
+ 
+ 
+ void ss_menu_load();
++void ss_menu_set_pid(pid_t pid);
+ void ss_menu_save();
+ void ss_menu_set_slot(uint8_t slot);
++char *ss_screenshot_path();
+ uint8_t ss_menu_get_slot();
+ int ss_menu_get_descr(char *descr, int descr_sz);
+ bool core_has_save_states();
+-- 
+2.54.0
+

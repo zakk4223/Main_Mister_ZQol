@@ -1,7 +1,7 @@
-From 76572554bca94004c898500f2622998e9cc67e42 Mon Sep 17 00:00:00 2001
+From c14859f93c98c2fe295fa499c6ac4d477b133729 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 3 Mar 2026 02:40:53 -0500
-Subject: [PATCH 1/9] 0001
+Date: Sun, 17 May 2026 14:18:45 -0400
+Subject: [PATCH 1/8] 0001
 
 ---
  input.cpp | 144 ++++++++++++++++++++++++++++++++++++++++++++
@@ -10,10 +10,10 @@ Subject: [PATCH 1/9] 0001
  3 files changed, 325 insertions(+), 3 deletions(-)
 
 diff --git a/input.cpp b/input.cpp
-index 95c141c..8e4d83a 100644
+index d7e1e1e..803986b 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -1417,6 +1417,76 @@ static int grabbed = 1;
+@@ -1736,6 +1736,76 @@ static int grabbed = 1;
  static uint32_t osd_timer = 0;
  static uint32_t map_advance_timer = 0;
  
@@ -90,7 +90,7 @@ index 95c141c..8e4d83a 100644
  void start_map_setting(int cnt, int set, advancedButtonMap *abm_store)
  {
  	mapping_current_key = 0;
-@@ -2461,6 +2531,7 @@ void reset_players()
+@@ -2785,6 +2855,7 @@ void reset_players()
  	}
  	memset(player_pad, 0, sizeof(player_pad));
  	memset(player_pdsp, 0, sizeof(player_pdsp));
@@ -98,7 +98,7 @@ index 95c141c..8e4d83a 100644
  }
  
  static void store_player(int num, int dev)
-@@ -2578,6 +2649,51 @@ static void setup_deadzone(struct input_event* ev, int dev)
+@@ -2902,6 +2973,51 @@ static void setup_deadzone(struct input_event* ev, int dev)
  	}
  }
  
@@ -150,7 +150,7 @@ index 95c141c..8e4d83a 100644
  void unflag_players()
  {
  	for (int k = 1; k < NUMPLAYERS; k++)
-@@ -3272,6 +3388,13 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3596,6 +3712,13 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  		case EV_KEY:
  
  			//joystick buttons, digital directions
@@ -164,7 +164,7 @@ index 95c141c..8e4d83a 100644
  			if (ev->code >= 256)
  			{
  				if (input[dev].lightgun_req && !user_io_osd_is_visible())
-@@ -3290,6 +3413,11 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3614,6 +3737,11 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  				if (user_io_osd_is_visible() || video_fb_state())
  				{
@@ -176,7 +176,7 @@ index 95c141c..8e4d83a 100644
  					if (ev->value <= 1)
  					{
  						if ((input[dev].mmap[SYS_BTN_MENU_FUNC] & 0xFFFF) ?
-@@ -3572,6 +3700,10 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -3896,6 +4024,10 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  		//analog joystick
  		case EV_ABS:
@@ -187,7 +187,7 @@ index 95c141c..8e4d83a 100644
  			if (!user_io_osd_is_visible())
  			{
  				int value = ev->value;
-@@ -3694,6 +3826,12 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
+@@ -4018,6 +4150,12 @@ static void input_cb(struct input_event *ev, struct input_absinfo *absinfo, int
  
  		// spinner
  		case EV_REL:
@@ -200,9 +200,9 @@ index 95c141c..8e4d83a 100644
  			if (!user_io_osd_is_visible() && ev->code == 7)
  			{
  				if (input[dev].num && input[dev].num <= NUMPLAYERS)
-@@ -4791,6 +4929,11 @@ int input_test(int getchar)
- 	struct input_event ev;
+@@ -5119,6 +5257,11 @@ int input_test(int getchar)
  	static uint32_t timeout = 0;
+ 	static int stick_debug = 0;
  
 +	if (remapping_spinner_input != 0)
 +	{
@@ -212,7 +212,7 @@ index 95c141c..8e4d83a 100644
  	if (touch_rel && CheckTimer(touch_rel))
  	{
  		touch_rel = 0;
-@@ -5508,6 +5651,7 @@ int input_test(int getchar)
+@@ -5866,6 +6009,7 @@ int input_test(int getchar)
  								if (is_menu() && !video_fb_state())
  								{
  									/*
@@ -221,7 +221,7 @@ index 95c141c..8e4d83a 100644
  									{
  										static char str[64], str2[64];
 diff --git a/input.h b/input.h
-index 97c9b1d..086c345 100644
+index 117c02a..9516866 100644
 --- a/input.h
 +++ b/input.h
 @@ -119,6 +119,16 @@ int get_map_count();
@@ -242,10 +242,10 @@ index 97c9b1d..086c345 100644
  uint32_t get_key_mod();
  uint32_t get_ps2_code(uint16_t key);
 diff --git a/menu.cpp b/menu.cpp
-index 5d5f5e8..08144d7 100644
+index 6d125a3..efac453 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -217,6 +217,8 @@ enum MENU
+@@ -218,6 +218,8 @@ enum MENU
  	// Atari 8bit cartridge type selection
  	MENU_ATARI8BIT_CART1,
  	MENU_ATARI8BIT_CART2,
@@ -254,7 +254,7 @@ index 5d5f5e8..08144d7 100644
  };
  
  static uint32_t menustate = MENU_NONE1;
-@@ -2765,7 +2767,7 @@ void HandleUI(void)
+@@ -2818,7 +2820,7 @@ void HandleUI(void)
  				s[28] = 0;
  				MenuWrite(n++, s, menusub == 2, 0);
  				MenuWrite(n++, " Button/Key remap          \x16", menusub == 3, 0);
@@ -263,7 +263,7 @@ index 5d5f5e8..08144d7 100644
  
  				if (user_io_get_uart_mode())
  				{
-@@ -2895,8 +2897,9 @@ void HandleUI(void)
+@@ -2948,8 +2950,9 @@ void HandleUI(void)
  				break;
  
  			case 4:
@@ -275,7 +275,7 @@ index 5d5f5e8..08144d7 100644
  				break;
  
  			case 5:
-@@ -4284,6 +4287,171 @@ void HandleUI(void)
+@@ -4356,6 +4359,171 @@ void HandleUI(void)
  		}
  		break;
  
@@ -448,5 +448,5 @@ index 5d5f5e8..08144d7 100644
  	{
  		helptext_idx = 0;
 -- 
-2.53.0
+2.54.0
 

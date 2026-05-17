@@ -1,7 +1,7 @@
-From d420f61acbd29255147079b5a40509133b1b0d15 Mon Sep 17 00:00:00 2001
+From af69aec1c3d9b17cfb4d386c6bedf9912ecded08 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Tue, 3 Mar 2026 02:41:10 -0500
-Subject: [PATCH 2/9] 0002
+Date: Sun, 17 May 2026 14:18:52 -0400
+Subject: [PATCH 2/8] 0002
 
 ---
  support/arcade/mra_loader.cpp | 21 +++++++++++++++++++++
@@ -9,7 +9,7 @@ Subject: [PATCH 2/9] 0002
  2 files changed, 23 insertions(+)
 
 diff --git a/support/arcade/mra_loader.cpp b/support/arcade/mra_loader.cpp
-index ccaf2f9..29f913e 100644
+index ddb0aa3..a458859 100644
 --- a/support/arcade/mra_loader.cpp
 +++ b/support/arcade/mra_loader.cpp
 @@ -63,6 +63,27 @@ static int  nvram_idx  = 0;
@@ -54,5 +54,5 @@ index 529f616..2cfe985 100644
  mgl_struct* mgl_parse(const char *xml);
  mgl_struct* mgl_get();
 -- 
-2.53.0
+2.54.0
 

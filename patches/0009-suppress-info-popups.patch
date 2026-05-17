@@ -1,0 +1,51 @@
+From bc2d86ed95f2bc5e8ae384cd56ca4c4949d8857d Mon Sep 17 00:00:00 2001
+From: Zakk <zakk@rsdio.com>
+Date: Sun, 17 May 2026 14:55:06 -0400
+Subject: [PATCH 9/9] 0009
+
+---
+ cfg.cpp  | 1 +
+ cfg.h    | 1 +
+ menu.cpp | 2 ++
+ 3 files changed, 4 insertions(+)
+
+diff --git a/cfg.cpp b/cfg.cpp
+index 46efb35..3ef6ae3 100644
+--- a/cfg.cpp
++++ b/cfg.cpp
+@@ -36,6 +36,7 @@ typedef struct
+ static const ini_var_t ini_vars[] =
+ {
+ 
++	{ "SUPPRESS_INFO", (void *)(&(cfg.suppress_info)), UINT8, 0, 1 },
+ 	{ "EXTERNAL_SAVE_STATE_UI", (void *)(&(cfg.external_save_state_ui)), STRING, 0, sizeof(cfg.external_save_state_ui) - 1},
+ 	{ "SOCD_UD", (void*)(&(cfg.socd_ud)), STRING, 0, sizeof(cfg.socd_ud) - 1 },
+ 	{ "SOCD_LR", (void*)(&(cfg.socd_lr)), STRING, 0, sizeof(cfg.socd_lr) - 1 },
+diff --git a/cfg.h b/cfg.h
+index e607646..df9f7f9 100644
+--- a/cfg.h
++++ b/cfg.h
+@@ -118,6 +118,7 @@ typedef struct {
+ 	uint8_t socd_lr_int;
+ 	char external_save_state_ui[256];
+ 	uint8_t use_external_save_state_ui;
++  uint8_t suppress_info;
+ 	char vfilter_interlace_default[1023];
+ 	char autofire_rates[3072];
+ 	uint8_t autofire_on_directions;
+diff --git a/menu.cpp b/menu.cpp
+index 6cd2431..eb194b7 100644
+--- a/menu.cpp
++++ b/menu.cpp
+@@ -8428,6 +8428,8 @@ int menu_present()
+ 
+ void Info(const char *message, int timeout, int width, int height, int frame)
+ {
++  if (cfg.suppress_info) return;
++
+ 	if (menustate <= MENU_INFO)
+ 	{
+ 		OSD_PrintInfo(message, &width, &height, frame);
+-- 
+2.54.0
+
