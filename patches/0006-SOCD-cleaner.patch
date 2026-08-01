@@ -1,7 +1,7 @@
-From a4040885373f08aa127595a57d788d3b34904c5c Mon Sep 17 00:00:00 2001
+From 1b0a5cfe185a8f4bd6dd7c5431dedfb251c82265 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sun, 17 May 2026 14:25:45 -0400
-Subject: [PATCH 6/8] 0006
+Date: Sat, 1 Aug 2026 13:51:47 -0400
+Subject: [PATCH 6/9] 0006
 
 ---
  cfg.cpp   | 19 +++++++++++++++++++
@@ -10,10 +10,10 @@ Subject: [PATCH 6/8] 0006
  3 files changed, 67 insertions(+), 1 deletion(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index 38a700d..ced5d4f 100644
+index 3540328..81fd721 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -36,6 +36,8 @@ typedef struct
+@@ -37,6 +37,8 @@ typedef struct
  static const ini_var_t ini_vars[] =
  {
  
@@ -22,7 +22,7 @@ index 38a700d..ced5d4f 100644
  	{ "SS_LOAD_BIT", (void *)(&(cfg.ss_load_bit)), STRING, 0, sizeof(cfg.ss_load_bit) - 1},
  	{ "SS_SAVE_BIT", (void *)(&(cfg.ss_save_bit)), STRING, 0, sizeof(cfg.ss_save_bit) - 1},
  	{ "SS_CURRENT_SLOT", (void *)(&(cfg.ss_current_slot)), STRING, 0, sizeof(cfg.ss_current_slot) - 1},
-@@ -436,6 +438,23 @@ static void ini_parse_var(char* buf)
+@@ -449,6 +451,23 @@ static void ini_parse_var(char* buf)
  			break;
  		}
  	}
@@ -47,7 +47,7 @@ index 38a700d..ced5d4f 100644
  
  static void ini_parse(int alt, const char *vmode)
 diff --git a/cfg.h b/cfg.h
-index 317ecc9..b7f7b8f 100644
+index 926386e..472506d 100644
 --- a/cfg.h
 +++ b/cfg.h
 @@ -7,6 +7,15 @@
@@ -66,7 +66,7 @@ index 317ecc9..b7f7b8f 100644
  //// type definitions ////
  typedef struct {
  	uint8_t  disable_nvram;
-@@ -103,6 +112,10 @@ typedef struct {
+@@ -109,6 +118,10 @@ typedef struct {
  	char ss_load_bit[8];
  	char ss_save_bit[8];
  	char ss_current_slot[15];
@@ -78,10 +78,10 @@ index 317ecc9..b7f7b8f 100644
  	char autofire_rates[3072];
  	uint8_t autofire_on_directions;
 diff --git a/input.cpp b/input.cpp
-index 00249f2..3b8322e 100644
+index cfac5ba..38e867d 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -6726,7 +6726,41 @@ int input_poll(int getchar)
+@@ -6730,7 +6730,41 @@ int input_poll(int getchar)
  	{
  		for (int i = 0; i < NUMPLAYERS; i++) {
  			joy_mask[i] = joy_mask[i] | autofire_mask[i];
@@ -125,5 +125,5 @@ index 00249f2..3b8322e 100644
  			{
  				joy_mask_prev[i] = joy_mask[i];
 -- 
-2.54.0
+2.55.0
 

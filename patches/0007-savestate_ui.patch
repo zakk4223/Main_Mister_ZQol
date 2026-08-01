@@ -1,7 +1,7 @@
-From 2b891299e54a7f5d8723761614bc84602aacd243 Mon Sep 17 00:00:00 2001
+From 55602335c4f97ce5d5883b81558cacb690785640 Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sun, 17 May 2026 14:35:05 -0400
-Subject: [PATCH 7/8] 0007
+Date: Sat, 1 Aug 2026 13:51:56 -0400
+Subject: [PATCH 7/9] 0007
 
 ---
  cfg.cpp       |   7 +++
@@ -15,10 +15,10 @@ Subject: [PATCH 7/8] 0007
  8 files changed, 157 insertions(+), 21 deletions(-)
 
 diff --git a/cfg.cpp b/cfg.cpp
-index ced5d4f..46efb35 100644
+index 81fd721..e1fdf51 100644
 --- a/cfg.cpp
 +++ b/cfg.cpp
-@@ -36,6 +36,7 @@ typedef struct
+@@ -37,6 +37,7 @@ typedef struct
  static const ini_var_t ini_vars[] =
  {
  
@@ -26,7 +26,7 @@ index ced5d4f..46efb35 100644
  	{ "SOCD_UD", (void*)(&(cfg.socd_ud)), STRING, 0, sizeof(cfg.socd_ud) - 1 },
  	{ "SOCD_LR", (void*)(&(cfg.socd_lr)), STRING, 0, sizeof(cfg.socd_lr) - 1 },
  	{ "SS_LOAD_BIT", (void *)(&(cfg.ss_load_bit)), STRING, 0, sizeof(cfg.ss_load_bit) - 1},
-@@ -455,6 +456,12 @@ static void ini_parse_var(char* buf)
+@@ -468,6 +469,12 @@ static void ini_parse_var(char* buf)
      if (!strcasecmp(cfg.socd_lr, "right")) cfg.socd_lr_int = SOCD_LR_RIGHT;
    }
  
@@ -40,10 +40,10 @@ index ced5d4f..46efb35 100644
  
  static void ini_parse(int alt, const char *vmode)
 diff --git a/cfg.h b/cfg.h
-index b7f7b8f..e607646 100644
+index 472506d..e52c9ea 100644
 --- a/cfg.h
 +++ b/cfg.h
-@@ -116,6 +116,8 @@ typedef struct {
+@@ -122,6 +122,8 @@ typedef struct {
  	char socd_lr[16];
  	uint8_t socd_ud_int;
  	uint8_t socd_lr_int;
@@ -53,10 +53,10 @@ index b7f7b8f..e607646 100644
  	char autofire_rates[3072];
  	uint8_t autofire_on_directions;
 diff --git a/input.cpp b/input.cpp
-index 3b8322e..5d0e968 100644
+index 38e867d..9c51bef 100644
 --- a/input.cpp
 +++ b/input.cpp
-@@ -2178,6 +2178,7 @@ static void uinp_send_key(uint16_t key, int press)
+@@ -2179,6 +2179,7 @@ static void uinp_send_key(uint16_t key, int press)
  
  static void uinp_check_key()
  {
@@ -65,10 +65,10 @@ index 3b8322e..5d0e968 100644
  	{
  		if (!grabbed)
 diff --git a/menu.cpp b/menu.cpp
-index 80a98c4..3030ce2 100644
+index ca3110e..b7c3831 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -44,6 +44,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+@@ -45,6 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  #include <bluetooth.h>
  #include <hci.h>
  #include <hci_lib.h>
@@ -76,7 +76,7 @@ index 80a98c4..3030ce2 100644
  
  #include "file_io.h"
  #include "osd.h"
-@@ -226,6 +227,7 @@ enum MENU
+@@ -227,6 +228,7 @@ enum MENU
    MENU_SAVE_STATE3,
  };
  
@@ -84,7 +84,7 @@ index 80a98c4..3030ce2 100644
  static uint32_t menustate = MENU_NONE1;
  static uint32_t parentstate;
  static uint32_t menusub = 0;
-@@ -240,6 +242,9 @@ static bool osd_unlocked = 1;
+@@ -243,6 +245,9 @@ static bool osd_unlocked = 1;
  static char osd_code_entry[32];
  static uint32_t osd_lock_timer = 0;
  
@@ -94,7 +94,7 @@ index 80a98c4..3030ce2 100644
  
  extern const char *version;
  
-@@ -798,6 +803,27 @@ static void MenuWrite(unsigned char n, const char *s = "", unsigned char invert
+@@ -816,6 +821,27 @@ static void MenuWrite(unsigned char n, const char *s = "", unsigned char invert
  {
  	int row = n - firstmenu;
  
@@ -122,7 +122,7 @@ index 80a98c4..3030ce2 100644
  	if (row < 0)
  	{
  		if (invert) adjvisible = row;
-@@ -833,9 +859,10 @@ const char* get_rbf_name_bootcore(char *str)
+@@ -851,9 +877,10 @@ const char* get_rbf_name_bootcore(char *str)
  }
  
  
@@ -135,7 +135,7 @@ index 80a98c4..3030ce2 100644
  	{
  		EnableOsd_on(OSD_VGA);
  		OsdSetSize(16);
-@@ -860,7 +887,7 @@ static void vga_nag()
+@@ -878,7 +905,7 @@ static void vga_nag()
  	}
  
  	OsdDisable();
@@ -144,8 +144,8 @@ index 80a98c4..3030ce2 100644
  }
  
  void process_addon(char *ext, uint8_t idx)
-@@ -1071,8 +1098,58 @@ void build_advanced_map_summary(advancedButtonMap *abm, char *dest_str, size_t d
- 	snprintf(dest_str, dest_size, "%s->%s", input_str, output_str);
+@@ -1095,8 +1122,58 @@ static void *close_pipe_async(void *arg)
+ 	return NULL;
  }
  
 +void closeFBMenu()
@@ -203,7 +203,7 @@ index 80a98c4..3030ce2 100644
  	PROFILE_FUNCTION();
  
  	if (bt_timer >= 0)
-@@ -1273,8 +1350,9 @@ void HandleUI(void)
+@@ -1312,8 +1389,9 @@ void HandleUI(void)
  		}
  	}
  
@@ -214,7 +214,7 @@ index 80a98c4..3030ce2 100644
  	{
  		switch (c)
  		{
-@@ -1577,6 +1655,7 @@ void HandleUI(void)
+@@ -1616,6 +1694,7 @@ void HandleUI(void)
  		menustate = MENU_NONE2;
  		firstmenu = 0;
  		vga_nag();
@@ -222,7 +222,7 @@ index 80a98c4..3030ce2 100644
  		OsdSetSize(8);
  		break;
  
-@@ -1632,8 +1711,11 @@ void HandleUI(void)
+@@ -1671,8 +1750,11 @@ void HandleUI(void)
  				}
  			}
  			OsdClear();
@@ -236,7 +236,7 @@ index 80a98c4..3030ce2 100644
  			if (mgl->state == 1) mgl->state = 2;
  		}
  		break;
-@@ -7779,6 +7861,9 @@ void HandleUI(void)
+@@ -7846,6 +7928,9 @@ void HandleUI(void)
  
    case MENU_SAVE_STATE1:
     {
@@ -246,7 +246,7 @@ index 80a98c4..3030ce2 100644
  					menustate = MENU_SAVE_STATE2;
  					parentstate = MENU_SAVE_STATE1;
  					OsdSetTitle("Save States", 0);
-@@ -7802,10 +7887,20 @@ void HandleUI(void)
+@@ -7869,10 +7954,20 @@ void HandleUI(void)
            MenuWrite(n, " Save", menusub == n, 0); n++;
  					MenuWrite(n, " Load", menusub == n, 0); n++;
  					for (int i = n; i < OsdGetSize() - 1; i++) MenuWrite(i, "", 0, 0);
@@ -267,7 +267,7 @@ index 80a98c4..3030ce2 100644
       if (select || minus || plus || left || right)
       {
         menustate = MENU_SAVE_STATE1;
-@@ -7837,9 +7932,10 @@ void HandleUI(void)
+@@ -7904,9 +7999,10 @@ void HandleUI(void)
          case 3:
             if (select)
             {
@@ -280,7 +280,7 @@ index 80a98c4..3030ce2 100644
             break;
         }
       }
-@@ -8144,6 +8240,18 @@ void PrintDirectory(int expand)
+@@ -8211,6 +8307,18 @@ void PrintDirectory(int expand)
  	}
  }
  
@@ -299,7 +299,7 @@ index 80a98c4..3030ce2 100644
  static void set_text(const char *message, unsigned char code)
  {
  	char s[40];
-@@ -8307,16 +8415,3 @@ void ProgressMessage(const char* title, const char* text, int current, int max,
+@@ -8374,16 +8482,3 @@ void ProgressMessage(const char* title, const char* text, int current, int max,
  	}
  }
  
@@ -329,10 +329,10 @@ index beb62cd..4b2c394 100644
  void open_joystick_setup();
  int menu_lightgun_cb(int idx, uint16_t type, uint16_t code, int value);
 diff --git a/scheduler.cpp b/scheduler.cpp
-index afa29b2..08d2720 100644
+index d52bd41..c7ee1bc 100644
 --- a/scheduler.cpp
 +++ b/scheduler.cpp
-@@ -46,6 +46,7 @@ static void scheduler_co_ui(void)
+@@ -48,6 +48,7 @@ static void scheduler_co_ui(void)
  		{
  			SPIKE_SCOPE("co_ui", 1000);
  			HandleUI();
@@ -341,10 +341,10 @@ index afa29b2..08d2720 100644
  		}
  
 diff --git a/user_io.cpp b/user_io.cpp
-index 5fd2921..7264b4b 100644
+index 9f444d7..e40cc68 100644
 --- a/user_io.cpp
 +++ b/user_io.cpp
-@@ -4413,8 +4413,34 @@ void ss_menu_save()
+@@ -4458,8 +4458,34 @@ void ss_menu_save()
    if (!cfg.ss_save_bit[0]) return;
  
    ss_save_pending = true;
@@ -403,5 +403,5 @@ index e590370..fe19fa3 100644
  int ss_menu_get_descr(char *descr, int descr_sz);
  bool core_has_save_states();
 -- 
-2.54.0
+2.55.0
 

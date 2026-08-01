@@ -1,7 +1,7 @@
-From db1da4cfa6cc07add0991022e03b5b95682825eb Mon Sep 17 00:00:00 2001
+From 8efdecad252c162d37152ac3df179ce584e0841f Mon Sep 17 00:00:00 2001
 From: Zakk <zakk@rsdio.com>
-Date: Sun, 17 May 2026 14:38:07 -0400
-Subject: [PATCH 8/8] 0008
+Date: Sat, 1 Aug 2026 13:52:03 -0400
+Subject: [PATCH 8/9] 0008
 
 ---
  menu.cpp  | 117 ++++++++++++++++++++++++++++++++-
@@ -10,10 +10,10 @@ Subject: [PATCH 8/8] 0008
  3 files changed, 321 insertions(+), 1 deletion(-)
 
 diff --git a/menu.cpp b/menu.cpp
-index 3030ce2..6cd2431 100644
+index b7c3831..597758e 100644
 --- a/menu.cpp
 +++ b/menu.cpp
-@@ -225,6 +225,11 @@ enum MENU
+@@ -226,6 +226,11 @@ enum MENU
    MENU_SAVE_STATE1,
    MENU_SAVE_STATE2,
    MENU_SAVE_STATE3,
@@ -25,7 +25,7 @@ index 3030ce2..6cd2431 100644
  };
  
  static bool menu_using_fb = false;
-@@ -246,8 +251,12 @@ static pid_t ttypid = 0;
+@@ -249,8 +254,12 @@ static pid_t ttypid = 0;
  static int ttypipe[2];
  static bool menu_did_write;
  
@@ -38,7 +38,7 @@ index 3030ce2..6cd2431 100644
  const char *config_tos_wrprot[] = { "None", "A:", "B:", "A: and B:" };
  
  const char *config_scanlines_msg[] = { "Off", "HQ2x", "CRT 25%" , "CRT 50%" , "CRT 75%" };
-@@ -3202,7 +3211,12 @@ void HandleUI(void)
+@@ -3242,7 +3251,12 @@ void HandleUI(void)
  				menustate = sharpmz_default_ui_state();
  				break;
  			}
@@ -52,7 +52,7 @@ index 3030ce2..6cd2431 100644
  		else if (minus || plus)
  		{
  			if (menusub == 10 && audio_filter_en())
-@@ -7960,6 +7974,107 @@ void HandleUI(void)
+@@ -8027,6 +8041,107 @@ void HandleUI(void)
        }
        }
        break;
@@ -161,10 +161,10 @@ index 3030ce2..6cd2431 100644
  		/* we should never come here                                      */
  		/******************************************************************/
 diff --git a/video.cpp b/video.cpp
-index 6065d88..c36694b 100644
+index 542ef71..ea52aec 100644
 --- a/video.cpp
 +++ b/video.cpp
-@@ -2645,6 +2645,7 @@ static bool get_video_info(bool force, VideoInfo *video_info)
+@@ -2791,6 +2791,7 @@ static bool get_video_info(bool force, VideoInfo *video_info)
  		video_info->vtime = spi_w(0) | (spi_w(0) << 16);
  		video_info->ptime = spi_w(0) | (spi_w(0) << 16);
  		video_info->vtimeh = spi_w(0) | (spi_w(0) << 16);
@@ -172,7 +172,7 @@ index 6065d88..c36694b 100644
  		video_info->ctime = spi_w(0) | (spi_w(0) << 16);
  		video_info->pixrep = spi_w(0);
  		video_info->de_h = spi_w(0);
-@@ -4191,3 +4192,191 @@ int video_get_rotated()
+@@ -4354,3 +4355,191 @@ int video_get_rotated()
    return current_video_info.rotated;
  }
  
@@ -365,10 +365,10 @@ index 6065d88..c36694b 100644
 +
 +
 diff --git a/video.h b/video.h
-index bb1dd65..3452519 100644
+index 0f02587..e9510dd 100644
 --- a/video.h
 +++ b/video.h
-@@ -55,6 +55,22 @@ void  video_loadPreset(char *name, bool save);
+@@ -57,6 +57,22 @@ void  video_loadPreset(char *name, bool save);
  
  int   video_get_rotated();
  
@@ -392,5 +392,5 @@ index bb1dd65..3452519 100644
  
  void  video_mode_adjust(bool force = false);
 -- 
-2.54.0
+2.55.0
 
